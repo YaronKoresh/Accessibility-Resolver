@@ -20,7 +20,7 @@
 
 # Basic installation:
 
-* Link to this file in your HTML using a `<script src="...">` tag.
+* Link your HTML to the external JavaScript file, using `<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/Accessibility-Resolver.js">`.
 
 - - -
 
