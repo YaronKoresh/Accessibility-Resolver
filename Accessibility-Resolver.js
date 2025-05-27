@@ -57,10 +57,15 @@
         }
 
         const tagName = el.tagName;
+
         if (tagName === 'BUTTON' || (tagName === 'INPUT' && (el.type === 'submit' || el.type === 'reset'))) {
             if (el.textContent.trim().length > 0 || (el.value && el.value.trim().length > 0)) return true;
         }
-        if (tagName === 'A' && el.textContent.trim().length > 0) return true;
+        if (tagName === 'A') {
+            if (el.textContent.trim().length > 0) return true;
+            const imgChild = el.querySelector('img');
+            if (imgChild && imgChild.alt && imgChild.alt.trim().length > 0) return true;
+        }
         if (tagName === 'IMG' && el.alt && el.alt.trim().length > 0) return true;
         if (tagName === 'INPUT' && el.type === 'image' && el.alt && el.alt.trim().length > 0) return true;
         if (tagName === 'FIGURE' && el.querySelector('figcaption') && el.querySelector('figcaption').textContent.trim().length > 0) return true;
@@ -70,6 +75,7 @@
         }
 
         if (el.hasAttribute('title') && el.getAttribute('title').trim().length > 0) return true;
+
         return false;
     }
 
@@ -304,21 +310,24 @@
     function checkInteractiveElementSize() {
         logSection("4. Interactive Element Size Check");
         let issuesFound = 0;
+        let fixedCount = 0;
         const interactiveSelectors = 'button, a[href], input:not([type="hidden"]), select, textarea, [role="button"], [role="link"], [role="checkbox"], [role="radio"], [role="option"], [tabindex]:not([tabindex="-1"])';
         document.querySelectorAll(interactiveSelectors).forEach(el => {
             try {
                 const rect = el.getBoundingClientRect();
                 if (rect.width > 0 && rect.height > 0 && (rect.width < MIN_INTERACTIVE_SIZE || rect.height < MIN_INTERACTIVE_SIZE)) {
-                    logIssue('Moderate', `Interactive element is smaller than ${MIN_INTERACTIVE_SIZE}x${MIN_INTERACTIVE_SIZE} pixels.`, el, 'Increase the clickable/tappable area to at least 24x24 pixels using CSS properties like `padding`, `min-width`, or `min-height` to improve usability for all users, especially on touch devices.', 'Operable', '2.5.5 Target Size');
-                    issuesFound++;
+                    el.style.setProperty('min-width', `${MIN_INTERACTIVE_SIZE}px`, 'important');
+                    el.style.setProperty('min-height', `${MIN_INTERACTIVE_SIZE}px`, 'important');
+                    logIssue('Moderate', `Interactive element is smaller than ${MIN_INTERACTIVE_SIZE}x${MIN_INTERACTIVE_SIZE} pixels. Auto-fixed by setting \`min-width\` and \`min-height\` to ${MIN_INTERACTIVE_SIZE}px.`, el, 'Increase the clickable/tappable area to at least 24x24 pixels using CSS properties like `padding`, `min-width`, or `min-height` to improve usability for all users, especially on touch devices.', 'Operable', '2.5.5 Target Size', true);
+                    fixedCount++;
                 }
             } catch (e) {
                 console.error("Error checking element size:", e, el);
             }
         });
-        if (issuesFound === 0) {
+        if (issuesFound === 0 && fixedCount === 0) {
             console.log(`✅ All interactive elements meet the minimum size of ${MIN_INTERACTIVE_SIZE}x${MIN_INTERACTIVE_SIZE} pixels.`);
-        } else {
+        } else if (issuesFound > 0) {
             logIssue('Moderate', `Found ${issuesFound} interactive elements smaller than ${MIN_INTERACTIVE_SIZE}x${MIN_INTERACTIVE_SIZE} pixels.`, null, 'Ensure every interactive element has sufficient touch/click area.', 'Operable', '2.5.5 Target Size');
         }
         console.groupEnd();
@@ -371,17 +380,17 @@
 
         console.log("\n💡 **Manual Verification for Content on Hover/Focus is CRUCIAL:**");
         console.log("    This automated check is limited. The most reliable way to ensure accessible content on hover/focus is through thorough manual testing.");
-        console.log("    **Perform the following manual steps for ALL content that appears on hover or focus (e.g., tooltips, dropdowns, sub-menus, pop-ups):**");
-        console.log("    - **Dismissible (WCAG 1.4.13):**");
+        console.log("    **Perform the following manual steps for ALL content that appears on hover or focus (e.g., tooltips, dropdowns, sub-menus, pop-ups):");
+        console.log("    - **Dismissible (WCAG 1.4.13):");
         console.log("        * Can you easily dismiss the content without moving pointer hover or keyboard focus, e.g., by pressing the ESC key?");
         console.log("        * Does it automatically dismiss when the content is no longer needed (e.g., when the user moves focus away from the trigger and the content)?");
-        console.log("    - **Hoverable (WCAG 1.4.13):**");
+        console.log("    - **Hoverable (WCAG 1.4.13):");
         console.log("        * If the content is triggered by mouse hover, can you move your mouse pointer from the trigger element to the newly revealed content without the content disappearing?");
         console.log("        * Can you then interact with the content (e.g., click links, fill fields) within the revealed area?");
-        console.log("    - **Persistent (WCAG 1.4.13):**");
+        console.log("    - **Persistent (WCAG 1.4.13):");
         console.log("        * Does the content remain visible until the user dismisses it, or until its function is no longer relevant (e.g., when focus shifts away from both the trigger and the content)?");
         console.log("        * Does it disappear too quickly if the user moves focus or pointer slightly?");
-        console.log("    - **Overall Experience:**");
+        console.log("    - **Overall Experience:");
         console.log("        * Does the content appear clearly and is its text readable (consider using the contrast checker for its text content)?");
         console.log("        * If the revealed content contains interactive elements, can you navigate to them and interact with them using only the keyboard?");
         console.groupEnd();
