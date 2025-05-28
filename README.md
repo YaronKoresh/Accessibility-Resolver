@@ -22,14 +22,13 @@
 
 * Link Accessibility-Resolver to your website externally:
 ```
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/1.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/2.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/3.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/4.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/5.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/6.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/7.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/8.js" defer="defer"></script>
+<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_config_selectors.js" defer="defer"></script>
+<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_utils_logging.js.js" defer="defer"></script>
+<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_utils_dom.js" defer="defer"></script>
+<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_menu_ui.js" defer="defer"></script>
+<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_menu_actions.js" defer="defer"></script>
+<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_check_modules.js" defer="defer"></script>
+<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_init.js" defer="defer"></script>
 ```
 * Your website will always be accessible and up-to-date with the latest version.
 
