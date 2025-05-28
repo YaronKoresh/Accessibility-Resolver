@@ -33,7 +33,7 @@
         var AR_CheckModules = {};
     }
 </script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_menu_ui.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_menu_layout.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_menu_actions.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_check_modules.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_init.js"></script>
