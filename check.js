@@ -135,7 +135,7 @@ var AR_CheckModules = AR_CheckModules || {};
 					const placeholderSrc = AR_CONFIG.PLACEHOLDER_IMAGE_URL.replace('{width}', placeholderWidth.toString()).replace('{height}', placeholderHeight.toString()).replace('{text}', encodeURIComponent(altText.substring(0, 50)));
 					img.setAttribute('data-original-src', originalSrc);
 					img.src = placeholderSrc;
-					img.alt = `Placeholder for broken image: ${ altText }`;
+					img.alt = `Placeholder for broken image: ${ ar_escapeHtml(altText) }`;
 					ar_logAccessibilityIssue('Critical', 'Broken image detected. Replaced with a placeholder.', img, `Original src: ${ originalSrc }. Verify the image source or ensure the alt text is sufficiently descriptive if the image cannot be restored.`, 'Perceivable', '1.1.1 Non-text Content', true, 'A')
 				}
 			} catch (e) {
@@ -153,7 +153,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				if (!hasName && (href === '#' || href === '' || !href || href.trim().toLowerCase() === 'javascript:void(0);')) {
 					const titleAttr = (a.getAttribute('title') || '').trim();
 					if (titleAttr.length > AR_CONFIG.MIN_CHAR_LENGTH_FOR_NON_EMPTY_ALT_TEXT) {
-						ar_setAttributeAndLog(a, 'aria-label', titleAttr, 'Minor', 'Link with no discernible text content but a title attribute. Auto-set aria-label from title.', 'Review auto-generated aria-label. Prefer descriptive link text over title attribute for links.', 'Perceivable', '2.4.4 Link Purpose (In Context)', 'A')
+						ar_setAttributeAndLog(a, 'aria-label', ar_escapeHtml(titleAttr), 'Minor', 'Link with no discernible text content but a title attribute. Auto-set aria-label from title.', 'Review auto-generated aria-label. Prefer descriptive link text over title attribute for links.', 'Perceivable', '2.4.4 Link Purpose (In Context)', 'A')
 					} else {
 						const rect = a.getBoundingClientRect();
 						if (rect.width < 10 && rect.height < 10 && rect.width > 0 && rect.height > 0) {
@@ -182,7 +182,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				}
 				if (!img.hasAttribute('alt')) {
 					const generatedAlt = this._generateAltTextAttempt(img);
-					ar_setAttributeAndLog(img, 'alt', generatedAlt, 'Critical', `Image missing alt attribute. Auto-set to "${ generatedAlt }".`, '**Manual review required.**', 'Perceivable', '1.1.1 Non-text Content', 'A')
+					ar_setAttributeAndLog(img, 'alt', ar_escapeHtml(generatedAlt), 'Critical', `Image missing alt attribute. Auto-set to "${ ar_escapeHtml(generatedAlt) }".`, '**Manual review required.**', 'Perceivable', '1.1.1 Non-text Content', 'A')
 				} else {
 					const alt = (img.alt || '').trim();
 					if (alt === '') {
@@ -220,7 +220,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				altText = parentText.substring(0, Math.min(parentText.length, 50)) + (parentText.length > 50 ? '...' : '')
 			}
 		}
-		return altText
+		return ar_escapeHtml(altText)
 	};
 	AR_CheckModulesProto._checkDecorativeImageContext = function (img) {
 		const src = (img.src || '').toLowerCase();
@@ -234,7 +234,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto._checkInformativeAltText = function (img, alt) {
 		const filenameFromSrc = (img.src || '').split('/').pop().split('.')[0].replace(AR_CONFIG.FILENAME_CLEANUP_REGEX, ' ').toLowerCase();
 		if (alt.toLowerCase() === filenameFromSrc && alt.length > AR_CONFIG.MIN_CHAR_LENGTH_FOR_NON_EMPTY_ALT_TEXT) {
-			ar_setAttributeAndLog(img, 'alt', `Image: ${ alt } (description needed, was filename)`, 'Minor', `Alt text "${ alt }" is filename. Auto-updated.`, 'Replace filename with description.', 'Perceivable', '1.1.1', 'A')
+			ar_setAttributeAndLog(img, 'alt', `Image: ${ ar_escapeHtml(alt) } (description needed, was filename)`, 'Minor', `Alt text "${ ar_escapeHtml(alt) }" is filename. Auto-updated.`, 'Replace filename with description.', 'Perceivable', '1.1.1', 'A')
 		}
 		const genericAlts = [
 			'image',
@@ -246,7 +246,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			'banner'
 		];
 		if (genericAlts.includes(alt.toLowerCase()) && (img.offsetWidth > 30 || img.offsetHeight > 30)) {
-			ar_logAccessibilityIssue('Minor', `Alt text "${ alt }" is generic.`, img, 'Provide more specific alt text.', 'Perceivable', '1.1.1', false, 'A')
+			ar_logAccessibilityIssue('Minor', `Alt text "${ ar_escapeHtml(alt) }" is generic.`, img, 'Provide more specific alt text.', 'Perceivable', '1.1.1', false, 'A')
 		}
 	};
 	AR_CheckModulesProto.checkIframeTitles = function () {
@@ -255,7 +255,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			try {
 				if (!iframe.title || iframe.title.trim() === '') {
 					const generatedTitle = this._generateIframeTitleAttempt(iframe);
-					ar_setAttributeAndLog(iframe, 'title', generatedTitle, 'Critical', `Iframe missing title. Auto-set to "${ generatedTitle }".`, '**Manual review required.**', 'Operable', '2.4.1, 4.1.2', 'A')
+					ar_setAttributeAndLog(iframe, 'title', ar_escapeHtml(generatedTitle), 'Critical', `Iframe missing title. Auto-set to "${ ar_escapeHtml(generatedTitle) }".`, '**Manual review required.**', 'Operable', '2.4.1, 4.1.2', 'A')
 				}
 			} catch (e) {
 				console.error('Error: IframeTitles Check:', e, iframe)
@@ -269,11 +269,20 @@ var AR_CheckModules = AR_CheckModules || {};
 			try {
 				const url = new URL(iframe.src);
 				const hostname = url.hostname.toLowerCase();
-				if (hostname.includes('youtube.com') || hostname.includes('youtu.be'))
+				const allowedYouTubeHosts = [
+					'youtube.com',
+					'youtu.be'
+				];
+				const allowedVimeoHosts = ['vimeo.com'];
+				const allowedGoogleMapsHosts = [
+					'maps.google.com',
+					'google.com/maps'
+				];
+				if (allowedYouTubeHosts.some(h => hostname.endsWith(h)))
 					title = 'YouTube video player';
-				else if (hostname.includes('vimeo.com'))
+				else if (allowedVimeoHosts.some(h => hostname.endsWith(h)))
 					title = 'Vimeo video player';
-				else if (hostname.includes('maps.google.com') || hostname.includes('google.com/maps'))
+				else if (allowedGoogleMapsHosts.some(h => hostname.endsWith(h)))
 					title = 'Google Maps embed';
 				else if (url.pathname.endsWith('.pdf'))
 					title = `Embedded PDF document: ${ url.pathname.split('/').pop() }`;
@@ -282,7 +291,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			} catch (e) {
 			}
 		}
-		return title
+		return ar_escapeHtml(title)
 	};
 	AR_CheckModulesProto.checkTableAccessibility = function () {
 		ar_logSection('Table Accessibility');
@@ -350,7 +359,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			ar_logAccessibilityIssue('Minor', 'Table with role="presentation" has summary.', table, 'Remove summary from tables used for layout.', 'Perceivable', '1.3.1', false, 'A')
 		}
 		table.querySelectorAll('th, [scope]').forEach(el => {
-			ar_logAccessibilityIssue('Minor', `Table with role="presentation" contains <${ el.tagName.toLowerCase() }> or scope attribute.`, el, `Remove <th> or scope attribute. Use <td> elements for layout tables.`, 'Perceivable', '1.3.1', false, 'A')
+			ar_logAccessibilityIssue('Minor', `Table with role="presentation" contains <${ el.tagName.toLowerCase() }> or scope attribute.`, el, `Remove <th> or scope. Use <td> elements for layout tables.`, 'Perceivable', '1.3.1', false, 'A')
 		})
 	};
 	AR_CheckModulesProto.checkOverlayFocusBlocking = function () {
@@ -579,7 +588,7 @@ var AR_CheckModules = AR_CheckModules || {};
 					return;
 				const generatedName = this._generateAccessibleNameCandidate(el);
 				if (generatedName && generatedName.trim() !== '') {
-					ar_setAttributeAndLog(el, 'aria-label', generatedName, 'Moderate', `Lacked accessible name. Auto-fixed with aria-label: "${ generatedName }".`, '**Manual review required.**', 'Perceivable', '2.4.4 / 4.1.2', 'A')
+					ar_setAttributeAndLog(el, 'aria-label', ar_escapeHtml(generatedName), 'Moderate', `Lacked accessible name. Auto-fixed with aria-label: "${ ar_escapeHtml(generatedName) }".`, '**Manual review required.**', 'Perceivable', '2.4.4 / 4.1.2', 'A')
 				} else {
 					ar_logAccessibilityIssue('Critical', `Lacked accessible name. Could not auto-generate.`, el, 'Provide descriptive text, title, aria-label, or associate with a <label>.', 'Perceivable', '2.4.4 / 4.1.2', false, 'A')
 				}
@@ -606,8 +615,8 @@ var AR_CheckModules = AR_CheckModules || {};
 		} else if (tagName === 'input' && type === 'image' && el.src) {
 			const filename = el.src.split('/').pop().split('.')[0].replace(AR_CONFIG.FILENAME_CLEANUP_REGEX, ' ');
 			label = filename.length > 3 && filename.length < 30 ? `Submit ${ filename }` : 'Submit query';
-			ar_setAttributeAndLog(el, 'alt', label, 'Moderate', `Input type="image" missing alt. Auto-set.`, '**Manual review.**', 'Perceivable', '1.1.1', 'A');
-			return label
+			ar_setAttributeAndLog(el, 'alt', ar_escapeHtml(label), 'Moderate', `Input type="image" missing alt. Auto-set.`, '**Manual review.**', 'Perceivable', '1.1.1', 'A');
+			return ar_escapeHtml(label)
 		} else if (tagName === 'img' || el.getAttribute('role') === 'img') {
 			label = this._generateAltTextAttempt(el) || 'Image (description needed)'
 		} else if (tagName === 'a') {
@@ -641,7 +650,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				for (const prefix of AR_CONFIG.COMMON_ICON_CLASS_PREFIXES) {
 					for (const cssClass of Array.from(el.classList)) {
 						if (cssClass.startsWith(prefix)) {
-							const potentialLabel = cssClass.substring(prefix.length).replace(AR_CONFIG.FILENAME_CLEANUP_REGEX, ' ').trim();
+							const potentialLabel = cssClass.substring(prefix.length).replace(AR_CONFIG.FILENAME_CLEANUP_REGEX, ' ');
 							if (potentialLabel.length > 2) {
 								iconLabel = `${ potentialLabel.charAt(0).toUpperCase() + potentialLabel.slice(1) } button`;
 								break
@@ -660,7 +669,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		if (label.length > AR_CONFIG.MAX_CHAR_LENGTH_FOR_AUTOGENERATED_ARIA_LABEL) {
 			label = label.substring(0, AR_CONFIG.MAX_CHAR_LENGTH_FOR_AUTOGENERATED_ARIA_LABEL - 3) + '...'
 		}
-		return label
+		return ar_escapeHtml(label)
 	};
 	AR_CheckModulesProto.checkLangAttribute = function () {
 		ar_logSection('Language Attribute (HTML)');
@@ -712,6 +721,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		this._checkAriaHiddenOnFocusable();
 		this._checkRedundantAriaRoles();
 		this._checkInvalidAriaRelationshipIDs();
+		this._checkRedundantAriaLabels();
 		console.groupEnd()
 	};
 	AR_CheckModulesProto._checkAriaHiddenOnFocusable = function () {
@@ -808,6 +818,27 @@ var AR_CheckModules = AR_CheckModules || {};
 				}
 			} catch (e) {
 				console.error('Error: RedundantAriaRoles Check:', e, el)
+			}
+		})
+	};
+	AR_CheckModulesProto._checkRedundantAriaLabels = function () {
+		document.querySelectorAll('[aria-label], [aria-labelledby]').forEach(el => {
+			try {
+				const ariaLabel = el.getAttribute('aria-label');
+				const ariaLabelledby = el.getAttribute('aria-labelledby');
+				const visibleText = (el.textContent || '').trim().replace(/\s+/g, ' ');
+				if (ariaLabel && visibleText.length > AR_CONFIG.MIN_CHAR_LENGTH_FOR_REDUNDANT_TITLE_CHECK && ariaLabel.trim().toLowerCase() === visibleText.toLowerCase()) {
+					ar_removeAttributeAndLog(el, 'aria-label', 'Minor', `Redundant aria-label="${ ar_escapeHtml(ariaLabel) }" duplicates visible text. Auto-removed.`, 'Remove aria-label if it duplicates visible text content.', 'Robust', '4.1.2', 'A')
+				}
+				if (ariaLabelledby) {
+					const labelledbyElements = ariaLabelledby.split(/\s+/).map(id => document.getElementById(id)).filter(Boolean);
+					const labelledbyText = labelledbyElements.map(lblEl => (lblEl.textContent || '').trim().replace(/\s+/g, ' ')).join(' ').trim();
+					if (labelledbyText.length > AR_CONFIG.MIN_CHAR_LENGTH_FOR_REDUNDANT_TITLE_CHECK && labelledbyText.toLowerCase() === visibleText.toLowerCase()) {
+						ar_removeAttributeAndLog(el, 'aria-labelledby', 'Minor', `Redundant aria-labelledby="${ ar_escapeHtml(ariaLabelledby) }" duplicates visible text. Auto-removed.`, 'Remove aria-labelledby if it duplicates visible text content.', 'Robust', '4.1.2', 'A')
+					}
+				}
+			} catch (e) {
+				console.error('Error: RedundantAriaLabels Check:', e, el)
 			}
 		})
 	};
@@ -1007,6 +1038,9 @@ var AR_CheckModules = AR_CheckModules || {};
 				if (!field.id)
 					field.id = fieldId;
 				let labelText = (field.getAttribute('title') || '').trim() || (field.placeholder || '').trim();
+				if (ar_hasExplicitLabel(field) || ar_hasParentLabel(field)) {
+					return
+				}
 				if ((field.type === 'radio' || field.type === 'checkbox') && field.nextSibling && field.nextSibling.nodeType === Node.TEXT_NODE && (field.nextSibling.textContent || '').trim().length > 0) {
 					const textNode = field.nextSibling;
 					const newLabel = document.createElement('label');
@@ -1018,7 +1052,7 @@ var AR_CheckModules = AR_CheckModules || {};
 					return
 				}
 				if (labelText) {
-					ar_setAttributeAndLog(field, 'aria-label', labelText, 'Moderate', `Field missing label. Auto-set aria-label from title/placeholder: "${ labelText }".`, '**Manual review required.** Prefer visible <label> elements.', 'Perceivable', '3.3.2', 'A')
+					ar_setAttributeAndLog(field, 'aria-label', ar_escapeHtml(labelText), 'Moderate', `Field missing label. Auto-set aria-label from title/placeholder: "${ ar_escapeHtml(labelText) }".`, '**Manual review required.** Prefer visible <label> elements.', 'Perceivable', '3.3.2', 'A')
 				} else {
 					const newLabel = document.createElement('label');
 					newLabel.htmlFor = fieldId;
@@ -1405,7 +1439,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			const h1Text = h1 && h1.textContent ? h1.textContent.trim().substring(0, 60) : '';
 			let newTitleText = (h1Text || 'Untitled Page') + (h1Text ? '' : ' - AutoTitle');
 			let newTitleEl = titleElement || document.createElement('title');
-			ar_setAttributeAndLog(newTitleEl, 'textContent', newTitleText, 'Critical', `Document title missing or empty. Auto-generated: "${ newTitleText }".`, '**Manual review required.** Provide a descriptive and unique title for the page.', 'Operable', '2.4.2 Page Titled', 'A');
+			ar_setAttributeAndLog(newTitleEl, 'textContent', ar_escapeHtml(newTitleText), 'Critical', `Document title missing or empty. Auto-generated: "${ ar_escapeHtml(newTitleText) }".`, '**Manual review required.** Provide a descriptive and unique title for the page.', 'Operable', '2.4.2 Page Titled', 'A');
 			if (!titleElement)
 				head.appendChild(newTitleEl)
 		}
