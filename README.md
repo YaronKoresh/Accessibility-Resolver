@@ -20,17 +20,9 @@
 
 # Basic installation:
 
-Link your website externally.
-```
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/1.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/2.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/3.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/4.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/5.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/6.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/7.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/8.js" defer="defer"></script>
-```
+* Link Accessibility-Resolver to your website externally:
+`<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/a11y.js" defer="defer"></script>`.
+* Your website will always be accessible and up-to-date with the latest version, using a single <script> tag.
 
 - - -
 
