@@ -25,7 +25,7 @@
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@7752ef8349186e9fa6f45c92c0dc61730d6a8f1f/config.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@7752ef8349186e9fa6f45c92c0dc61730d6a8f1f/logging.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@7752ef8349186e9fa6f45c92c0dc61730d6a8f1f/dom.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@f2376fb2d2f76cf8d20c0e573ac17c14651183d4/menu.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@167be2670c738769389ca682752f4fd8113133a5/menu.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@7752ef8349186e9fa6f45c92c0dc61730d6a8f1f/check.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@7752ef8349186e9fa6f45c92c0dc61730d6a8f1f/init.js"></script>
 ```
