@@ -21,7 +21,9 @@
 # Basic installation:
 
 * Link Accessibility-Resolver to your website externally:
-`<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/Accessibility-Resolver.js" defer="defer"></script>`.
+```
+<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/Accessibility-Resolver.js" defer="defer"></script>
+```
 * Your website will always be accessible and up-to-date with the latest version, using a single <script> tag.
 
 - - -
