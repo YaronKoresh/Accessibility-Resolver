@@ -18,11 +18,24 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto.isButtonDragging = false;
 	AR_AccessibilityMenuProto.buttonOffsetX = 0;
 	AR_AccessibilityMenuProto.buttonOffsetY = 0;
+	AR_AccessibilityMenuProto.isDraggingOccurred = false;
 	AR_AccessibilityMenuProto.isTextToSpeechActive = false;
 	AR_AccessibilityMenuProto.currentSpeechUtterance = null;
 	AR_AccessibilityMenuProto.currentZoomLevel = 1;
 	AR_AccessibilityMenuProto.activeCursorClassName = 'default';
 	AR_AccessibilityMenuProto._initialComputedFontSizes = new Map();
+	function getClientCoords(event) {
+		if (event.touches && event.touches.length > 0) {
+			return {
+				clientX: event.touches[0].clientX,
+				clientY: event.touches[0].clientY
+			}
+		}
+		return {
+			clientX: event.clientX,
+			clientY: event.clientY
+		}
+	}
 	AR_AccessibilityMenuProto.init = function () {
 		this._injectStyles();
 		this._createMenuButton();
@@ -60,7 +73,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             /* Main Menu Panel */
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } {
                 display: none; position: fixed; bottom: 90px;
-                width: 350px; max-height: calc(100vh - 120px); overflow-y: auto;
+                width: 400px; /* Increased width */
+                max-height: calc(100vh - 120px); overflow-y: auto;
                 background-color: #fff; border: 1px solid #bdbdbd; border-radius: 12px;
                 box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 2147483647; /* Ensure highest z-index */
                 padding: 20px; font-family: 'Inter', sans-serif; /* Changed font to Inter */
@@ -434,9 +448,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			btn.style.right = '20px';
 			btn.style.left = 'auto'
 		}
+		btn.style.top = '50%';
+		btn.style.transform = 'translateY(-50%)';
 		document.body.appendChild(btn);
 		btn.addEventListener('mousedown', this._startButtonDragging.bind(this));
-		btn.style.top = `${ window.innerHeight - 20 - btn.offsetHeight }px`
+		btn.addEventListener('touchstart', this._startButtonDragging.bind(this))
 	};
 	AR_AccessibilityMenuProto._createMenuPanel = function () {
 		if (document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID))
@@ -527,7 +543,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const menuButton = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
 		const menuPanel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
 		if (menuButton) {
-			menuButton.addEventListener('click', this.toggleMenu.bind(this))
+			menuButton.addEventListener('click', event => {
+				if (this.isDraggingOccurred) {
+					this.isDraggingOccurred = false;
+					return
+				}
+				this.toggleMenu()
+			})
 		}
 		if (menuPanel) {
 			menuPanel.addEventListener('click', event => {
@@ -1298,6 +1320,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this.isDragging = true;
 		panel.classList.add('dragging');
 		panel.style.cursor = 'grabbing';
+		const coords = getClientCoords(event);
 		const computedStyle = window.getComputedStyle(panel);
 		let currentLeft = parseFloat(computedStyle.left);
 		let currentBottom = parseFloat(computedStyle.bottom);
@@ -1307,12 +1330,15 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (isNaN(currentBottom)) {
 			currentBottom = window.innerHeight - parseFloat(computedStyle.top) - panel.offsetHeight
 		}
-		this.offsetX = event.clientX - currentLeft;
-		this.offsetY = event.clientY - (window.innerHeight - currentBottom - panel.offsetHeight);
+		this.offsetX = coords.clientX - currentLeft;
+		this.offsetY = coords.clientY - (window.innerHeight - currentBottom - panel.offsetHeight);
 		panel.style.top = `${ window.innerHeight - currentBottom - panel.offsetHeight }px`;
 		panel.style.left = `${ currentLeft }px`;
 		panel.style.right = 'auto';
-		panel.style.bottom = 'auto'
+		panel.style.bottom = 'auto';
+		if (event.type === 'touchstart') {
+			event.preventDefault()
+		}
 	};
 	AR_AccessibilityMenuProto._doDragging = function (event) {
 		if (!this.isDragging)
@@ -1320,8 +1346,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const panel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
 		if (!panel)
 			return;
-		let newLeft = event.clientX - this.offsetX;
-		let newTop = event.clientY - this.offsetY;
+		const coords = getClientCoords(event);
+		let newLeft = coords.clientX - this.offsetX;
+		let newTop = coords.clientY - this.offsetY;
 		const minX = 0;
 		const minY = 0;
 		const maxX = window.innerWidth - panel.offsetWidth;
@@ -1329,7 +1356,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		newLeft = Math.max(minX, Math.min(newLeft, maxX));
 		newTop = Math.max(minY, Math.min(newTop, maxY));
 		panel.style.left = `${ newLeft }px`;
-		panel.style.top = `${ newTop }px`
+		panel.style.top = `${ newTop }px`;
+		if (event.type === 'touchmove') {
+			event.preventDefault()
+		}
 	};
 	AR_AccessibilityMenuProto._stopDragging = function () {
 		if (this.isDragging) {
@@ -1348,6 +1378,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this.isButtonDragging = true;
 		button.classList.add('dragging');
 		button.style.cursor = 'grabbing';
+		this.isDraggingOccurred = false;
+		const coords = getClientCoords(event);
 		const computedStyle = window.getComputedStyle(button);
 		let currentLeft = parseFloat(computedStyle.left);
 		let currentTop = parseFloat(computedStyle.top);
@@ -1357,10 +1389,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (isNaN(currentTop)) {
 			currentTop = window.innerHeight - parseFloat(computedStyle.bottom) - button.offsetHeight
 		}
-		this.buttonOffsetX = event.clientX - currentLeft;
-		this.buttonOffsetY = event.clientY - currentTop;
+		this.buttonOffsetX = coords.clientX - currentLeft;
+		this.buttonOffsetY = coords.clientY - currentTop;
 		button.style.right = 'auto';
-		button.style.bottom = 'auto'
+		button.style.bottom = 'auto';
+		if (event.type === 'touchstart') {
+			event.preventDefault()
+		}
 	};
 	AR_AccessibilityMenuProto._doButtonDragging = function (event) {
 		if (!this.isButtonDragging)
@@ -1368,8 +1403,12 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const button = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
 		if (!button)
 			return;
-		let newLeft = event.clientX - this.buttonOffsetX;
-		let newTop = event.clientY - this.buttonOffsetY;
+		if (event.movementX !== 0 || event.movementY !== 0) {
+			this.isDraggingOccurred = true
+		}
+		const coords = getClientCoords(event);
+		let newLeft = coords.clientX - this.buttonOffsetX;
+		let newTop = coords.clientY - this.buttonOffsetY;
 		const minX = 0;
 		const minY = 0;
 		const maxX = window.innerWidth - button.offsetWidth;
@@ -1377,7 +1416,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		newLeft = Math.max(minX, Math.min(newLeft, maxX));
 		newTop = Math.max(minY, Math.min(newTop, maxY));
 		button.style.left = `${ newLeft }px`;
-		button.style.top = `${ newTop }px`
+		button.style.top = `${ newTop }px`;
+		if (event.type === 'touchmove') {
+			event.preventDefault()
+		}
 	};
 	AR_AccessibilityMenuProto._stopButtonDragging = function () {
 		if (this.isButtonDragging) {
