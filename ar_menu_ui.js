@@ -120,26 +120,26 @@
 		panel.innerHTML = this._getMenuPanelHTML();
 		document.body.appendChild(panel);
 	};
-
-    AR_AccessibilityMenuProto._getMenuIconSVG = function(pathData, altText = '') {
-        return `<span class="ar-menu-icon" role="img" aria-label="${altText}"><svg viewBox="0 0 24 24">${pathData}</svg></span>`;
-    };
-
-    AR_AccessibilityMenuProto._getMenuButtonHTML = function(action, iconSVG, text, isFullWidth = false, isReset = false) {
-        let classNames = [];
-        if (isFullWidth) classNames.push('ar-menu-fullwidth-btn');
-        if (isReset) classNames.push('ar-menu-reset-btn');
-        return `<button data-action="${action}" ${classNames.length ? `class="${classNames.join(' ')}"` : ''} aria-label="${text}">
-                    ${iconSVG}<span class="ar-menu-text">${text}</span>
-                </button>`;
-    };
-
-    AR_AccessibilityMenuProto._getMenuFieldsetHTML = function(legendIconSVG, legendText, buttonsHTML) {
-        return `<fieldset class="ar-menu-group">
-                    <legend>${legendIconSVG}<span class="ar-menu-text">${legendText}</span></legend>
-                    <div class="ar-button-row">${buttonsHTML}</div>
-                </fieldset>`;
-    };
+	
+	AR_AccessibilityMenuProto._getMenuIconSVG = function(pathData, altText = '') {
+		return `<span class="ar-menu-icon" role="img" aria-label="${altText}"><svg viewBox="0 0 24 24">${pathData}</svg></span>`;
+	};
+	
+	AR_AccessibilityMenuProto._getMenuButtonHTML = function(action, iconSVG, text, isFullWidth = false, isReset = false) {
+		let classNames = [];
+		if (isFullWidth) classNames.push('ar-menu-fullwidth-btn');
+		if (isReset) classNames.push('ar-menu-reset-btn');
+		return `<button data-action="${action}" ${classNames.length ? `class="${classNames.join(' ')}"` : ''} aria-label="${text}">
+		    ${iconSVG}<span class="ar-menu-text">${text}</span>
+		</button>`;
+	};
+	
+	AR_AccessibilityMenuProto._getMenuFieldsetHTML = function(legendIconSVG, legendText, buttonsHTML) {
+	return `<fieldset class="ar-menu-group">
+		    <legend>${legendIconSVG}<span class="ar-menu-text">${legendText}</span></legend>
+		    <div class="ar-button-row">${buttonsHTML}</div>
+		</fieldset>`;
+	};
 
 	AR_AccessibilityMenuProto._getMenuPanelHTML = function () {
 		const ICONS = {
@@ -156,8 +156,15 @@
 			close: this._getMenuIconSVG('<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>', 'Close'),
             textIncrease: this._getMenuIconSVG('<path d="M14.5 16.5h-1.25l-2.6-7h1.25l1.98 5.58L15.85 9.5h1.3l-2.65 7zm5-11H4.5c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-9c0-.83-.67-1.5-1.5-1.5zm0 10.5H4.5v-9h15v9zM10 12.5H7.5v-1h2.5v-1H7.5v-1h2.5V8.5H6.25v5h3.75z"/>', 'Increase text'),
             textDecrease: this._getMenuIconSVG('<path d="M14.5 16.5h-1.25l-2.6-7h1.25l1.98 5.58L15.85 9.5h1.3l-2.65 7zm5-11H4.5c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-9c0-.83-.67-1.5-1.5-1.5zm0 10.5H4.5v-9h15v9zM10 10.5H6.25v1h3.75z"/>', 'Decrease text')
-		};
-		let html = `<h3 id="ar-menu-title">Accessibility Tools</h3>`;
+	};
+	AR_AccessibilityMenuProto.init = function () {
+		this._injectStyles();
+		this._createMenuButton();
+		this._createMenuPanel();
+		this._attachEventListeners();
+		console.log('Accessibility Menu Initialized.');
+	};
+	let html = `<h3 id="ar-menu-title">Accessibility Tools</h3>`;
         html += this._getMenuFieldsetHTML(ICONS.fontSize, 'Text Size',
             this._getMenuButtonHTML('increase-font', ICONS.textIncrease, 'Increase') +
             this._getMenuButtonHTML('decrease-font', ICONS.textDecrease, 'Decrease') +
