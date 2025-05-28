@@ -1,4 +1,4 @@
-// File 8: ar_init.js
+// File 7: ar_init.js
 
 // --- Accessibility Menu Object Definition ---
 // Ensure AR_AccessibilityMenu and AR_CheckModules are objects in the global scope
