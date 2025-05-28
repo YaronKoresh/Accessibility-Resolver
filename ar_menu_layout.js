@@ -1,4 +1,4 @@
-// File 4: ar_menu_ui.js
+// File 4: ar_menu_layout.js
 
 // Part of AR_AccessibilityMenu: UI Creation methods
 (function(AR_AccessibilityMenuProto) {
