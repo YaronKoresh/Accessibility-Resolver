@@ -38,7 +38,6 @@
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_check_modules.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_init.js"></script>
 ```
-* Your website will always be accessible and up-to-date with the latest version.
 
 - - -
 
