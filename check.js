@@ -10,7 +10,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto._checkVisualHeadings = function (globalState) {
 		document.querySelectorAll('div, span, p').forEach(el => {
 			try {
-				if (ar_isVisuallyHidden(el))
+				if (ar_isVisuallyHidden(el) || el.closest('h1, h2, h3, h4, h5, h6'))
 					return;
 				const style = window.getComputedStyle(el);
 				const fontSize = parseFloat(style.fontSize);
@@ -24,22 +24,26 @@ var AR_CheckModules = AR_CheckModules || {};
 					'H6'
 				].includes(el.tagName);
 				const hasHeadingRole = el.getAttribute('role') === 'heading';
-				if (fontSize >= 20 && (parseInt(fontWeight) >= 600 || fontWeight === 'bold' || fontWeight === 'bolder') && !isSemanticallyHeading && el.textContent.trim().length > 0) {
-					if (!hasHeadingRole) {
+				if (fontSize >= 20 && (parseInt(fontWeight) >= 600 || fontWeight === 'bold' || fontWeight === 'bolder') && el.textContent.trim().length > 0) {
+					if (!isSemanticallyHeading && !hasHeadingRole) {
 						let level = 2;
 						const h1 = document.querySelector('h1');
 						if (h1) {
 							const h1FontSize = parseFloat(window.getComputedStyle(h1).fontSize);
-							if (fontSize > h1FontSize * 0.85)
-								level = 1;
-							else if (fontSize < h1FontSize * 0.6)
+							if (fontSize > h1FontSize * 0.85) {
+								level = 1
+							} else if (fontSize < h1FontSize * 0.6) {
 								level = 3
+							}
 						}
 						ar_setAttributeAndLog(el, 'role', 'heading', 'Moderate', 'Visually strong text not semantic heading. Auto-added role="heading".', 'Use H1-H6 or ensure correct aria-level.', 'Operable', '2.4.6 Headings and Labels', 'AA');
 						ar_setAttributeAndLog(el, 'aria-level', level.toString(), 'Info', `Auto-set aria-level="${ level }". Review.`, 'Ensure aria-level matches visual hierarchy.', 'Operable', '2.4.6 Headings and Labels', 'AA')
 					} else if (hasHeadingRole && !el.hasAttribute('aria-level')) {
 						ar_setAttributeAndLog(el, 'aria-level', '2', 'Minor', 'role="heading" without aria-level. Auto-set to "2".', 'Provide aria-level.', 'Operable', '2.4.6 Headings and Labels', 'AA')
 					}
+				} else if (hasHeadingRole && (fontSize < 16 || parseInt(fontWeight) < 500)) {
+					ar_removeAttributeAndLog(el, 'role', 'Minor', 'Element with role="heading" does not appear visually as a heading. Auto-removed role.', 'Remove role="heading" if not a visual heading.', 'Robust', '4.1.2', 'A');
+					ar_removeAttributeAndLog(el, 'aria-level', 'Minor', 'Removed associated aria-level.', '', 'Robust', '4.1.2', 'A')
 				}
 			} catch (e) {
 				console.error('Error: VisualHeadings Check:', e, el)
@@ -69,13 +73,18 @@ var AR_CheckModules = AR_CheckModules || {};
 						const listType = /^\d+\.\s/.test(textContent) ? 'ol' : 'ul';
 						const newList = document.createElement(listType);
 						const parent = el.parentNode;
-						parent.insertBefore(newList, el);
-						similarSiblings.forEach(sibling => {
-							const listItem = document.createElement('li');
-							listItem.appendChild(sibling);
-							newList.appendChild(listItem)
-						});
-						ar_logAccessibilityIssue('Moderate', `Wrapped ${ similarSiblings.length } pseudo-list items in <${ listType }>.`, newList, 'Review auto-generated list structure.', 'Perceivable', '1.3.1 Info and Relationships', true, 'A')
+						if (parent) {
+							parent.insertBefore(newList, el);
+							similarSiblings.forEach(sibling => {
+								const listItem = document.createElement('li');
+								while (sibling.firstChild) {
+									listItem.appendChild(sibling.firstChild)
+								}
+								sibling.remove();
+								newList.appendChild(listItem)
+							});
+							ar_logAccessibilityIssue('Moderate', `Wrapped ${ similarSiblings.length } pseudo-list items in <${ listType }>.`, newList, 'Review auto-generated list structure. Ensure nested lists are handled correctly.', 'Perceivable', '1.3.1 Info and Relationships', true, 'A')
+						}
 					}
 				}
 			} catch (e) {
@@ -89,7 +98,11 @@ var AR_CheckModules = AR_CheckModules || {};
 				if (el.children.length === 1 && el.children[0].tagName === 'IMG') {
 					const img = el.children[0];
 					if (((img.alt || '').trim() === '' || img.getAttribute('role') === 'presentation') && !ar_hasAccessibleNameForElement(img)) {
-						ar_setAttributeAndLog(el, 'role', 'presentation', 'Minor', 'Paragraph contains only a decorative image. Added role="presentation" to the paragraph.', 'If the paragraph is purely a decorative container for the image, role="presentation" is appropriate. Otherwise, ensure the image has proper alt text.', 'Perceivable', '1.3.1 Info and Relationships', true, 'A')
+						if (el.getAttribute('role') !== 'presentation') {
+							ar_setAttributeAndLog(el, 'role', 'presentation', 'Minor', 'Paragraph contains only a decorative image. Added role="presentation" to the paragraph.', 'If the paragraph is purely a decorative container for the image, role="presentation" is appropriate. Otherwise, ensure the image has proper alt text.', 'Perceivable', '1.3.1 Info and Relationships', true, 'A')
+						}
+					} else if (el.getAttribute('role') === 'presentation' && ar_hasAccessibleNameForElement(img)) {
+						ar_removeAttributeAndLog(el, 'role', 'Minor', 'Paragraph with role="presentation" contains informative image. Auto-removed role.', 'Remove role="presentation" if image is informative.', 'Robust', '4.1.2', 'A')
 					}
 				}
 			} catch (e) {
@@ -106,15 +119,17 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto._checkBrokenImages = function () {
 		document.querySelectorAll('img').forEach(img => {
 			try {
-				if (ar_isVisuallyHidden(img) && !img.hasAttribute('alt')) {
-					ar_setAttributeAndLog(img, 'alt', '', 'Info', 'Visually hidden image was missing alt attribute. Auto-set alt="".', 'Ensure decorative hidden images have an empty alt attribute.', 'Perceivable', '1.1.1 Non-text Content', 'A');
+				if (ar_isVisuallyHidden(img) && !img.hasAttribute('alt') || img.src.includes('placehold.co') && img.alt.startsWith('Placeholder for broken image')) {
+					if (ar_isVisuallyHidden(img) && !img.hasAttribute('alt')) {
+						ar_setAttributeAndLog(img, 'alt', '', 'Info', 'Visually hidden image was missing alt attribute. Auto-set alt="".', 'Ensure decorative hidden images have an empty alt attribute.', 'Perceivable', '1.1.1 Non-text Content', 'A')
+					}
 					return
 				}
 				if (!img.complete || img.naturalWidth === 0 || img.naturalHeight === 0) {
 					if (img.src.includes('placehold.co') && img.src.includes('Broken%20Image'))
 						return;
 					const originalSrc = img.src;
-					const altText = (img.alt || 'Broken Image').trim();
+					const altText = img.alt && img.alt.trim() !== '' ? img.alt.trim() : 'Broken Image';
 					const placeholderWidth = Math.max(50, img.width || parseInt(img.style.width, 10) || 150);
 					const placeholderHeight = Math.max(50, img.height || parseInt(img.style.height, 10) || 100);
 					const placeholderSrc = AR_CONFIG.PLACEHOLDER_IMAGE_URL.replace('{width}', placeholderWidth.toString()).replace('{height}', placeholderHeight.toString()).replace('{text}', encodeURIComponent(altText.substring(0, 50)));
@@ -157,9 +172,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		ar_logSection('Image Alternative Text');
 		document.querySelectorAll('img').forEach(img => {
 			try {
-				if (ar_isVisuallyHidden(img) && img.hasAttribute('alt'))
-					return;
-				if (img.src.includes('placehold.co') && img.alt.startsWith('Placeholder for broken image'))
+				if (ar_isVisuallyHidden(img) && img.hasAttribute('alt') || img.src.includes('placehold.co') && img.alt.startsWith('Placeholder for broken image'))
 					return;
 				if (img.naturalWidth === 0 && !img.src.startsWith('data:image/svg+xml') && !img.src.includes('placehold.co')) {
 					if (img.complete && !img.hasAttribute('alt')) {
@@ -172,10 +185,11 @@ var AR_CheckModules = AR_CheckModules || {};
 					ar_setAttributeAndLog(img, 'alt', generatedAlt, 'Critical', `Image missing alt attribute. Auto-set to "${ generatedAlt }".`, '**Manual review required.**', 'Perceivable', '1.1.1 Non-text Content', 'A')
 				} else {
 					const alt = (img.alt || '').trim();
-					if (alt === '')
-						this._checkDecorativeImageContext(img);
-					else
+					if (alt === '') {
+						this._checkDecorativeImageContext(img)
+					} else {
 						this._checkInformativeAltText(img, alt)
+					}
 				}
 			} catch (e) {
 				console.error('Error: ImageAltText Check:', e, img)
@@ -198,12 +212,20 @@ var AR_CheckModules = AR_CheckModules || {};
 				}
 			}
 		}
+		if (img.title && img.title.trim().length > AR_CONFIG.MIN_CHAR_LENGTH_FOR_NON_EMPTY_ALT_TEXT && !/(image|graphic|picture|photo)/i.test(img.title.trim())) {
+			altText = img.title.trim()
+		} else if (img.parentElement && img.parentElement.textContent && img.parentElement.textContent.trim().length > 10 && img.parentElement.textContent.trim().length < 100) {
+			const parentText = img.parentElement.textContent.trim().replace(/\s+/g, ' ');
+			if (!/(image|graphic|picture|photo)/i.test(parentText)) {
+				altText = parentText.substring(0, Math.min(parentText.length, 50)) + (parentText.length > 50 ? '...' : '')
+			}
+		}
 		return altText
 	};
 	AR_CheckModulesProto._checkDecorativeImageContext = function (img) {
 		const src = (img.src || '').toLowerCase();
 		if (/(chart|graph|diagram|stats|figure)/.test(src) && (img.offsetWidth > 50 || img.offsetHeight > 50)) {
-			ar_setAttributeAndLog(img, 'alt', 'Image (description needed, was decorative)', 'Moderate', `Image has alt="" but src suggests it might be informative. Auto-set placeholder.`, 'Verify if decorative.', 'Perceivable', '1.1.1', 'A')
+			ar_setAttributeAndLog(img, 'alt', 'Image (description needed, was decorative)', 'Moderate', `Image has alt="" but src suggests it might be informative. Auto-set placeholder.`, 'Verify if decorative. Provide descriptive alt text if informative.', 'Perceivable', '1.1.1', 'A')
 		}
 		if (/(spacer|1x1)\.(gif|png|jpg)/i.test(src) && img.getAttribute('role') !== 'presentation') {
 			ar_setAttributeAndLog(img, 'role', 'presentation', 'Minor', 'Spacer image with alt="". Auto-added role="presentation".', 'Spacers: alt="" and role="presentation".', 'Perceivable', '1.1.1', true, 'A')
@@ -211,7 +233,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	};
 	AR_CheckModulesProto._checkInformativeAltText = function (img, alt) {
 		const filenameFromSrc = (img.src || '').split('/').pop().split('.')[0].replace(AR_CONFIG.FILENAME_CLEANUP_REGEX, ' ').toLowerCase();
-		if (alt.toLowerCase() === filenameFromSrc && alt.length > 3) {
+		if (alt.toLowerCase() === filenameFromSrc && alt.length > AR_CONFIG.MIN_CHAR_LENGTH_FOR_NON_EMPTY_ALT_TEXT) {
 			ar_setAttributeAndLog(img, 'alt', `Image: ${ alt } (description needed, was filename)`, 'Minor', `Alt text "${ alt }" is filename. Auto-updated.`, 'Replace filename with description.', 'Perceivable', '1.1.1', 'A')
 		}
 		const genericAlts = [
@@ -247,25 +269,16 @@ var AR_CheckModules = AR_CheckModules || {};
 			try {
 				const url = new URL(iframe.src);
 				const hostname = url.hostname.toLowerCase();
-				const allowedYouTubeHosts = [
-					'youtube.com',
-					'youtu.be'
-				];
-				const allowedVimeoHosts = ['vimeo.com'];
-				const allowedGoogleMapsHosts = [
-					'maps.google.com',
-					'google.com'
-				];
-				if (allowedYouTubeHosts.includes(hostname) || allowedYouTubeHosts.some(h => hostname.endsWith(`.${ h }`)))
+				if (hostname.includes('youtube.com') || hostname.includes('youtu.be'))
 					title = 'YouTube video player';
-				else if (allowedVimeoHosts.includes(hostname) || allowedVimeoHosts.some(h => hostname.endsWith(`.${ h }`)))
+				else if (hostname.includes('vimeo.com'))
 					title = 'Vimeo video player';
-				else if (allowedGoogleMapsHosts.includes(hostname) || allowedGoogleMapsHosts.some(h => hostname.endsWith(`.${ h }`)))
+				else if (hostname.includes('maps.google.com') || hostname.includes('google.com/maps'))
 					title = 'Google Maps embed';
 				else if (url.pathname.endsWith('.pdf'))
 					title = `Embedded PDF document: ${ url.pathname.split('/').pop() }`;
-				else
-					title = `Embedded content from ${ url.hostname }`
+				else if (hostname && hostname !== 'about:blank')
+					title = `Embedded content from ${ hostname.replace('www.', '') }`
 			} catch (e) {
 			}
 		}
@@ -303,7 +316,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				overflow: 'hidden'
 			});
 			table.prepend(caption);
-			ar_logAccessibilityIssue('Moderate', 'Data table missing <caption>. Auto-added generic hidden caption.', table, '**Manual review required.**', 'Perceivable', '1.3.1', true, 'A')
+			ar_logAccessibilityIssue('Moderate', 'Data table missing <caption>. Auto-added generic hidden caption.', table, '**Manual review required.** Provide a descriptive caption.', 'Perceivable', '1.3.1', true, 'A')
 		}
 	};
 	AR_CheckModulesProto._checkTableHeaders = function (table) {
@@ -325,19 +338,19 @@ var AR_CheckModules = AR_CheckModules || {};
 		const border = table.getAttribute('border');
 		if (thCount === 0 && tdCount > 0 && (!border || border === '0') && !table.querySelector('caption') && !table.hasAttribute('role') && !table.hasAttribute('summary')) {
 			if (table.rows.length < 5 && Array.from(table.rows).every(r => r.cells.length < 5)) {
-				ar_setAttributeAndLog(table, 'role', 'presentation', 'Minor', 'Table appears for layout. Auto-added role="presentation".', 'If data table, remove role & add semantics.', 'Perceivable', '1.3.1', true, 'A')
+				ar_setAttributeAndLog(table, 'role', 'presentation', 'Minor', 'Table appears to be used for layout. Auto-added role="presentation".', 'If this is a data table, remove role and add proper semantics (<th>, <caption>).', 'Perceivable', '1.3.1', true, 'A')
 			}
 		}
 	};
 	AR_CheckModulesProto._checkPresentationTable = function (table) {
 		if (table.querySelector('caption')) {
-			ar_logAccessibilityIssue('Minor', 'Table with role="presentation" has <caption>.', table, 'Remove <caption>.', 'Perceivable', '1.3.1', false, 'A')
+			ar_logAccessibilityIssue('Minor', 'Table with role="presentation" has <caption>.', table, 'Remove <caption> from tables used for layout.', 'Perceivable', '1.3.1', false, 'A')
 		}
 		if (table.hasAttribute('summary')) {
-			ar_logAccessibilityIssue('Minor', 'Table with role="presentation" has summary.', table, 'Remove summary.', 'Perceivable', '1.3.1', false, 'A')
+			ar_logAccessibilityIssue('Minor', 'Table with role="presentation" has summary.', table, 'Remove summary from tables used for layout.', 'Perceivable', '1.3.1', false, 'A')
 		}
 		table.querySelectorAll('th, [scope]').forEach(el => {
-			ar_logAccessibilityIssue('Minor', `Table with role="presentation" contains <${ el.tagName.toLowerCase() }> or scope.`, el, `Remove <th> or scope. Use <td>.`, 'Perceivable', '1.3.1', false, 'A')
+			ar_logAccessibilityIssue('Minor', `Table with role="presentation" contains <${ el.tagName.toLowerCase() }> or scope attribute.`, el, `Remove <th> or scope attribute. Use <td> elements for layout tables.`, 'Perceivable', '1.3.1', false, 'A')
 		})
 	};
 	AR_CheckModulesProto.checkOverlayFocusBlocking = function () {
@@ -348,10 +361,12 @@ var AR_CheckModules = AR_CheckModules || {};
 					return;
 				const style = window.getComputedStyle(el);
 				const rect = el.getBoundingClientRect();
-				const isOverlay = (style.position === 'fixed' || style.position === 'absolute') && (rect.width >= window.innerWidth * 0.7 || rect.height >= window.innerHeight * 0.7) && parseFloat(style.zIndex) > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+				const isOverlay = (style.position === 'fixed' || style.position === 'absolute') && (rect.width >= window.innerWidth * 0.7 || rect.height >= window.innerHeight * 0.7) && parseFloat(style.zIndex) >= 1000 && style.display !== 'none' && style.visibility !== 'hidden' && style.opacity > 0;
 				if (isOverlay) {
 					this._ensureModalAriaAttributes(el);
 					this._manageBackgroundContentInteractivity(el)
+				} else if (el.getAttribute('aria-modal') === 'true' || el.getAttribute('role') === 'dialog' || el.getAttribute('role') === 'alertdialog') {
+					this._restoreBackgroundContentInteractivity(el)
 				}
 			} catch (e) {
 				console.error('Error: OverlayFocusBlocking Check:', e, el)
@@ -361,11 +376,11 @@ var AR_CheckModules = AR_CheckModules || {};
 	};
 	AR_CheckModulesProto._ensureModalAriaAttributes = function (modalElement) {
 		if (modalElement.getAttribute('aria-modal') !== 'true') {
-			ar_setAttributeAndLog(modalElement, 'aria-modal', 'true', 'Critical', 'Potential modal lacks aria-modal="true". Auto-fixed.', 'Ensure focus trap & ESC.', 'Operable', '4.1.2 / 2.4.3', 'A')
+			ar_setAttributeAndLog(modalElement, 'aria-modal', 'true', 'Critical', 'Potential modal lacks aria-modal="true". Auto-fixed.', 'Ensure focus trap & ESC handling. Set aria-modal="true" for modal dialogs.', 'Operable', '4.1.2 / 2.4.3', 'A')
 		}
 		const role = modalElement.getAttribute('role');
 		if (role !== 'dialog' && role !== 'alertdialog') {
-			ar_setAttributeAndLog(modalElement, 'role', 'dialog', 'Critical', 'Potential modal lacks role="dialog/alertdialog". Auto-fixed.', 'Use role="dialog" or "alertdialog".', 'Operable', '4.1.2', 'A')
+			ar_setAttributeAndLog(modalElement, 'role', 'dialog', 'Critical', 'Potential modal lacks role="dialog/alertdialog". Auto-fixed.', 'Use role="dialog" or "alertdialog" for modal dialogs.', 'Operable', '4.1.2', 'A')
 		}
 	};
 	AR_CheckModulesProto._manageBackgroundContentInteractivity = function (modalElement) {
@@ -387,7 +402,25 @@ var AR_CheckModules = AR_CheckModules || {};
 				}
 			});
 			if (hiddenElementsCount > 0) {
-				ar_logAccessibilityIssue('Info', `Modal: ${ hiddenElementsCount } background elements auto-set aria-hidden="true".`, modalElement, 'Ensure undone on modal close. Implement focus trap.', 'Operable', '2.4.3', true, 'A')
+				ar_logAccessibilityIssue('Info', `Modal: ${ hiddenElementsCount } background elements auto-set aria-hidden="true".`, modalElement, 'Ensure these elements are made visible on modal close. Implement a robust focus trap.', 'Operable', '2.4.3', true, 'A')
+			}
+		}
+	};
+	AR_CheckModulesProto._restoreBackgroundContentInteractivity = function (modalElement) {
+		if (ar_isVisuallyHidden(modalElement)) {
+			let restoredElementsCount = 0;
+			Array.from(document.body.children).forEach(child => {
+				if (child.getAttribute('aria-hidden') === 'true' && child.hasAttribute('data-ar-original-aria-hidden')) {
+					child.setAttribute('aria-hidden', child.getAttribute('data-ar-original-aria-hidden'));
+					child.removeAttribute('data-ar-original-aria-hidden');
+					restoredElementsCount++
+				} else if (child.getAttribute('aria-hidden') === 'true' && !child.hasAttribute('data-ar-original-aria-hidden') && child !== modalElement && !modalElement.contains(child)) {
+					child.removeAttribute('aria-hidden');
+					restoredElementsCount++
+				}
+			});
+			if (restoredElementsCount > 0) {
+				ar_logAccessibilityIssue('Info', `Modal: ${ restoredElementsCount } background elements auto-restored aria-hidden.`, modalElement, 'Verification of modal close logic is recommended.', 'Operable', '2.4.3', true, 'A')
 			}
 		}
 	};
@@ -401,18 +434,23 @@ var AR_CheckModules = AR_CheckModules || {};
 				if (rect.width > 0 && rect.height > 0 && (rect.width < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX || rect.height < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX)) {
 					const stylesToApply = {};
 					const computedStyle = window.getComputedStyle(el);
-					if (computedStyle.display === 'inline')
-						stylesToApply['display'] = 'inline-block';
-					if (rect.width < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX)
-						stylesToApply['min-width'] = `${ AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX }px`;
-					if (rect.height < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX)
-						stylesToApply['min-height'] = `${ AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX }px`;
+					if (computedStyle.display === 'inline') {
+						stylesToApply['display'] = 'inline-block'
+					}
+					if (rect.width < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX) {
+						stylesToApply['min-width'] = `${ AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX }px`
+					}
+					if (rect.height < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX) {
+						stylesToApply['min-height'] = `${ AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX }px`
+					}
 					const currentPaddingV = parseFloat(computedStyle.paddingTop) + parseFloat(computedStyle.paddingBottom);
 					const currentPaddingH = parseFloat(computedStyle.paddingLeft) + parseFloat(computedStyle.paddingRight);
-					if (rect.height < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX && currentPaddingV < 4)
-						stylesToApply['padding-top'] = stylesToApply['padding-bottom'] = '0.3em';
-					if (rect.width < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX && currentPaddingH < 8)
-						stylesToApply['padding-left'] = stylesToApply['padding-right'] = '0.5em';
+					if (rect.height < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX && currentPaddingV < 4) {
+						stylesToApply['padding-top'] = stylesToApply['padding-bottom'] = '0.3em'
+					}
+					if (rect.width < AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX && currentPaddingH < 8) {
+						stylesToApply['padding-left'] = stylesToApply['padding-right'] = '0.5em'
+					}
 					if (Object.keys(stylesToApply).length > 0) {
 						ar_applyStylesAndLog(el, stylesToApply, 'Moderate', `Interactive element too small. Auto-adjusted.`, `Increase area to ${ AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX }x${ AR_CONFIG.MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX }px.`, 'Operable', '2.5.5 Target Size', 'AAA')
 					} else {
@@ -446,7 +484,7 @@ var AR_CheckModules = AR_CheckModules || {};
 						'false'
 					];
 					if (!validPopupValues.includes(popupValue)) {
-						ar_setAttributeAndLog(el, 'aria-haspopup', 'true', 'Moderate', `Invalid aria-haspopup. Auto-set "true".`, 'Use valid values.', 'Operable', '4.1.2', 'A')
+						ar_setAttributeAndLog(el, 'aria-haspopup', 'true', 'Moderate', `Invalid aria-haspopup value "${ popupValue }". Auto-set to "true".`, 'Use valid values (menu, listbox, tree, grid, dialog, true, false).', 'Operable', '4.1.2', 'A')
 					}
 				}
 				if (controlsId) {
@@ -454,15 +492,15 @@ var AR_CheckModules = AR_CheckModules || {};
 					if (controlledElement) {
 						const isControlledElementVisible = !ar_isVisuallyHidden(controlledElement);
 						if (isExpanded === null) {
-							ar_setAttributeAndLog(el, 'aria-expanded', String(isControlledElementVisible), 'Minor', `aria-controls w/o aria-expanded. Auto-fixed.`, 'Add & update aria-expanded.', 'Operable', '4.1.2', 'A')
+							ar_setAttributeAndLog(el, 'aria-expanded', String(isControlledElementVisible), 'Minor', `aria-controls present without aria-expanded. Auto-fixed.`, 'Add and update aria-expanded to reflect the state of the controlled element.', 'Operable', '4.1.2', 'A')
 						} else if (isExpanded === 'true' && !isControlledElementVisible || isExpanded === 'false' && isControlledElementVisible) {
-							ar_setAttributeAndLog(el, 'aria-expanded', String(isControlledElementVisible), 'Minor', `aria-expanded mismatch. Auto-corrected.`, 'Ensure aria-expanded reflects state.', 'Operable', '4.1.2', 'A')
+							ar_setAttributeAndLog(el, 'aria-expanded', String(isControlledElementVisible), 'Minor', `aria-expanded value mismatch with controlled element visibility. Auto-corrected.`, 'Ensure aria-expanded accurately reflects the visibility state of the controlled element.', 'Operable', '4.1.2', 'A')
 						}
 					} else if (isExpanded !== null) {
-						ar_logAccessibilityIssue('Moderate', `aria-controls to non-existent ID "${ controlsId }".`, el, 'Ensure valid ID.', 'Robust', '4.1.2', false, 'A')
+						ar_logAccessibilityIssue('Moderate', `aria-controls points to a non-existent ID "${ controlsId }".`, el, 'Ensure aria-controls points to a valid ID of a controlled element.', 'Robust', '4.1.2', false, 'A')
 					}
 				} else if (isExpanded !== null) {
-					ar_logAccessibilityIssue('Minor', `aria-expanded w/o aria-controls.`, el, 'Add aria-controls if content controlled.', 'Operable', '4.1.2', false, 'A')
+					ar_logAccessibilityIssue('Minor', `aria-expanded present without aria-controls.`, el, 'Add aria-controls if content is controlled by this element, or remove aria-expanded.', 'Operable', '4.1.2', false, 'A')
 				}
 			} catch (e) {
 				console.error('Error: HoverFocusContent Check:', e, el)
@@ -483,7 +521,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				].forEach(attrName => {
 					const attrValue = el.getAttribute(attrName);
 					if (attrValue && attrValue.toLowerCase().includes('submit()')) {
-						ar_removeAttributeAndLog(el, attrName, 'Minor', `${ el.tagName } with ${ attrName } auto-submits. Auto-removed.`, 'Use explicit submit.', 'Operable', '3.2.2', 'A')
+						ar_removeAttributeAndLog(el, attrName, 'Minor', `${ el.tagName } with ${ attrName } auto-submits. Auto-removed.`, 'Avoid automatic form submission on focus or change. Use an explicit submit button.', 'Operable', '3.2.2', 'A')
 					}
 				})
 			} catch (e) {
@@ -503,7 +541,27 @@ var AR_CheckModules = AR_CheckModules || {};
 					const originalElement = globalState.seenIds.get(id);
 					const newId = ar_generateUniqueElementId(`dup-${ id }-`);
 					ar_setAttributeAndLog(el, 'id', newId, 'Critical', `Duplicate ID "#${ id }". Auto-fixed to "#${ newId }".`, `Original element:`, 'Robust', '4.1.1', 'A');
-					console.warn('    Original element with conflicting ID:', originalElement)
+					console.warn('    Original element with conflicting ID:', originalElement);
+					document.querySelectorAll(`[aria-labelledby*="${ id }"], [aria-describedby*="${ id }"], label[for="${ id }"]`).forEach(refEl => {
+						if (refEl.id === newId)
+							return;
+						let attrToUpdate = '';
+						let oldAttrValue = '';
+						if (refEl.hasAttribute('aria-labelledby')) {
+							attrToUpdate = 'aria-labelledby';
+							oldAttrValue = refEl.getAttribute(attrToUpdate)
+						} else if (refEl.hasAttribute('aria-describedby')) {
+							attrToUpdate = 'aria-describedby';
+							oldAttrValue = refEl.getAttribute(attrToUpdate)
+						} else if (refEl.tagName === 'LABEL' && refEl.htmlFor === id) {
+							attrToUpdate = 'for';
+							oldAttrValue = refEl.htmlFor
+						}
+						if (attrToUpdate) {
+							const newAttrValue = oldAttrValue.split(/\s+/).map(refId => refId === id ? newId : refId).join(' ');
+							ar_setAttributeAndLog(refEl, attrToUpdate, newAttrValue, 'Minor', `Updated reference to duplicate ID from "#${ id }" to "#${ newId }".`, 'Ensure all references to the old ID are updated.', 'Robust', '4.1.1', true, 'A')
+						}
+					})
 				} else {
 					globalState.seenIds.set(id, el)
 				}
@@ -520,10 +578,10 @@ var AR_CheckModules = AR_CheckModules || {};
 				if (ar_isVisuallyHidden(el) || ar_hasAccessibleNameForElement(el))
 					return;
 				const generatedName = this._generateAccessibleNameCandidate(el);
-				if (generatedName) {
+				if (generatedName && generatedName.trim() !== '') {
 					ar_setAttributeAndLog(el, 'aria-label', generatedName, 'Moderate', `Lacked accessible name. Auto-fixed with aria-label: "${ generatedName }".`, '**Manual review required.**', 'Perceivable', '2.4.4 / 4.1.2', 'A')
 				} else {
-					ar_logAccessibilityIssue('Critical', `Lacked accessible name. Could not auto-generate.`, el, 'Provide text, title, aria-label, or <label>.', 'Perceivable', '2.4.4 / 4.1.2', false, 'A')
+					ar_logAccessibilityIssue('Critical', `Lacked accessible name. Could not auto-generate.`, el, 'Provide descriptive text, title, aria-label, or associate with a <label>.', 'Perceivable', '2.4.4 / 4.1.2', false, 'A')
 				}
 			} catch (e) {
 				console.error('Error: AccessibleNames Check:', e, el)
@@ -549,12 +607,31 @@ var AR_CheckModules = AR_CheckModules || {};
 			const filename = el.src.split('/').pop().split('.')[0].replace(AR_CONFIG.FILENAME_CLEANUP_REGEX, ' ');
 			label = filename.length > 3 && filename.length < 30 ? `Submit ${ filename }` : 'Submit query';
 			ar_setAttributeAndLog(el, 'alt', label, 'Moderate', `Input type="image" missing alt. Auto-set.`, '**Manual review.**', 'Perceivable', '1.1.1', 'A');
-			return null
+			return label
 		} else if (tagName === 'img' || el.getAttribute('role') === 'img') {
 			label = this._generateAltTextAttempt(el) || 'Image (description needed)'
 		} else if (tagName === 'a') {
 			const textContent = (el.textContent || '').trim();
-			label = textContent.length > 2 && textContent.length < 50 ? `Link: ${ textContent }` : 'Link - Description Needed'
+			if (textContent.length > 2 && textContent.length < 50) {
+				label = `Link: ${ textContent }`
+			} else {
+				let contextText = '';
+				if (el.previousElementSibling && el.previousElementSibling.textContent) {
+					contextText += el.previousElementSibling.textContent.trim()
+				}
+				if (el.nextElementSibling && el.nextElementSibling.textContent) {
+					contextText += ' ' + el.nextElementSibling.textContent.trim()
+				}
+				if (el.parentElement && el.parentElement.textContent) {
+					contextText += ' ' + el.parentElement.textContent.trim()
+				}
+				contextText = contextText.replace(/\s+/g, ' ').trim();
+				if (contextText.length > 10 && contextText.length < 100) {
+					label = `Link: ${ contextText.substring(0, Math.min(contextText.length, AR_CONFIG.MAX_WORDS_FROM_CONTEXT_FOR_GENERIC_LINK_ARIA_LABEL * 5)).replace(/\s+/g, ' ') }...`
+				} else {
+					label = 'Link - Description Needed'
+				}
+			}
 		} else if (tagName === 'button') {
 			const textContent = (el.textContent || '').trim();
 			if (textContent.length > 2 && textContent.length < 50) {
@@ -577,8 +654,9 @@ var AR_CheckModules = AR_CheckModules || {};
 				label = iconLabel || 'Button - Action Needed'
 			}
 		}
-		if (!label || label.startsWith('Unnamed'))
-			label = `${ el.getAttribute('role') || tagName } - Description Needed`;
+		if (!label || label.startsWith('Unnamed') || label.includes('Description Needed')) {
+			label = `${ el.getAttribute('role') || tagName } - Description Needed`
+		}
 		if (label.length > AR_CONFIG.MAX_CHAR_LENGTH_FOR_AUTOGENERATED_ARIA_LABEL) {
 			label = label.substring(0, AR_CONFIG.MAX_CHAR_LENGTH_FOR_AUTOGENERATED_ARIA_LABEL - 3) + '...'
 		}
@@ -588,7 +666,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		ar_logSection('Language Attribute (HTML)');
 		const htmlEl = document.documentElement;
 		if (!htmlEl.lang || !htmlEl.lang.trim()) {
-			ar_setAttributeAndLog(htmlEl, 'lang', 'en', 'Critical', '<html> missing lang. Auto-set to "en".', '**Manual review required.** Verify "en" is correct.', 'Understandable', '3.1.1 Language of Page', 'A')
+			ar_setAttributeAndLog(htmlEl, 'lang', 'en', 'Critical', '<html> missing lang attribute. Auto-set to "en".', '**Manual review required.** Verify "en" is the correct language for the page.', 'Understandable', '3.1.1 Language of Page', 'A')
 		}
 		console.groupEnd()
 	};
@@ -598,7 +676,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			try {
 				const tabindexValue = parseInt(el.getAttribute('tabindex'), 10);
 				if (tabindexValue > 0) {
-					ar_setAttributeAndLog(el, 'tabindex', '0', 'Moderate', `Positive tabindex="${ tabindexValue }". Auto-fixed to "0".`, 'Avoid positive tabindex.', 'Operable', '2.4.3', 'A')
+					ar_setAttributeAndLog(el, 'tabindex', '0', 'Moderate', `Positive tabindex="${ tabindexValue }" found. Auto-fixed to "0".`, 'Avoid positive tabindex. Use a logical document order instead.', 'Operable', '2.4.3', 'A')
 				}
 				const role = el.getAttribute('role');
 				const isNativeInteractive = el.matches(AR_SELECTOR_STRINGS.NATIVE_INTERACTIVE_TAGS);
@@ -612,13 +690,16 @@ var AR_CheckModules = AR_CheckModules || {};
 					'option',
 					'switch',
 					'slider',
-					'treeitem'
+					'treeitem',
+					'textbox',
+					'combobox',
+					'listbox'
 				];
 				if (role && commonInteractiveRoles.includes(role) && !isNativeInteractive && tabindexValue < 0) {
-					ar_setAttributeAndLog(el, 'tabindex', '0', 'Minor', `Custom control [role="${ role }"] not focusable. Auto-added tabindex="0".`, 'Ensure custom controls focusable.', 'Operable', '2.1.1', 'A')
+					ar_setAttributeAndLog(el, 'tabindex', '0', 'Minor', `Custom control [role="${ role }"] is not focusable (tabindex="-1"). Auto-added tabindex="0".`, 'Ensure custom controls are focusable and in the tab order.', 'Operable', '2.1.1', 'A')
 				}
 				if (role && commonInteractiveRoles.includes(role) && tabindexValue === -1 && !el.disabled && el.getAttribute('aria-disabled') !== 'true') {
-					ar_setAttributeAndLog(el, 'tabindex', '0', 'Minor', `Active custom control [role="${ role }"] tabindex="-1". Auto-set to "0".`, 'Ensure active controls in tab order.', 'Operable', '2.1.1', 'A')
+					ar_setAttributeAndLog(el, 'tabindex', '0', 'Minor', `Active custom control [role="${ role }"] has tabindex="-1". Auto-set to "0".`, 'Ensure active interactive controls are included in the tab order.', 'Operable', '2.1.1', 'A')
 				}
 			} catch (e) {
 				console.error('Error: TabindexUsage Check:', e, el)
@@ -639,7 +720,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				const isElementFocusable = el.tabIndex >= 0 || el.matches(AR_SELECTOR_STRINGS.INTERACTIVE_ELEMENTS);
 				const hasFocusableDescendant = el.querySelector(AR_SELECTOR_STRINGS.INTERACTIVE_ELEMENTS.split(',').map(s => `${ s.trim() }:not([tabindex="-1"])`).join(',')) !== null;
 				if (isElementFocusable || hasFocusableDescendant) {
-					ar_removeAttributeAndLog(el, 'aria-hidden', 'Critical', '`aria-hidden="true"` on focusable. Auto-removed.', 'Do not use on focusable.', 'Perceivable', '4.1.2 / 1.3.1', 'A')
+					ar_removeAttributeAndLog(el, 'aria-hidden', 'Critical', '`aria-hidden="true"` found on or containing focusable element. Auto-removed.', 'Do not use aria-hidden="true" on elements that are focusable or contain focusable descendants.', 'Perceivable', '4.1.2 / 1.3.1', true, 'A')
 				}
 			} catch (e) {
 				console.error('Error: AriaHiddenOnFocusable Check:', e, el)
@@ -661,7 +742,11 @@ var AR_CheckModules = AR_CheckModules || {};
 					'input[type=checkbox]': 'checkbox',
 					'input[type=radio]': 'radio',
 					'input[type=text]': 'textbox',
+					'input[type=email]': 'textbox',
+					'input[type=password]': 'textbox',
 					'input[type=search]': 'searchbox',
+					'input[type=tel]': 'textbox',
+					'input[type=url]': 'textbox',
 					'select': 'listbox',
 					'textarea': 'textbox',
 					'img': 'img',
@@ -680,29 +765,45 @@ var AR_CheckModules = AR_CheckModules || {};
 					'main': 'main',
 					'aside': 'complementary',
 					'form': 'form',
-					'section': 'region'
+					'section': 'region',
+					'article': 'article',
+					'dialog': 'dialog',
+					'figure': 'figure',
+					'figcaption': 'figcaption',
+					'table': 'table',
+					'tbody': 'rowgroup',
+					'tfoot': 'rowgroup',
+					'thead': 'rowgroup',
+					'tr': 'row',
+					'td': 'cell',
+					'th': 'columnheader'
 				};
 				let nativeRole = implicitRoles[tagName];
-				if (tagName === 'input' && type)
-					nativeRole = implicitRoles[`input[type=${ type }]`] || nativeRole;
-				if (tagName === 'a' && !el.hasAttribute('href'))
-					nativeRole = null;
-				if (tagName === 'img' && (!el.hasAttribute('alt') || el.alt.trim() === ''))
-					nativeRole = null;
-				if (tagName === 'section' && !ar_hasAccessibleNameForElement(el))
-					nativeRole = null;
+				if (tagName === 'input' && type) {
+					nativeRole = implicitRoles[`input[type=${ type }]`] || nativeRole
+				}
+				if (tagName === 'a' && !el.hasAttribute('href')) {
+					nativeRole = null
+				}
+				if (tagName === 'img' && (!el.hasAttribute('alt') || el.alt.trim() === '')) {
+					nativeRole = null
+				}
+				if (tagName === 'section' && !ar_hasAccessibleNameForElement(el)) {
+					nativeRole = null
+				}
 				if (nativeRole === role) {
-					if (tagName === 'img' && (role === 'presentation' || role === 'none'))
-						return;
-					ar_removeAttributeAndLog(el, 'role', 'Minor', `Redundant ARIA role="${ role }" on <${ tagName }>. Auto-removed.`, 'Native tag implies role.', 'Robust', '4.1.2', 'A')
+					if (tagName === 'img' && (role === 'presentation' || role === 'none') && (!el.hasAttribute('alt') || el.alt.trim() === '')) {
+						return
+					}
+					ar_removeAttributeAndLog(el, 'role', 'Minor', `Redundant ARIA role="${ role }" on <${ tagName }>. Auto-removed.`, 'Native HTML element implicitly conveys the same semantic meaning.', 'Robust', '4.1.2', 'A')
 				}
 				if (role === 'text' && el.matches(AR_SELECTOR_STRINGS.INTERACTIVE_ELEMENTS)) {
-					ar_removeAttributeAndLog(el, 'role', 'Critical', 'Interactive element `role="text"`. Auto-removed.', 'Remove role="text".', 'Robust', '4.1.2', 'A')
+					ar_removeAttributeAndLog(el, 'role', 'Critical', 'Interactive element has `role="text"`. Auto-removed.', 'Remove role="text" from interactive elements.', 'Robust', '4.1.2', 'A')
 				}
 				if ((role === 'presentation' || role === 'none') && (el.tabIndex >= 0 || el.matches(AR_SELECTOR_STRINGS.NATIVE_INTERACTIVE_TAGS))) {
 					const parentRole = el.parentElement ? el.parentElement.getAttribute('role') : null;
 					if (!(role === 'presentation' && tagName === 'li' && (parentRole === 'tablist' || parentRole === 'listbox' || parentRole === 'menu'))) {
-						ar_removeAttributeAndLog(el, 'role', 'Moderate', `Focusable element role="${ role }". Auto-removed.`, `Focusable elements should not have role="presentation" or "none".`, 'Robust', '4.1.2', 'A')
+						ar_removeAttributeAndLog(el, 'role', 'Moderate', `Focusable element has role="${ role }". Auto-removed.`, `Focusable elements should not have role="presentation" or "none" as this removes their semantics.`, 'Robust', '4.1.2', 'A')
 					}
 				}
 			} catch (e) {
@@ -724,9 +825,9 @@ var AR_CheckModules = AR_CheckModules || {};
 					const validIdRefs = idRefs.filter(id => document.getElementById(id));
 					if (validIdRefs.length !== idRefs.length) {
 						if (validIdRefs.length > 0) {
-							ar_setAttributeAndLog(el, attr, validIdRefs.join(' '), 'Minor', `${ attr } has invalid ID(s). Auto-removed invalid.`, `Ensure ${ attr } points to valid IDs.`, 'Robust', '4.1.2', 'A')
+							ar_setAttributeAndLog(el, attr, validIdRefs.join(' '), 'Minor', `${ attr } has invalid ID(s). Auto-removed invalid references.`, `Ensure ${ attr } points to existing element IDs.`, 'Robust', '4.1.2', 'A')
 						} else {
-							ar_removeAttributeAndLog(el, attr, 'Minor', `${ attr } only invalid ID(s). Auto-removed attr.`, `Ensure ${ attr } points to valid IDs.`, 'Robust', '4.1.2', 'A')
+							ar_removeAttributeAndLog(el, attr, 'Minor', `${ attr } only contains invalid ID(s). Auto-removed attribute.`, `Ensure ${ attr } points to existing element IDs.`, 'Robust', '4.1.2', 'A')
 						}
 					}
 				} catch (e) {
@@ -766,7 +867,7 @@ var AR_CheckModules = AR_CheckModules || {};
 					} else {
 						const failKey = `${ initialFailureKey }::AUTOFIX_FAILED`;
 						if (!ar_loggedIssuesTracker.has(failKey)) {
-							ar_logAccessibilityIssue('Critical', `Low contrast ${ currentContrast.toFixed(2) }:1. Autofix failed. Best: ${ fixed.newContrast ? fixed.newContrast.toFixed(2) + ':1' : 'N/A' }.`, el, `Original: ${ originalFgColorString } on ${ originalBgColorString }. Manually adjust.`, 'Perceivable', '1.4.3', false, 'AA');
+							ar_logAccessibilityIssue('Critical', `Low contrast ${ currentContrast.toFixed(2) }:1. Autofix failed. Best achieved: ${ fixed.newContrast ? fixed.newContrast.toFixed(2) + ':1' : 'N/A' }.`, el, `Original: ${ originalFgColorString } on ${ originalBgColorString }. Manually adjust text or background color.`, 'Perceivable', '1.4.3', false, 'AA');
 							ar_loggedIssuesTracker.add(failKey)
 						}
 					}
@@ -785,6 +886,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			strategy = 'force_opaque_text';
 			currentFgRgba[3] = 1;
 			newFgCss = `rgb(${ currentFgRgba.slice(0, 3).join(',') })`;
+			ar_storeOriginalInlineStyle(el, 'color');
 			el.style.setProperty('color', newFgCss, 'important');
 			const reEvaluatedPerceivedFg = ar_blendColors(currentFgRgba, currentBgRgba);
 			newContrast = ar_getContrastRatioBetweenColors(reEvaluatedPerceivedFg, currentBgRgba);
@@ -811,6 +913,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			1
 		];
 		newFgCss = `rgb(${ currentFgRgba.slice(0, 3).join(',') })`;
+		ar_storeOriginalInlineStyle(el, 'color');
 		el.style.setProperty('color', newFgCss, 'important');
 		newContrast = ar_getContrastRatioBetweenColors(currentFgRgba, currentBgRgba);
 		if (newContrast >= requiredContrast)
@@ -832,6 +935,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				1
 			];
 			newFgCss = `rgb(${ currentFgRgba.slice(0, 3).join(',') })`;
+			ar_storeOriginalInlineStyle(el, 'color');
 			el.style.setProperty('color', newFgCss, 'important');
 			newContrast = ar_getContrastRatioBetweenColors(currentFgRgba, currentBgRgba);
 			if (newContrast >= requiredContrast)
@@ -855,6 +959,8 @@ var AR_CheckModules = AR_CheckModules || {};
 			strategy += '+iterative_bg_hsl';
 			let tempBgRgb = bgRgba.slice(0, 3);
 			const isOriginalTextDark = ar_getLuminanceFromRgb(fgRgba) < 0.5;
+			ar_restoreOriginalInlineStyle(el, 'color');
+			currentFgRgba = [...fgRgba];
 			for (let i = 0; i < AR_CONFIG.CONTRAST_ADJUSTMENT_STEPS; i++) {
 				let [h, s, l] = ar_rgbToHsl(...tempBgRgb);
 				const delta = AR_CONFIG.CONTRAST_ADJUSTMENT_AMOUNT * (i / (AR_CONFIG.CONTRAST_ADJUSTMENT_STEPS - 1) + 0.1);
@@ -867,10 +973,10 @@ var AR_CheckModules = AR_CheckModules || {};
 					1
 				];
 				newBgCss = `rgb(${ currentBgRgba.slice(0, 3).join(',') })`;
+				ar_storeOriginalInlineStyle(el, 'background-color');
 				el.style.setProperty('background-color', newBgCss, 'important');
 				newContrast = ar_getContrastRatioBetweenColors(fgRgba, currentBgRgba);
 				if (newContrast >= requiredContrast) {
-					el.style.setProperty('color', origFgCss, 'important');
 					return {
 						success: true,
 						newFgCss: origFgCss,
@@ -881,16 +987,13 @@ var AR_CheckModules = AR_CheckModules || {};
 				}
 			}
 		}
-		el.style.setProperty('color', origFgCss);
-		if (el.style.backgroundColor !== origBgCss && origBgCss)
-			el.style.setProperty('background-color', origBgCss);
-		else if (!origBgCss)
-			el.style.removeProperty('background-color');
+		ar_restoreOriginalInlineStyle(el, 'color');
+		ar_restoreOriginalInlineStyle(el, 'background-color');
 		return {
 			success: false,
 			newFgCss: origFgCss,
 			newBgCss: origBgCss,
-			newContrast,
+			newContrast: newContrast,
 			strategy: 'all_failed'
 		}
 	};
@@ -911,11 +1014,11 @@ var AR_CheckModules = AR_CheckModules || {};
 					newLabel.appendChild(document.createTextNode((textNode.textContent || '').trim()));
 					textNode.parentNode.insertBefore(newLabel, textNode.nextSibling);
 					textNode.parentNode.removeChild(textNode);
-					ar_logAccessibilityIssue('Moderate', `Radio/checkbox missing label. Auto-wrapped adjacent text.`, field, '**Manual review required.**', 'Perceivable', '3.3.2 / 1.3.1', true, 'A');
+					ar_logAccessibilityIssue('Moderate', `Radio/checkbox missing label. Auto-wrapped adjacent text.`, field, '**Manual review required.** Ensure the label accurately describes the input.', 'Perceivable', '3.3.2 / 1.3.1', true, 'A');
 					return
 				}
 				if (labelText) {
-					ar_setAttributeAndLog(field, 'aria-label', labelText, 'Moderate', `Field missing label. Auto-set aria-label from title/placeholder: "${ labelText }".`, '**Manual review required.** Prefer visible <label>.', 'Perceivable', '3.3.2', 'A')
+					ar_setAttributeAndLog(field, 'aria-label', labelText, 'Moderate', `Field missing label. Auto-set aria-label from title/placeholder: "${ labelText }".`, '**Manual review required.** Prefer visible <label> elements.', 'Perceivable', '3.3.2', 'A')
 				} else {
 					const newLabel = document.createElement('label');
 					newLabel.htmlFor = fieldId;
@@ -929,9 +1032,9 @@ var AR_CheckModules = AR_CheckModules || {};
 					});
 					if (field.parentElement) {
 						field.parentElement.insertBefore(newLabel, field);
-						ar_logAccessibilityIssue('Critical', `Field missing label. Auto-added generic hidden <label>.`, field, '**Manual review required.**', 'Perceivable', '3.3.2', true, 'A')
+						ar_logAccessibilityIssue('Critical', `Field missing label. Auto-added generic hidden <label>.`, field, '**Manual review required.** Provide a descriptive and visible label for this form field.', 'Perceivable', '3.3.2', true, 'A')
 					} else {
-						ar_logAccessibilityIssue('Critical', `Field missing label. Could not auto-add <label>.`, field, 'Provide label.', 'Perceivable', '3.3.2', false, 'A')
+						ar_logAccessibilityIssue('Critical', `Field missing label. Could not auto-add <label> (no parent element).`, field, 'Provide a visible <label> element for this form field.', 'Perceivable', '3.3.2', false, 'A')
 					}
 				}
 			} catch (e) {
@@ -960,10 +1063,10 @@ var AR_CheckModules = AR_CheckModules || {};
 		const labelText = parentLabel ? (parentLabel.textContent || '').trim() : '';
 		const nextSiblingText = el.nextSibling && el.nextSibling.nodeType === Node.TEXT_NODE ? el.nextSibling.textContent.trim() : '';
 		if ((previousSiblingText.endsWith('*') || labelText.includes('*') || nextSiblingText.startsWith('*')) && !el.hasAttribute('required') && el.getAttribute('aria-required') !== 'true') {
-			ar_setAttributeAndLog(el, 'required', '', 'Minor', 'Field visually marked required ("*") but missing `required`. Auto-added.', 'Ensure `required` and `aria-required="true"`.', 'Robust', '3.3.2 / 4.1.2', 'A')
+			ar_setAttributeAndLog(el, 'required', '', 'Minor', 'Field visually marked as required ("*") but missing `required` attribute. Auto-added `required`.', 'Ensure required fields have both `required` and `aria-required="true"`.', 'Robust', '3.3.2 / 4.1.2', 'A')
 		}
 		if (el.hasAttribute('required') && el.getAttribute('aria-required') !== 'true') {
-			ar_setAttributeAndLog(el, 'aria-required', 'true', 'Moderate', 'Required field missing aria-required="true". Auto-fixed.', 'Add aria-required="true".', 'Robust', '4.1.2', 'A')
+			ar_setAttributeAndLog(el, 'aria-required', 'true', 'Moderate', 'Required field missing aria-required="true". Auto-fixed.', 'Add aria-required="true" for required form fields.', 'Robust', '4.1.2', 'A')
 		}
 	};
 	AR_CheckModulesProto._checkInvalidAria = function (el) {
@@ -972,15 +1075,16 @@ var AR_CheckModules = AR_CheckModules || {};
 				'true',
 				'false'
 			].includes(ariaInvalid.toLowerCase())) {
-			ar_setAttributeAndLog(el, 'aria-invalid', 'false', 'Minor', 'aria-invalid invalid value. Auto-set to "false".', 'Use "true" or "false".', 'Robust', '4.1.2', 'A')
+			ar_setAttributeAndLog(el, 'aria-invalid', 'false', 'Minor', 'aria-invalid attribute has an invalid value. Auto-set to "false".', 'Use "true" or "false" for aria-invalid.', 'Robust', '4.1.2', 'A')
 		}
 		if (el.getAttribute('aria-invalid') === 'true' && !el.hasAttribute('aria-describedby')) {
 			let errorMsgElement = null;
 			const potentialErrorSibling = el.nextElementSibling;
 			if (potentialErrorSibling && ((potentialErrorSibling.className || '').toLowerCase().includes('error') || (potentialErrorSibling.className || '').toLowerCase().includes('invalid') || potentialErrorSibling.getAttribute('role') === 'alert')) {
 				errorMsgElement = potentialErrorSibling;
-				if (!errorMsgElement.id)
+				if (!errorMsgElement.id) {
 					errorMsgElement.id = ar_generateUniqueElementId('error-msg-')
+				}
 			} else {
 				errorMsgElement = document.createElement('span');
 				errorMsgElement.id = ar_generateUniqueElementId('error-msg-');
@@ -993,10 +1097,12 @@ var AR_CheckModules = AR_CheckModules || {};
 					overflow: 'hidden'
 				});
 				errorMsgElement.setAttribute('role', 'alert');
-				el.parentNode.insertBefore(errorMsgElement, el.nextSibling)
+				if (el.parentNode) {
+					el.parentNode.insertBefore(errorMsgElement, el.nextSibling)
+				}
 			}
 			if (errorMsgElement && errorMsgElement.id) {
-				ar_setAttributeAndLog(el, 'aria-describedby', errorMsgElement.id, 'Minor', `Input aria-invalid="true" missing aria-describedby. Auto-linked/added error.`, 'Ensure invalid inputs described by error message via aria-describedby.', 'Understandable', '3.3.1', true, 'A')
+				ar_setAttributeAndLog(el, 'aria-describedby', errorMsgElement.id, 'Minor', `Input aria-invalid="true" missing aria-describedby. Auto-linked/added error message.`, 'Ensure invalid inputs are described by an error message via aria-describedby.', 'Understandable', '3.3.1', true, 'A')
 			}
 		}
 	};
@@ -1043,10 +1149,10 @@ var AR_CheckModules = AR_CheckModules || {};
 			let candidateElement = document.querySelector(htmlTag) || document.querySelector(`[role="${ role }"]`) || document.querySelector(selector);
 			if (candidateElement) {
 				if (candidateElement.tagName.toLowerCase() !== htmlTag && !candidateElement.getAttribute('role')) {
-					ar_setAttributeAndLog(candidateElement, 'role', role, 'Moderate', `Missing ${ landmarkName }. Auto-added role to <${ candidateElement.tagName.toLowerCase() }>.`, `Use <${ htmlTag }> or role="${ role }".`, 'Perceivable', '1.3.1', 'A');
+					ar_setAttributeAndLog(candidateElement, 'role', role, 'Moderate', `Missing ${ landmarkName } landmark. Auto-added role to <${ candidateElement.tagName.toLowerCase() }>.`, `Use <${ htmlTag }> or role="${ role }".`, 'Perceivable', '1.3.1', 'A');
 					globalState.detectedLandmarkRoleCounts[landmarkName]++
 				} else if (candidateElement.tagName.toLowerCase() === htmlTag && !candidateElement.getAttribute('role') && role !== htmlTag && landmarkName === role) {
-					ar_setAttributeAndLog(candidateElement, 'role', role, 'Info', `<${ htmlTag }> candidate for ${ landmarkName }. Auto-added role.`, `Consider explicit role.`, 'Perceivable', '1.3.1', 'A');
+					ar_setAttributeAndLog(candidateElement, 'role', role, 'Info', `<${ htmlTag }> candidate for ${ landmarkName }. Auto-added explicit role.`, `Consider explicit role for clarity.`, 'Perceivable', '1.3.1', 'A');
 					globalState.detectedLandmarkRoleCounts[landmarkName]++
 				} else if (!globalState.detectedLandmarkRoleCounts[landmarkName]) {
 					globalState.detectedLandmarkRoleCounts[landmarkName]++
@@ -1067,10 +1173,8 @@ var AR_CheckModules = AR_CheckModules || {};
 							if (child.parentNode === body && child !== newLandmark && ![
 									'SCRIPT',
 									'STYLE',
-									'LINK',
-									AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID,
-									AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID
-								].includes(child.tagName) && !child.closest(AR_CheckModules._landmarkConfigs.banner.htmlTag) && !child.closest(AR_CheckModules._landmarkConfigs.navigation.htmlTag) && !child.closest(AR_CheckModules._landmarkConfigs.contentinfo.htmlTag) && !(child.tagName.toLowerCase() === 'main' && landmarkName !== 'main')) {
+									'LINK'
+								].includes(child.tagName) && child.id !== AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID && child.id !== AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID && !child.closest(AR_CheckModules._landmarkConfigs.banner.htmlTag) && !child.closest(AR_CheckModules._landmarkConfigs.navigation.htmlTag) && !child.closest(AR_CheckModules._landmarkConfigs.contentinfo.htmlTag) && !(child.tagName.toLowerCase() === 'main' && landmarkName !== 'main')) {
 								newLandmark.appendChild(child);
 								contentMoved = true
 							}
@@ -1097,7 +1201,7 @@ var AR_CheckModules = AR_CheckModules || {};
 						body.appendChild(newLandmark)
 				} else
 					body.appendChild(newLandmark);
-				ar_logAccessibilityIssue('Moderate', `Missing "${ landmarkName }". Aggressively Auto-created <${ htmlTag }>${ contentMoved ? ' and wrapped content.' : '.' }`, newLandmark, 'Verify structure. Significant DOM change.', 'Perceivable', '1.3.1', true, 'A');
+				ar_logAccessibilityIssue('Moderate', `Missing "${ landmarkName }" landmark. Aggressively Auto-created <${ htmlTag }>${ contentMoved ? ' and wrapped existing content.' : '.' }`, newLandmark, 'Verify the auto-generated structure. This is a significant DOM change.', 'Perceivable', '1.3.1', true, 'A');
 				globalState.detectedLandmarkRoleCounts[landmarkName]++
 			}
 		}
@@ -1108,7 +1212,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			htmlTag: 'header',
 			role: 'banner',
 			placement: 'prepend',
-			contentHeuristic: children => children.slice(0, Math.min(children.length, 3))
+			contentHeuristic: children => children.filter(c => c.tagName.toLowerCase() !== 'script' && c.tagName.toLowerCase() !== 'style' && c.tagName.toLowerCase() !== 'link' && !c.id.includes(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID) && !c.id.includes(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID)).slice(0, Math.min(children.length, 3))
 		},
 		'navigation': {
 			selector: AR_SELECTOR_STRINGS.COMMON_NAV_SELECTORS,
@@ -1127,20 +1231,21 @@ var AR_CheckModules = AR_CheckModules || {};
 			placement: 'beforeFooter',
 			contentHeuristic: (children, header, nav, footer) => {
 				const mainContent = [];
-				let inMain = false;
+				let inMainSection = false;
 				for (const child of children) {
 					if (child === header || child === nav || child.id === AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID || child.id === AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID || [
 							'SCRIPT',
 							'STYLE',
 							'LINK'
 						].includes(child.tagName)) {
-						if (!inMain && child !== header && child !== nav) {
-						} else
+						if (!inMainSection && child !== header && child !== nav) {
 							continue
+						}
 					}
-					if (child === footer)
-						break;
-					inMain = true;
+					if (child === footer) {
+						break
+					}
+					inMainSection = true;
 					mainContent.push(child)
 				}
 				return mainContent.length > 0 ? mainContent : children.filter(c => c !== header && c !== nav && c !== footer && ![
@@ -1170,7 +1275,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		].forEach(roleName => {
 			if (globalState.detectedLandmarkRoleCounts[roleName] > 1) {
 				const elements = document.querySelectorAll(`${ this._landmarkConfigs[roleName].htmlTag }, [role="${ roleName }"]`);
-				ar_logAccessibilityIssue('Minor', `Multiple "${ roleName }" landmarks (${ globalState.detectedLandmarkRoleCounts[roleName] }).`, elements.length > 0 ? elements[0] : document.body, `Usually one "${ roleName }" per page.`, 'Perceivable', '1.3.1 / 2.4.1', false, 'A')
+				ar_logAccessibilityIssue('Minor', `Multiple "${ roleName }" landmarks (${ globalState.detectedLandmarkRoleCounts[roleName] }).`, elements.length > 0 ? elements[0] : document.body, `There should typically be only one "${ roleName }" landmark per page. Consider consolidating or using other roles.`, 'Perceivable', '1.3.1 / 2.4.1', false, 'A')
 			}
 		})
 	};
@@ -1182,7 +1287,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			styleTag.id = 'ar-focus-style';
 			styleTag.textContent = `${ AR_SELECTOR_STRINGS.INTERACTIVE_ELEMENTS.split(',').map(s => `${ s.trim() }:focus-visible`).join(',\n') } { outline: 3px solid #0056b3 !important; outline-offset: 2px !important; box-shadow: 0 0 0 3px rgba(112, 161, 255, 0.5) !important; }`;
 			document.head.appendChild(styleTag);
-			ar_logAccessibilityIssue('Info', 'Injected global CSS for :focus-visible.', styleTag, 'Review custom focus styles.', 'Operable', '2.4.7 / 2.4.11', true, 'AA')
+			ar_logAccessibilityIssue('Info', 'Injected global CSS for :focus-visible. This provides a default focus indicator.', styleTag, 'Review custom focus styles to ensure they are visible and meet WCAG 2.4.7.', 'Operable', '2.4.7 / 2.4.11', true, 'AA')
 		}
 		document.querySelectorAll(AR_SELECTOR_STRINGS.INTERACTIVE_ELEMENTS).forEach(el => {
 			try {
@@ -1193,16 +1298,16 @@ var AR_CheckModules = AR_CheckModules || {};
 				const defaultBoxShadowNone = computedStyle.boxShadow === 'none' || computedStyle.boxShadow === '';
 				if (defaultOutlineNone && defaultBoxShadowNone) {
 					if (el.style.outline === 'none !important' || el.style.outlineStyle === 'none' && el.style.getPropertyPriority('outline-style') === 'important') {
-						ar_logAccessibilityIssue('Moderate', 'Element has `outline: none !important;`.', el, 'Avoid `!important` to remove outlines.', 'Operable', '2.4.7', false, 'AA')
+						ar_logAccessibilityIssue('Moderate', 'Element has `outline: none !important;`. This can override default focus indicators.', el, 'Avoid using `!important` to remove outlines. Ensure a visible focus indicator is provided via `:focus-visible`.', 'Operable', '2.4.7', false, 'AA')
 					} else if (defaultOutlineNone) {
-						ar_logAccessibilityIssue('Minor', 'Element has `outline: none`. Ensure :focus-visible provides indicator.', el, 'Verify visible focus indicator.', 'Operable', '2.4.7', false, 'AA')
+						ar_logAccessibilityIssue('Minor', 'Element has `outline: none`. Ensure :focus-visible provides a clear indicator.', el, 'Verify that a visible focus indicator is provided for keyboard users, especially if `outline: none` is used.', 'Operable', '2.4.7', false, 'AA')
 					}
 				}
 			} catch (e) {
 				console.error('Error: FocusIndicators Check:', e, el)
 			}
 		});
-		console.log('\n\uD83D\uDCA1 Manual Verification for Focus Indicators is CRUCIAL.');
+		console.log('\n\uD83D\uDCA1 Manual Verification for Focus Indicators is CRUCIAL. Ensure custom focus styles are clearly visible and meet WCAG 2.4.7 and 2.4.11.');
 		console.groupEnd()
 	};
 	AR_CheckModulesProto.checkSkipLinks = function (globalState) {
@@ -1215,13 +1320,13 @@ var AR_CheckModules = AR_CheckModules || {};
 				if (!mainContentTarget.id)
 					mainContentTarget.id = ar_generateUniqueElementId('main-content-target-');
 				if (mainContentTarget.getAttribute('tabindex') === null && !mainContentTarget.matches(AR_SELECTOR_STRINGS.NATIVE_INTERACTIVE_TAGS) && mainContentTarget.getAttribute('role') !== 'region' && mainContentTarget.tagName !== 'MAIN') {
-					ar_setAttributeAndLog(mainContentTarget, 'tabindex', '-1', 'Info', 'Main content target for skip link made focusable.', 'Ensure main content area focusable for skip links.', 'Operable', '2.4.1', true, 'A')
+					ar_setAttributeAndLog(mainContentTarget, 'tabindex', '-1', 'Info', 'Main content target for skip link made focusable (tabindex="-1").', 'Ensure the main content area is focusable for skip links to work correctly.', 'Operable', '2.4.1', true, 'A')
 				}
 				newSkipLink.href = `#${ mainContentTarget.id }`;
 				document.body.prepend(newSkipLink);
-				ar_logAccessibilityIssue('Moderate', 'No visible "skip to main" link. Auto-injected.', newSkipLink, 'Ensure skip link is first, targets main, visible on focus.', 'Operable', '2.4.1', true, 'A')
+				ar_logAccessibilityIssue('Moderate', 'No visible "skip to main content" link found. Auto-injected.', newSkipLink, 'Ensure the skip link is the first focusable element, is visible on focus, and targets the main content area.', 'Operable', '2.4.1', true, 'A')
 			} else {
-				ar_logAccessibilityIssue('Moderate', 'No "skip to main" link, no clear main target.', document.body, 'Implement skip link.', 'Operable', '2.4.1', false, 'A')
+				ar_logAccessibilityIssue('Moderate', 'No "skip to main content" link found and no clear main content target identified.', document.body, 'Implement a "skip to main content" link that targets the primary content area of the page.', 'Operable', '2.4.1', false, 'A')
 			}
 		}
 		console.groupEnd()
@@ -1236,7 +1341,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			width: '1px',
 			height: '1px',
 			overflow: 'hidden',
-			zIndex: '-999',
+			zIndex: '99999',
 			padding: '0.5em 1em',
 			backgroundColor: '#f0f0f0',
 			color: '#333',
@@ -1262,7 +1367,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				top: 'auto',
 				width: '1px',
 				height: '1px',
-				zIndex: '-999',
+				zIndex: '99999',
 				boxShadow: 'none',
 				transitionDelay: '0s 0.3s'
 			})
@@ -1270,9 +1375,15 @@ var AR_CheckModules = AR_CheckModules || {};
 		return skipLink
 	};
 	AR_CheckModulesProto._findMainContentTarget = function () {
-		let target = document.querySelector(AR_SELECTOR_STRINGS.MAIN_CONTENT_TARGET_SELECTORS) || document.querySelector('article') || document.querySelector('section[aria-label], section[aria-labelledby]') || document.body.children[Math.min(1, document.body.children.length - 1)];
-		while (target && (target.matches('script, style, link') || target.id === AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID || target.id === AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID || target.classList.contains('skip-link'))) {
-			target = target.nextElementSibling
+		let target = document.querySelector(AR_SELECTOR_STRINGS.MAIN_CONTENT_TARGET_SELECTORS) || document.querySelector('article') || document.querySelector('section[aria-label], section[aria-labelledby]');
+		if (!target) {
+			for (let i = 0; i < document.body.children.length; i++) {
+				const child = document.body.children[i];
+				if (!child.matches('script, style, link') && child.id !== AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID && child.id !== AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID && !child.classList.contains('skip-link')) {
+					target = child;
+					break
+				}
+			}
 		}
 		return target
 	};
@@ -1294,7 +1405,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			const h1Text = h1 && h1.textContent ? h1.textContent.trim().substring(0, 60) : '';
 			let newTitleText = (h1Text || 'Untitled Page') + (h1Text ? '' : ' - AutoTitle');
 			let newTitleEl = titleElement || document.createElement('title');
-			ar_setAttributeAndLog(newTitleEl, 'textContent', newTitleText, 'Critical', `Doc title missing/empty. Auto-generated: "${ newTitleText }".`, '**Manual review required.** Provide descriptive title.', 'Operable', '2.4.2 Page Titled', 'A');
+			ar_setAttributeAndLog(newTitleEl, 'textContent', newTitleText, 'Critical', `Document title missing or empty. Auto-generated: "${ newTitleText }".`, '**Manual review required.** Provide a descriptive and unique title for the page.', 'Operable', '2.4.2 Page Titled', 'A');
 			if (!titleElement)
 				head.appendChild(newTitleEl)
 		}
@@ -1312,11 +1423,11 @@ var AR_CheckModules = AR_CheckModules || {};
 				viewportMeta.name = 'viewport';
 				head.appendChild(viewportMeta)
 			}
-			ar_setAttributeAndLog(viewportMeta, 'content', newContent, 'Critical', 'Viewport missing/empty. Auto-added responsive viewport.', 'Ensure proper viewport.', 'Perceivable', '1.4.10 / 1.4.4', 'AA');
+			ar_setAttributeAndLog(viewportMeta, 'content', newContent, 'Critical', 'Viewport meta tag missing or empty. Auto-added responsive viewport.', 'Ensure a proper viewport meta tag is present for responsive design and user zoom.', 'Perceivable', '1.4.10 / 1.4.4', 'AA');
 			return
 		}
 		if (!currentContent.includes('width=device-width')) {
-			newContent = `width=device-width,${ newContent.length > 0 ? ',' : '' }${ newContent }`;
+			newContent = `width=device-width${ newContent.length > 0 ? ',' : '' }${ newContent }`;
 			issueFound = true
 		}
 		if (!/initial-scale\s*=\s*1(\.0*)?/.test(currentContent)) {
@@ -1332,17 +1443,18 @@ var AR_CheckModules = AR_CheckModules || {};
 			issueFound = true
 		}
 		if (!newContent.includes('user-scalable=yes') && !newContent.includes('user-scalable=no')) {
-			newContent = `${ newContent }${ newContent.length > 0 ? ',' : '' }user-scalable=yes`
+			newContent = `${ newContent }${ newContent.length > 0 ? ',' : '' }user-scalable=yes`;
+			issueFound = true
 		}
 		newContent = newContent.replace(/,{2,}/g, ',').replace(/,\s*$/, '').trim();
 		if (issueFound && newContent !== currentContent) {
-			ar_setAttributeAndLog(viewportMeta, 'content', newContent, 'Moderate', `Viewport improper. Auto-corrected to "${ newContent }".`, 'Avoid user-scalable=no or maximum-scale=1.0.', 'Perceivable', '1.4.4 / 1.4.10', 'AA')
+			ar_setAttributeAndLog(viewportMeta, 'content', newContent, 'Moderate', `Viewport meta tag improper. Auto-corrected to "${ newContent }".`, 'Avoid `user-scalable=no` or `maximum-scale=1.0` to allow users to zoom.', 'Perceivable', '1.4.4 / 1.4.10', 'AA')
 		}
 	};
 	AR_CheckModulesProto._checkMetaRefresh = function (head) {
 		const metaRefresh = head.querySelector('meta[http-equiv="refresh"]');
 		if (metaRefresh) {
-			ar_logAccessibilityIssue('Critical', 'Meta refresh tag found.', metaRefresh, 'Avoid meta refresh. Use server-side redirects or JS with user controls.', 'Operable', '2.2.1 / 2.2.4', false, 'A')
+			ar_logAccessibilityIssue('Critical', 'Meta refresh tag found. This can disorient users.', metaRefresh, 'Avoid using meta refresh. Use server-side redirects or JavaScript with user controls for timed updates.', 'Operable', '2.2.1 / 2.2.4', false, 'A')
 		}
 	}
 }(AR_CheckModules))
