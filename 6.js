@@ -225,7 +225,7 @@
 				const url = new URL(iframe.src);
 				const hostname = url.hostname.toLowerCase();
 				if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) title = 'YouTube video player';
-				else if (hostname.includes('vimeo.com')) title = 'Vimeo video player';
+				else if (hostname === 'vimeo.com' || hostname.endsWith('.vimeo.com')) title = 'Vimeo video player';
 				else if (hostname.includes('maps.google') || hostname.includes('google.com/maps')) title = 'Google Maps embed';
 				else if (url.pathname.endsWith('.pdf')) title = `Embedded PDF document: ${url.pathname.split('/').pop()}`;
 				else title = `Embedded content from ${url.hostname}`;
