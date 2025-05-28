@@ -23,7 +23,7 @@
 * Link Accessibility-Resolver to your website externally:
 ```
 <script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_config_selectors.js" defer="defer"></script>
-<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_utils_logging.js.js" defer="defer"></script>
+<script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_utils_logging.js" defer="defer"></script>
 <script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_utils_dom.js" defer="defer"></script>
 <script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_menu_ui.js" defer="defer"></script>
 <script src="https://raw.githubusercontent.com/YaronKoresh/Accessibility-Resolver/refs/heads/main/ar_menu_actions.js" defer="defer"></script>
