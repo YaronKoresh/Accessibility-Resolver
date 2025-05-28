@@ -1,4 +1,4 @@
-// File 6: ar_check_modules_part1.js
+// File 6: ar_check_modules.js
 
 // Part of AR_CheckModules: First half of check functions
 (function(AR_CheckModulesProto) {
