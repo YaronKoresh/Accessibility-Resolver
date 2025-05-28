@@ -250,10 +250,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 
             /* Custom Cursor */
             /* Larger, high-contrast arrow cursors */
-            .ar-cursor-large { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="black" d="M10 16.5l6-4.5-6-4.5v9z"/><path fill="white" stroke="black" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
-            .ar-cursor-xlarge { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="black" d="M10 16.5l6-4.5-6-4.5v9z"/><path fill="white" stroke="black" stroke-width="1" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 16 16, auto !important; }
-            .ar-cursor-red { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="red" d="M10 16.5l6-4.5-6-4.5v9z"/><path fill="white" stroke="black" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
-            .ar-cursor-green { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="green" d="M10 16.5l6-4.5-6-4.5v9z"/><path fill="white" stroke="black" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
+            .ar-cursor-large { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="black" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
+            .ar-cursor-xlarge { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24"><path fill="black" stroke="white" stroke-width="1" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 16 16, auto !important; }
+            .ar-cursor-red { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="red" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
+            .ar-cursor-green { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="green" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
+            
+            /* Highlight around custom cursor */
+            html.ar-cursor-active-highlight {
+                box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.5) inset !important; /* Blue glow around the viewport */
+                transition: box-shadow 0.2s ease-in-out;
+            }
+
 
             /* Text-to-Speech Highlight */
             .ar-tts-highlight {
@@ -526,7 +533,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		html += this._getMenuFieldsetHTML(ICONS.fontSize, 'Text & Display', this._getMenuButtonHTML('increase-font', ICONS.textIncrease, 'Increase Text') + this._getMenuButtonHTML('decrease-font', ICONS.textDecrease, 'Decrease Text') + this._getMenuButtonHTML('reset-font', ICONS.reset, 'Reset Text Size', true, true) + this._getMenuButtonHTML('text-spacing-letter', ICONS.spacing, 'Letter Spacing') + this._getMenuButtonHTML('text-spacing-word', ICONS.spacing, 'Word Spacing') + this._getMenuButtonHTML('text-spacing-line', ICONS.spacing, 'Line Height') + this._getMenuButtonHTML('text-spacing-reset', ICONS.reset, 'Reset Spacing', true, true) + this._getMenuButtonHTML('text-align-left', ICONS.alignLeft, 'Align Left') + this._getMenuButtonHTML('text-align-center', ICONS.alignCenter, 'Align Center') + this._getMenuButtonHTML('text-align-reset', ICONS.reset, 'Reset Alignment', true, true) + this._getMenuButtonHTML('toggle-dyslexia-font', ICONS.fontStyle, 'Dyslexia Font', true));
 		html += this._getMenuFieldsetHTML(ICONS.contrast, 'Visual & Color', this._getMenuButtonHTML('contrast-high', ICONS.contrast, 'High Contrast') + this._getMenuButtonHTML('contrast-inverted', ICONS.contrast, 'Invert Colors') + this._getMenuButtonHTML('contrast-grayscale', ICONS.contrast, 'Grayscale') + this._getMenuButtonHTML('saturation-low', ICONS.contrast, 'Low Saturation') + this._getMenuButtonHTML('reset-contrast', ICONS.reset, 'Reset Colors', true, true) + this._getMenuButtonHTML('toggle-hide-images', ICONS.hide, 'Hide Images', true));
 		html += this._getMenuFieldsetHTML(ICONS.highlight, 'Navigation & Focus', this._getMenuButtonHTML('highlight-links', ICONS.highlight, 'Highlight Links') + this._getMenuButtonHTML('highlight-headings', ICONS.highlight, 'Highlight Headings') + this._getMenuButtonHTML('focus-highlight', ICONS.focus, 'Focus Highlight') + this._getMenuButtonHTML('reset-highlights', ICONS.reset, 'Reset Highlights', true, true) + this._getMenuButtonHTML('toggle-reading-line', ICONS.readingAid, 'Reading Line') + this._getMenuButtonHTML('toggle-reading-mask', ICONS.readingAid, 'Reading Mask'));
-		html += this._getMenuFieldsetHTML(this._getMenuIconSVG('<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18V4c4.41 0 8 3.59 8 8s-3.59 8-8 8z"/>', 'Advanced Tools'), 'Advanced Tools', this._getMenuButtonHTML('toggle-virtual-keyboard', ICONS.keyboard, 'Virtual Keyboard', true) + this._getMenuButtonHTML('toggle-content-simplifier', ICONS.simplify, 'Simplify Content', true) + this._getMenuButtonHTML('toggle-text-to-speech', ICONS.readAloud, 'Read Aloud', true) + this._getMenuButtonHTML('stop-text-to-speech', ICONS.reset, 'Stop Reading', true) + this._getMenuButtonHTML('toggle-custom-cursor', ICONS.cursor, 'Custom Cursor', true) + this._getMenuButtonHTML('zoom-in', ICONS.zoom, 'Zoom In') + this._getMenuButtonHTML('zoom-out', ICONS.zoom, 'Zoom Out') + this._getMenuButtonHTML('reset-zoom', ICONS.reset, 'Reset Zoom', true));
+		html += this._getMenuFieldsetHTML(this._getMenuIconSVG('<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18V4c4.41 0 8 3.59 8 8s-3.59 8-8 8z"/>', 'Advanced Tools'), 'Advanced Tools', this._getMenuButtonHTML('toggle-virtual-keyboard', ICONS.keyboard, 'Virtual Keyboard', true) + this._getMenuButtonHTML('toggle-content-simplifier', ICONS.simplify, 'Simplify Content', true) + this._getMenuButtonHTML('toggle-text-to-speech', ICONS.readAloud, 'Read Aloud', true) + this._getMenuButtonHTML('stop-text-to-speech', ICONS.reset, 'Stop Reading', true) + this._getMenuButtonHTML('toggle-custom-cursor', ICONS.cursor, 'Custom Cursor', true) + this._getMenuButtonHTML('zoom-in', ICONS.zoom, 'Zoom In') + this._getMenuButtonHTML('zoom-out', ICONS.zoom, 'Zoom Out') + this._getMenuButtonHTML('reset-zoom', ICONS.reset, 'Reset Zoom', true) + this._getMenuButtonHTML('stop-animations', ICONS.animation, 'Stop Animations', true));
 		html += `<fieldset class="ar-menu-group">
                     <div class="ar-button-row">
                         ${ this._getMenuButtonHTML('reset-all-menu', ICONS.reset, 'Reset All Settings', true, true) }
@@ -565,8 +572,12 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			});
 			document.addEventListener('mousemove', this._doDragging.bind(this));
 			document.addEventListener('mouseup', this._stopDragging.bind(this));
+			document.addEventListener('touchmove', this._doDragging.bind(this), { passive: false });
+			document.addEventListener('touchend', this._stopDragging.bind(this));
 			document.addEventListener('mousemove', this._doButtonDragging.bind(this));
-			document.addEventListener('mouseup', this._stopButtonDragging.bind(this))
+			document.addEventListener('mouseup', this._stopButtonDragging.bind(this));
+			document.addEventListener('touchmove', this._doButtonDragging.bind(this), { passive: false });
+			document.addEventListener('touchend', this._stopButtonDragging.bind(this))
 		}
 	};
 	AR_AccessibilityMenuProto.toggleMenu = function () {
@@ -684,7 +695,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false))
 			}
 		}
-		this._logMenuChange(`Font size ${ action === 'reset-font' ? 'reset.' : `adjusted by ${ this.currentFontSizeMultiplier.toFixed(1) }x.` }`, action !== 'reset-font')
+		this._logMenuChange(`Font size adjusted to ${ this.currentFontSizeMultiplier.toFixed(1) }x.`, action !== 'reset-font')
 	};
 	AR_AccessibilityMenuProto._applyFontSize = function (elements, reset) {
 		elements.forEach(el => {
@@ -820,6 +831,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		} else if (action === 'focus-highlight') {
 			this.isFocusHighlightActive = !this.isFocusHighlightActive;
 			bodyEl.classList.toggle('ar-focus-highlight', this.isFocusHighlightActive);
+			document.documentElement.classList.toggle('ar-cursor-active-highlight', this.isFocusHighlightActive);
 			this._updateButtonActiveState(targetButton, this.isFocusHighlightActive);
 			this._logMenuChange('Focus highlight', this.isFocusHighlightActive)
 		}
@@ -1270,6 +1282,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	};
 	AR_AccessibilityMenuProto._handleCustomCursorAction = function (targetButton) {
 		const bodyEl = document.body;
+		const htmlEl = document.documentElement;
 		const cursorClasses = [
 			'ar-cursor-large',
 			'ar-cursor-xlarge',
@@ -1278,9 +1291,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		];
 		let nextCursorIndex = (cursorClasses.indexOf(this.activeCursorClassName) + 1) % (cursorClasses.length + 1);
 		bodyEl.classList.remove(...cursorClasses);
+		htmlEl.classList.remove('ar-cursor-active-highlight');
 		if (nextCursorIndex < cursorClasses.length) {
 			this.activeCursorClassName = cursorClasses[nextCursorIndex];
 			bodyEl.classList.add(this.activeCursorClassName);
+			htmlEl.classList.add('ar-cursor-active-highlight');
 			this._updateButtonActiveState(targetButton, true);
 			this._logMenuChange(`Custom cursor enabled (${ this.activeCursorClassName.replace('ar-cursor-', '') }).`, true)
 		} else {
@@ -1403,10 +1418,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const button = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
 		if (!button)
 			return;
-		if (event.movementX !== 0 || event.movementY !== 0) {
+		const coords = getClientCoords(event);
+		if (Math.abs(coords.clientX - (button.getBoundingClientRect().left + this.buttonOffsetX)) > 5 || Math.abs(coords.clientY - (button.getBoundingClientRect().top + this.buttonOffsetY)) > 5) {
 			this.isDraggingOccurred = true
 		}
-		const coords = getClientCoords(event);
 		let newLeft = coords.clientX - this.buttonOffsetX;
 		let newTop = coords.clientY - this.buttonOffsetY;
 		const minX = 0;
@@ -1462,6 +1477,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 		this._stopReading();
 		const bodyEl = document.body;
+		const htmlEl = document.documentElement;
 		const cursorClasses = [
 			'ar-cursor-large',
 			'ar-cursor-xlarge',
@@ -1469,6 +1485,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			'ar-cursor-green'
 		];
 		bodyEl.classList.remove(...cursorClasses);
+		htmlEl.classList.remove('ar-cursor-active-highlight');
 		this.activeCursorClassName = 'default';
 		this._updateButtonActiveState(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-custom-cursor"]`), false);
 		this._handlePageZoomAction('reset-zoom', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="reset-zoom"]`));
@@ -1498,7 +1515,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				button.style.left = 'auto'
 			}
 			button.style.bottom = '20px';
-			button.style.top = 'auto'
+			button.style.top = 'auto';
+			button.style.transform = 'translateY(-50%)'
 		}
 	};
 	AR_AccessibilityMenuProto._logMenuChange = function (actionDescription, isActive) {
