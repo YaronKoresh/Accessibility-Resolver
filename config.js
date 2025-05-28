@@ -1,6 +1,3 @@
-// File 1: ar_config_selectors.js
-
-// Configuration constants for the accessibility resolver
 const AR_CONFIG = {
 	MINIMUM_INTERACTIVE_ELEMENT_SIZE_PX: 24,
 	MINIMUM_TOUCH_TARGET_SPACING_PX: 8,
@@ -74,12 +71,10 @@ const AR_CONFIG = {
 	CONTRAST_ADJUSTMENT_AMOUNT: 0.1,
 	AGGRESSIVE_CONTRAST_BG_ADJUST_MAX_DELTA: 0.25
 };
-
-// Selector strings for various elements
 const AR_SELECTOR_STRINGS = {
 	INTERACTIVE_ELEMENTS: 'button, a[href], input:not([type="hidden"]), select, textarea, [role="button"], [role="link"], [role="checkbox"], [role="radio"], [role="option"], [role="menuitem"], [role="tab"], [role="treeitem"], [role="slider"], [role="spinbutton"], [role="switch"], [tabindex]:not([tabindex="-1"])',
 	HEADING_ELEMENTS: 'h1, h2, h3, h4, h5, h6',
-	TEXT_CONTAINER_ELEMENTS_AFFECTED_BY_MENU: `p, li, dt, dd, figcaption, blockquote, pre, code, summary, h1, h2, h3, h4, h5, h6, article, section, main, header, footer, nav, aside, div:not(#${AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID}):not(#${AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID}):not([role="toolbar"]):not([role="menubar"]):not([class*="toast"]):not([class*="modal"]):not([class*="popup"]), span:not(#${AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID} *):not(#${AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID} *), td, th, caption, label, legend, em, strong, b, i, small, sub, sup, mark, ins, del, q, cite`.replace(/\s+/g, ' ').trim(),
+	TEXT_CONTAINER_ELEMENTS_AFFECTED_BY_MENU: `p, li, dt, dd, figcaption, blockquote, pre, code, summary, h1, h2, h3, h4, h5, h6, article, section, main, header, footer, nav, aside, div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }):not([role="toolbar"]):not([role="menubar"]):not([class*="toast"]):not([class*="modal"]):not([class*="popup"]), span:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *), td, th, caption, label, legend, em, strong, b, i, small, sub, sup, mark, ins, del, q, cite`.replace(/\s+/g, ' ').trim(),
 	FORM_CONTROL_ELEMENTS: 'input:not([type="hidden"]), select, textarea',
 	LANDMARK_ROLES_ARRAY: [
 		'main',
@@ -107,14 +102,12 @@ const AR_SELECTOR_STRINGS = {
 	COMMON_FOOTER_SELECTORS: 'body > footer, body > div[id*="footer" i], body > div[class*="footer" i], body > div[id*="colophon" i], body > .site-footer, body > #site-footer',
 	COMMON_NAV_SELECTORS: 'body > nav, body > div[id*="nav" i], body > div[class*="nav" i], body > ul[class*="nav" i], body > div[id*="menu" i], body > ul[id*="menu" i], body > .main-nav, body > #main-nav, body > .primary-navigation'
 };
-
-// Global state variables
 let ar_accessibilityIssuesLog = [];
 let ar_totalScannedIssuesCounter = 0;
 let ar_totalAutoFixedIssuesCounter = 0;
 const ar_generatedUniqueElementIds = new Set();
 const ar_detectedLandmarkRoleCounts = {};
 let ar_mainMutationObserverDebounceTimeout;
-const ar_originalElementStylesMap = new Map(); // Stores original inline styles for elements modified by the menu
-let ar_activeReadingGuideType = null; // 'line', 'mask', or null
-const ar_loggedIssuesTracker = new Set(); // Tracks logged issues to prevent duplicates
+const ar_originalElementStylesMap = new Map();
+let ar_activeReadingGuideType = null;
+const ar_loggedIssuesTracker = new Set()
