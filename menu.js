@@ -23,6 +23,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto.currentSpeechUtterance = null;
 	AR_AccessibilityMenuProto.currentZoomLevel = 1;
 	AR_AccessibilityMenuProto.activeCursorClassName = 'default';
+	AR_AccessibilityMenuProto.filterOverlayElement = null;
 	AR_AccessibilityMenuProto._initialComputedFontSizes = new Map();
 	function getClientCoords(event) {
 		if (event.touches && event.touches.length > 0) {
@@ -382,20 +383,38 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             }
 
             /* Contrast & Color */
-            .accessibility-resolver-contrast-high {
-                filter: contrast(200%) !important; /* Example high contrast */
-                background-color: black !important;
-                color: white !important;
+            /* Filter overlay to apply filters without breaking fixed positioning */
+            #ar-filter-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none; /* Allow clicks to pass through */
+                z-index: 2147483645; /* Below menu and button, above content */
+                transition: filter 0.3s ease-in-out;
             }
-            .accessibility-resolver-contrast-inverted {
+
+            .accessibility-resolver-contrast-high #ar-filter-overlay {
+                filter: contrast(200%) brightness(120%) !important;
+            }
+            .accessibility-resolver-contrast-inverted #ar-filter-overlay {
                 filter: invert(100%) hue-rotate(180deg) !important;
             }
-            .accessibility-resolver-contrast-grayscale {
+            .accessibility-resolver-contrast-grayscale #ar-filter-overlay {
                 filter: grayscale(100%) !important;
             }
-            .accessibility-resolver-saturation-filter {
-                filter: saturate(30%) !important; /* Low saturation */
+            .accessibility-resolver-saturation-filter #ar-filter-overlay {
+                filter: saturate(30%) !important;
             }
+
+            /* Ensure accessibility menu itself is NOT affected by filters */
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID },
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID },
+            #ar-virtual-keyboard {
+                filter: none !important;
+            }
+
 
             /* Highlight Links */
             body.accessibility-resolver-highlight-links a[href] {
@@ -435,8 +454,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
         `;
 		const styleEl = document.createElement('style');
 		styleEl.id = styleId;
-		styleEl.textContent = css;
-		document.head.appendChild(styleEl)
+		document.head.appendChild(styleEl);
+		styleEl.textContent = css
 	};
 	AR_AccessibilityMenuProto._createMenuButton = function () {
 		if (document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID))
@@ -486,6 +505,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (legend) {
 			legend.addEventListener('mousedown', this._startDragging.bind(this))
 		}
+		this.filterOverlayElement = document.createElement('div');
+		this.filterOverlayElement.id = 'ar-filter-overlay';
+		document.body.appendChild(this.filterOverlayElement)
 	};
 	AR_AccessibilityMenuProto._getMenuIconSVG = function (pathData, altText = '') {
 		return `<span class="ar-menu-icon" role="img" aria-label="${ altText }"><svg viewBox="0 0 24 24">${ pathData }</svg></span>`
@@ -728,6 +750,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (action === 'reset-contrast') {
 			bodyEl.classList.remove(...contrastClasses, saturationClass);
 			this.activeContrastModeClassName = 'default';
+			if (this.filterOverlayElement) {
+				this.filterOverlayElement.style.filter = 'none';
+				this.filterOverlayElement.style.display = 'none'
+			}
 			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
 			if (parentFieldset) {
 				parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false))
@@ -736,35 +762,49 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			return
 		}
 		let targetClass = '', logMsg = '';
+		let filterValue = 'none';
 		switch (action) {
 		case 'contrast-high':
 			targetClass = AR_CONFIG.HIGH_CONTRAST_MODE_CLASS_NAME;
+			filterValue = 'contrast(200%) brightness(120%)';
 			logMsg = 'High contrast';
 			break;
 		case 'contrast-inverted':
 			targetClass = AR_CONFIG.INVERTED_CONTRAST_MODE_CLASS_NAME;
+			filterValue = 'invert(100%) hue-rotate(180deg)';
 			logMsg = 'Inverted colors';
 			break;
 		case 'contrast-grayscale':
 			targetClass = AR_CONFIG.GRAYSCALE_CONTRAST_MODE_CLASS_NAME;
+			filterValue = 'grayscale(100%)';
 			logMsg = 'Grayscale mode';
 			break;
 		case 'saturation-low':
 			targetClass = saturationClass;
+			filterValue = 'saturate(30%)';
 			logMsg = 'Low saturation';
 			break
 		}
-		if (targetClass) {
-			bodyEl.classList.remove(...contrastClasses, saturationClass);
-			bodyEl.classList.toggle(targetClass);
-			const isActive = bodyEl.classList.contains(targetClass);
-			this._updateButtonActiveState(targetButton, isActive);
-			if (isActive)
-				this.activeContrastModeClassName = targetClass;
-			else if (!isActive && this.activeContrastModeClassName === targetClass)
-				this.activeContrastModeClassName = 'default';
-			this._logMenuChange(logMsg, isActive)
+		if (this.filterOverlayElement) {
+			this.filterOverlayElement.style.display = 'block'
+		} else {
+			this.filterOverlayElement = document.createElement('div');
+			this.filterOverlayElement.id = 'ar-filter-overlay';
+			document.body.appendChild(this.filterOverlayElement);
+			this.filterOverlayElement.style.display = 'block'
 		}
+		bodyEl.classList.remove(...contrastClasses, saturationClass);
+		bodyEl.classList.toggle(targetClass);
+		const isActive = bodyEl.classList.contains(targetClass);
+		if (this.filterOverlayElement) {
+			this.filterOverlayElement.style.filter = isActive ? `${ filterValue } !important` : 'none'
+		}
+		this._updateButtonActiveState(targetButton, isActive);
+		if (isActive)
+			this.activeContrastModeClassName = targetClass;
+		else if (!isActive && this.activeContrastModeClassName === targetClass)
+			this.activeContrastModeClassName = 'default';
+		this._logMenuChange(logMsg, isActive)
 	};
 	AR_AccessibilityMenuProto._handleTextSpacingAction = function (action, targetButton) {
 		const bodyEl = document.body;
@@ -941,13 +981,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				fontLink.href = AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_STYLESHEET_URL;
 				document.head.appendChild(fontLink)
 			}
-			const elementsToAffect = document.querySelectorAll('body, p, li, span, div, a, button, input, textarea, select, h1, h2, h3, h4, h5, h6');
+			const elementsToAffect = document.querySelectorAll('body, p, li, span, div, a, button, input, textarea, select, h1, h2, h3, h4, h5, h6, strong, em, b, i');
 			elementsToAffect.forEach(el => {
 				el.style.setProperty('font-family', `'OpenDyslexic', sans-serif`, 'important')
 			});
 			body.classList.add(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
 		} else {
-			const elementsToAffect = document.querySelectorAll('body, p, li, span, div, a, button, input, textarea, select, h1, h2, h3, h4, h5, h6');
+			const elementsToAffect = document.querySelectorAll('body, p, li, span, div, a, button, input, textarea, select, h1, h2, h3, h4, h5, h6, strong, em, b, i');
 			elementsToAffect.forEach(el => {
 				el.style.removeProperty('font-family')
 			});
