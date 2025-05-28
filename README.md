@@ -25,16 +25,7 @@
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_config_selectors.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_utils_logging.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_utils_dom.js"></script>
-<script>
-    if (typeof AR_AccessibilityMenu === 'undefined') {
-        var AR_AccessibilityMenu = {};
-    }
-    if (typeof AR_CheckModules === 'undefined') {
-        var AR_CheckModules = {};
-    }
-</script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_menu_layout.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_menu_actions.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_menu_widget.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_check_modules.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@main/ar_init.js"></script>
 ```
