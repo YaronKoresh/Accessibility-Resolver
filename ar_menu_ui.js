@@ -3,6 +3,14 @@
 // Part of AR_AccessibilityMenu: UI Creation methods
 (function(AR_AccessibilityMenuProto) {
 
+	AR_AccessibilityMenuProto.init = function () {
+		this._injectStyles();
+		this._createMenuButton();
+		this._createMenuPanel();
+		this._attachEventListeners();
+		console.log('Accessibility Menu Initialized.');
+	};
+	
 	AR_AccessibilityMenuProto._injectStyles = function () {
 		const styleId = 'ar-menu-styles';
 		if (document.getElementById(styleId)) return;
@@ -154,63 +162,57 @@
 			animation: this._getMenuIconSVG('<path d="M8 5v14l11-7z"/>', 'Animation'),
 			reset: this._getMenuIconSVG('<path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>', 'Reset'),
 			close: this._getMenuIconSVG('<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>', 'Close'),
-            textIncrease: this._getMenuIconSVG('<path d="M14.5 16.5h-1.25l-2.6-7h1.25l1.98 5.58L15.85 9.5h1.3l-2.65 7zm5-11H4.5c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-9c0-.83-.67-1.5-1.5-1.5zm0 10.5H4.5v-9h15v9zM10 12.5H7.5v-1h2.5v-1H7.5v-1h2.5V8.5H6.25v5h3.75z"/>', 'Increase text'),
-            textDecrease: this._getMenuIconSVG('<path d="M14.5 16.5h-1.25l-2.6-7h1.25l1.98 5.58L15.85 9.5h1.3l-2.65 7zm5-11H4.5c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-9c0-.83-.67-1.5-1.5-1.5zm0 10.5H4.5v-9h15v9zM10 10.5H6.25v1h3.75z"/>', 'Decrease text')
-	};
-	AR_AccessibilityMenuProto.init = function () {
-		this._injectStyles();
-		this._createMenuButton();
-		this._createMenuPanel();
-		this._attachEventListeners();
-		console.log('Accessibility Menu Initialized.');
-	};
-	let html = `<h3 id="ar-menu-title">Accessibility Tools</h3>`;
-        html += this._getMenuFieldsetHTML(ICONS.fontSize, 'Text Size',
-            this._getMenuButtonHTML('increase-font', ICONS.textIncrease, 'Increase') +
-            this._getMenuButtonHTML('decrease-font', ICONS.textDecrease, 'Decrease') +
-            this._getMenuButtonHTML('reset-font', ICONS.reset, 'Reset Font', true, true)
-        );
-        html += this._getMenuFieldsetHTML(ICONS.contrast, 'Contrast & Color',
-            this._getMenuButtonHTML('contrast-high', ICONS.contrast, 'High') +
-            this._getMenuButtonHTML('contrast-inverted', ICONS.contrast, 'Invert') +
-            this._getMenuButtonHTML('contrast-grayscale', ICONS.contrast, 'Grayscale') +
-            this._getMenuButtonHTML('saturation-low', ICONS.contrast, 'Low Saturation') +
-            this._getMenuButtonHTML('reset-contrast', ICONS.reset, 'Reset Visuals', true, true)
-        );
-        html += this._getMenuFieldsetHTML(ICONS.spacing, 'Text Spacing',
-            this._getMenuButtonHTML('text-spacing-letter', ICONS.spacing, 'Letter') +
-            this._getMenuButtonHTML('text-spacing-word', ICONS.spacing, 'Word') +
-            this._getMenuButtonHTML('text-spacing-line', ICONS.spacing, 'Line') +
-            this._getMenuButtonHTML('text-spacing-reset', ICONS.reset, 'Reset Spacing', true, true)
-        );
-        html += this._getMenuFieldsetHTML(ICONS.alignLeft, 'Text Alignment',
-            this._getMenuButtonHTML('text-align-left', ICONS.alignLeft, 'Align Left') +
-            this._getMenuButtonHTML('text-align-center', ICONS.alignCenter, 'Align Center') +
-            this._getMenuButtonHTML('text-align-reset', ICONS.reset, 'Reset Alignment', true, true)
-        );
-        html += this._getMenuFieldsetHTML(ICONS.highlight, 'Highlight Content',
-            this._getMenuButtonHTML('highlight-links', ICONS.highlight, 'Links') +
-            this._getMenuButtonHTML('highlight-headings', ICONS.highlight, 'Headings') +
-            this._getMenuButtonHTML('reset-highlights', ICONS.reset, 'Reset Highlights', true, true)
-        );
-        html += this._getMenuFieldsetHTML(ICONS.readingAid, 'Reading Aids',
-            this._getMenuButtonHTML('toggle-reading-line', ICONS.readingAid, 'Reading Line') +
-            this._getMenuButtonHTML('toggle-reading-mask', ICONS.readingAid, 'Reading Mask')
-        );
-        html += this._getMenuFieldsetHTML(ICONS.fontStyle, 'Font Style',
-            this._getMenuButtonHTML('toggle-dyslexia-font', ICONS.fontStyle, 'Dyslexia Friendly Font', true)
-        );
-        html += this._getMenuFieldsetHTML(ICONS.animation, 'Animations & Motion',
-            this._getMenuButtonHTML('stop-animations', ICONS.animation, 'Stop Animations', true)
-        );
-        html += `<fieldset class="ar-menu-group">
-                    <div class="ar-button-row">
-                        ${this._getMenuButtonHTML('reset-all-menu', ICONS.reset, 'Reset All Menu Settings', true, true)}
-                        <button id="ar-menu-close-button" data-action="close-menu" class="ar-menu-fullwidth-btn">
-                            ${ICONS.close}<span class="ar-menu-text">Close Menu</span>
-                        </button>
-                    </div>
-                 </fieldset>`;
+        	        textIncrease: this._getMenuIconSVG('<path d="M14.5 16.5h-1.25l-2.6-7h1.25l1.98 5.58L15.85 9.5h1.3l-2.65 7zm5-11H4.5c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-9c0-.83-.67-1.5-1.5-1.5zm0 10.5H4.5v-9h15v9zM10 12.5H7.5v-1h2.5v-1H7.5v-1h2.5V8.5H6.25v5h3.75z"/>', 'Increase text'),
+            		textDecrease: this._getMenuIconSVG('<path d="M14.5 16.5h-1.25l-2.6-7h1.25l1.98 5.58L15.85 9.5h1.3l-2.65 7zm5-11H4.5c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-9c0-.83-.67-1.5-1.5-1.5zm0 10.5H4.5v-9h15v9zM10 10.5H6.25v1h3.75z"/>', 'Decrease text')
+		};
+		
+		let html = `<h3 id="ar-menu-title">Accessibility Tools</h3>`;
+	        html += this._getMenuFieldsetHTML(ICONS.fontSize, 'Text Size',
+	            this._getMenuButtonHTML('increase-font', ICONS.textIncrease, 'Increase') +
+	            this._getMenuButtonHTML('decrease-font', ICONS.textDecrease, 'Decrease') +
+	            this._getMenuButtonHTML('reset-font', ICONS.reset, 'Reset Font', true, true)
+	        );
+	        html += this._getMenuFieldsetHTML(ICONS.contrast, 'Contrast & Color',
+	            this._getMenuButtonHTML('contrast-high', ICONS.contrast, 'High') +
+	            this._getMenuButtonHTML('contrast-inverted', ICONS.contrast, 'Invert') +
+	            this._getMenuButtonHTML('contrast-grayscale', ICONS.contrast, 'Grayscale') +
+	            this._getMenuButtonHTML('saturation-low', ICONS.contrast, 'Low Saturation') +
+	            this._getMenuButtonHTML('reset-contrast', ICONS.reset, 'Reset Visuals', true, true)
+	        );
+	        html += this._getMenuFieldsetHTML(ICONS.spacing, 'Text Spacing',
+	            this._getMenuButtonHTML('text-spacing-letter', ICONS.spacing, 'Letter') +
+	            this._getMenuButtonHTML('text-spacing-word', ICONS.spacing, 'Word') +
+	            this._getMenuButtonHTML('text-spacing-line', ICONS.spacing, 'Line') +
+	            this._getMenuButtonHTML('text-spacing-reset', ICONS.reset, 'Reset Spacing', true, true)
+	        );
+	        html += this._getMenuFieldsetHTML(ICONS.alignLeft, 'Text Alignment',
+	            this._getMenuButtonHTML('text-align-left', ICONS.alignLeft, 'Align Left') +
+	            this._getMenuButtonHTML('text-align-center', ICONS.alignCenter, 'Align Center') +
+	            this._getMenuButtonHTML('text-align-reset', ICONS.reset, 'Reset Alignment', true, true)
+	        );
+	        html += this._getMenuFieldsetHTML(ICONS.highlight, 'Highlight Content',
+	            this._getMenuButtonHTML('highlight-links', ICONS.highlight, 'Links') +
+	            this._getMenuButtonHTML('highlight-headings', ICONS.highlight, 'Headings') +
+	            this._getMenuButtonHTML('reset-highlights', ICONS.reset, 'Reset Highlights', true, true)
+	        );
+	        html += this._getMenuFieldsetHTML(ICONS.readingAid, 'Reading Aids',
+	            this._getMenuButtonHTML('toggle-reading-line', ICONS.readingAid, 'Reading Line') +
+	            this._getMenuButtonHTML('toggle-reading-mask', ICONS.readingAid, 'Reading Mask')
+	        );
+	        html += this._getMenuFieldsetHTML(ICONS.fontStyle, 'Font Style',
+	            this._getMenuButtonHTML('toggle-dyslexia-font', ICONS.fontStyle, 'Dyslexia Friendly Font', true)
+	        );
+	        html += this._getMenuFieldsetHTML(ICONS.animation, 'Animations & Motion',
+	            this._getMenuButtonHTML('stop-animations', ICONS.animation, 'Stop Animations', true)
+	        );
+	        html += `<fieldset class="ar-menu-group">
+		    <div class="ar-button-row">
+			${this._getMenuButtonHTML('reset-all-menu', ICONS.reset, 'Reset All Menu Settings', true, true)}
+			<button id="ar-menu-close-button" data-action="close-menu" class="ar-menu-fullwidth-btn">
+			    ${ICONS.close}<span class="ar-menu-text">Close Menu</span>
+			</button>
+		    </div>
+		 </fieldset>`;
 		return html;
 	};
 
