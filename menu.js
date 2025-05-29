@@ -78,7 +78,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			highContrast: 'ניגודיות גבוהה', invertColors: 'היפוך צבעים', highlightLinks: 'הדגש קישורים',
 			enhancedFocus: 'מיקוד משופר', stopAnimations: 'עצור אנימציות', dyslexiaFont: 'גופן דיסלקטי',
 			readAloud: 'קרא בקול', readingMode: 'מצב קריאה', readingMask: 'מסכת קריאה', readingLine: 'קו קריאה',
-            pageStructure: 'מבנה עמוד', pageStructureTitle: 'מבנה עמוד', headings: 'כותרות', landmarks: 'נקודות ציון', links: 'קישורים',
+            pageStructure: 'מבנה עמוד', pageStructureTitle: 'מבנה עמוד', headings: 'כותרות', landmarks: 'נקודות ציון', links: 'קישורים', noItemsFound: 'לא נמצאו פריטים.',
             profilesTitle: 'פרופילי נגישות', profileMotor: 'לקויות מוטוריות', profileADHD: 'הפרעת קשב', profileEpileptic: 'אפילפסיה', profileVision: 'לקות ראייה',
 			resetAll: 'איפוס הכל', closeMenu: 'סגור תפריט', closeStructurePanel: 'סגור מבנה עמוד', accessibilityIcon: 'אייקון נגישות',
 			textSize: 'גודל טקסט', contrast: 'ניגודיות', highlight: 'הדגשה',
@@ -92,7 +92,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			highContrast: 'High Contrast', invertColors: 'Invert Colors', highlightLinks: 'Highlight Links',
 			enhancedFocus: 'Enhanced Focus', stopAnimations: 'Stop Animations', dyslexiaFont: 'Dyslexia Font',
 			readAloud: 'Read Aloud', readingMode: 'Reading Mode', readingMask: 'Reading Mask', readingLine: 'Reading Line',
-            pageStructure: 'Page Structure', pageStructureTitle: 'Page Structure', headings: 'Headings', landmarks: 'Landmarks', links: 'Links',
+            pageStructure: 'Page Structure', pageStructureTitle: 'Page Structure', headings: 'Headings', landmarks: 'Landmarks', links: 'Links', noItemsFound: 'No items found.',
             profilesTitle: 'Accessibility Profiles', profileMotor: 'Motor Impairment', profileADHD: 'ADHD Focus', profileEpileptic: 'Epilepsy Safe', profileVision: 'Low Vision',
 			resetAll: 'Reset All', closeMenu: 'Close Menu', closeStructurePanel: 'Close Structure Panel', accessibilityIcon: 'Accessibility Icon',
 			textSize: 'Text Size', contrast: 'Contrast', highlight: 'Highlight',
@@ -126,47 +126,48 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             @font-face { font-family: 'OpenDyslexic'; font-style: normal; font-display: swap; font-weight: 400; src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff'); }
             @font-face { font-family: 'OpenDyslexic'; font-style: normal; font-display: swap; font-weight: 700; src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff'); }
             
-            /* Menu Button - Always Black Circle, White Icon */
             #${MENU_BUTTON_ID} { 
-                position: fixed; 
-                z-index: 2147483647; 
+                position: fixed; z-index: 2147483647; 
                 background-color: #000000 !important; 
                 color: #ffffff !important; 
                 border: none !important; 
-                border-radius: 50%; 
-                width: 70px; height: 70px; 
-                font-size: 36px; 
-                cursor: grab; 
-                box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+                border-radius: 50%; width: 70px; height: 70px; font-size: 36px; 
+                cursor: grab; box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
                 display: flex; align-items: center; justify-content: center; 
                 padding: 0;
                 filter: none !important;
                 font-family: 'Inter', Arial, sans-serif !important;
             }
             #${MENU_BUTTON_ID}:hover, #${MENU_BUTTON_ID}:focus-visible { 
-                background-color: #000000 !important; /* No hover change */
-                outline: none !important; 
+                background-color: #000000 !important; 
+                outline: 2px solid #ffffff !important; 
+                outline-offset: 2px;
             }
             #${MENU_BUTTON_ID}.dragging { cursor: grabbing; }
             #${MENU_BUTTON_ID} .ar-aaa-menu-icon { display: flex; align-items: center; justify-content: center; width: 60% !important; height: 60% !important; }
-            #${MENU_BUTTON_ID} .ar-aaa-menu-icon svg { width: 100% !important; height: 100% !important; fill: currentColor !important; }
+            #${MENU_BUTTON_ID} .ar-aaa-menu-icon svg, #${MENU_BUTTON_ID} .ar-aaa-menu-icon svg * { 
+                fill: #ffffff !important; 
+                stroke: #ffffff !important;
+            }
 
-            /* Menu Panel - Always Black on White */
-            #${MENU_PANEL_ID} { 
-                display: none; position: fixed; width: 320px; max-height: 45vh; overflow-y: auto; 
+            #${MENU_PANEL_ID}, #${PAGE_STRUCTURE_PANEL_ID} { 
                 background-color: #ffffff !important; 
                 border: 2px solid #000000 !important; 
-                border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
-                z-index: 2147483646; padding: 15px; 
-                font-family: 'Inter', Arial, sans-serif !important; 
                 color: #000000 !important; 
-                cursor: grab;
                 filter: none !important;
+                font-family: 'Inter', Arial, sans-serif !important;
             }
-            #${MENU_PANEL_ID} h3#ar-aaa-menu-title { margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: #000000 !important; text-align: center; cursor: grab; }
-            #${MENU_PANEL_ID} .ar-aaa-profile-title { font-size: 1em; color: #000000 !important; margin-bottom: 8px; text-align: left; font-weight: bold;}
+            #${MENU_PANEL_ID} { display: none; position: fixed; width: 320px; max-height: 45vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 2147483646; padding: 15px; cursor: grab; }
+            #${MENU_PANEL_ID} h3#ar-aaa-menu-title, 
+            #${MENU_PANEL_ID} .ar-aaa-profile-title { 
+                margin-top: 0; margin-bottom: 15px; font-size: 1.2em; 
+                color: #000000 !important; 
+                text-align: center; 
+                background-color: transparent !important;
+            }
+            #${MENU_PANEL_ID} .ar-aaa-profile-title { text-align: left; font-weight: bold; }
             #${MENU_PANEL_ID}.ar-aaa-menu-open { display: block; }
-            #${MENU_PANEL_ID} .ar-aaa-menu-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #cccccc !important; } /* Darker separator */
+            #${MENU_PANEL_ID} .ar-aaa-menu-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #000000 !important; }
             #${MENU_PANEL_ID} .ar-aaa-menu-group:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
             #${MENU_PANEL_ID} .ar-aaa-button-row { display: flex; flex-wrap: wrap; gap: 8px; }
             #${MENU_PANEL_ID} button { 
@@ -175,14 +176,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 color: #000000 !important; 
                 border: 1px solid #000000 !important; 
                 border-radius: 4px; cursor: pointer; 
-                transition: none !important; /* No transition */
+                transition: none !important; 
                 display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px;
                 font-family: 'Inter', Arial, sans-serif !important;
             }
             #${MENU_PANEL_ID} button:hover, #${MENU_PANEL_ID} button:focus-visible { 
-                background-color: #ffffff !important; /* No hover change */
-                outline: 2px solid #000000 !important; /* Focus outline */
-                outline-offset: 1px;
+                background-color: #f0f0f0 !important; 
+                outline: 1px solid #000000 !important;
             }
             #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active { 
                 background-color: #000000 !important; 
@@ -190,35 +190,24 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 border-color: #000000 !important; 
             }
             #${MENU_PANEL_ID} button.ar-aaa-fullwidth-btn { flex-basis: 100%; }
-            #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #f0f0f0 !important; border-color: #000000 !important; color: #000000 !important; }
-            #${MENU_PANEL_ID} button.ar-aaa-reset-btn:hover { background-color: #e0e0e0 !important; }
-            #${MENU_PANEL_ID} .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor !important; }
+            #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #e0e0e0 !important; border-color: #000000 !important; color: #000000 !important; }
+            #${MENU_PANEL_ID} button.ar-aaa-reset-btn:hover { background-color: #d0d0d0 !important; }
+            #${MENU_PANEL_ID} .ar-aaa-menu-icon svg, #${MENU_PANEL_ID} .ar-aaa-menu-icon svg * { fill: currentColor !important; stroke: currentColor !important; }
 
-            /* Page Structure Panel - Always Black on White */
-            #${PAGE_STRUCTURE_PANEL_ID} { 
-                display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                width: 90%; max-width: 500px; max-height: 70vh; overflow-y: auto; 
-                background-color: #ffffff !important; 
-                border: 2px solid #000000 !important; 
-                border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
-                z-index: 2147483647; padding: 20px;
-                font-family: 'Inter', Arial, sans-serif !important; 
-                color: #000000 !important;
-                filter: none !important;
-            }
-            #${PAGE_STRUCTURE_PANEL_ID} h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.3em; color: #000000 !important; }
+            #${PAGE_STRUCTURE_PANEL_ID} { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; max-height: 70vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 2147483647; padding: 20px; }
+            #${PAGE_STRUCTURE_PANEL_ID} h3#ar-aaa-structure-title { margin-top: 0; margin-bottom: 15px; font-size: 1.3em; color: #000000 !important; }
+            #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category { margin-bottom: 20px; }
             #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4 { font-size: 1.1em; margin-bottom: 8px; color: #000000 !important; border-bottom: 1px solid #cccccc !important; padding-bottom: 5px;}
             #${PAGE_STRUCTURE_PANEL_ID} ul { list-style: none; padding-left: 0; margin:0; }
             #${PAGE_STRUCTURE_PANEL_ID} li button { display: block; width: 100%; text-align: left; padding: 8px 10px; background-color: #f9f9f9 !important; border: 1px solid #ccc !important; border-radius: 4px; margin-bottom: 5px; cursor: pointer; font-size: 0.9em; color: #000000 !important; transition: none !important; font-family: 'Inter', Arial, sans-serif !important;}
             #${PAGE_STRUCTURE_PANEL_ID} li button:hover { background-color: #efefef !important; }
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn { display: block; margin: 15px auto 0; padding: 8px 15px; background-color: #333333 !important; color: white !important; border: none; border-radius: 4px; cursor: pointer; font-family: 'Inter', Arial, sans-serif !important;}
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn:hover { background-color: #555555 !important; }
+            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn { display: block; margin: 15px auto 0; padding: 8px 15px; background-color: #333 !important; color: #fff !important; border: 1px solid #000 !important; border-radius: 4px; cursor: pointer; font-family: 'Inter', Arial, sans-serif !important;}
+            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn:hover { background-color: #555 !important; }
+            
 
-
-            /* Page Content Effects - Menu UI is EXEMPT due to !important overrides above */
             html.${CLASS_INVERT_COLORS} { filter: invert(100%) hue-rotate(180deg) !important; background-color: #fff !important; }
             html.${CLASS_INVERT_COLORS} img, html.${CLASS_INVERT_COLORS} video, html.${CLASS_INVERT_COLORS} [style*="background-image"] { filter: invert(100%) hue-rotate(180deg) !important; }
-            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; } /* SVGs on page get inverted once */
+            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; }
 
             body.${CLASS_HIGH_CONTRAST} { background-color: #fff !important; color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} p, body.${CLASS_HIGH_CONTRAST} p[style],
@@ -229,7 +218,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${CLASS_HIGH_CONTRAST} h1, body.${CLASS_HIGH_CONTRAST} h1[style], 
             body.${CLASS_HIGH_CONTRAST} h2, body.${CLASS_HIGH_CONTRAST} h2[style], 
             body.${CLASS_HIGH_CONTRAST} h3:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), body.${CLASS_HIGH_CONTRAST} h3[style]:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), 
-            body.${CLASS_HIGH_CONTRAST} h4:not(.ar-structure-category h4), body.${CLASS_HIGH_CONTRAST} h4[style]:not(.ar-structure-category h4), 
+            body.${CLASS_HIGH_CONTRAST} h4:not(#${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4), body.${CLASS_HIGH_CONTRAST} h4[style]:not(#${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4), 
             body.${CLASS_HIGH_CONTRAST} h5, body.${CLASS_HIGH_CONTRAST} h5[style], 
             body.${CLASS_HIGH_CONTRAST} h6, body.${CLASS_HIGH_CONTRAST} h6[style],
             body.${CLASS_HIGH_CONTRAST} td, body.${CLASS_HIGH_CONTRAST} td[style], 
@@ -297,6 +286,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 #${MENU_PANEL_ID} button { flex-basis: 100%; } 
                 #${PAGE_STRUCTURE_PANEL_ID} { width: calc(100% - 20px); max-height: 80vh; }
             }
+            .${CLASS_TEMP_HIGHLIGHT} { outline: 3px dashed #FFD700 !important; outline-offset: 2px !important; background-color: rgba(255,215,0,0.1) !important; transition: outline 0.2s ease-out, background-color 0.2s ease-out; }
         `;
 		const styleEl = document.createElement('style');
 		styleEl.id = styleId;
