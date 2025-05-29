@@ -125,12 +125,21 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${CLASS_ANIMATIONS_STOPPED} *, body.${CLASS_ANIMATIONS_STOPPED} *::before, body.${CLASS_ANIMATIONS_STOPPED} *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0ms !important; }
             body.${CLASS_DYSLEXIA_FONT} { font-family: 'OpenDyslexic', Arial, sans-serif !important; }
             body.${CLASS_DYSLEXIA_FONT} *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) { font-family: inherit !important; }
-            body.${CLASS_READING_MODE} header, body.${CLASS_READING_MODE} footer, body.${CLASS_READING_MODE} nav, body.${CLASS_READING_MODE} aside,
-            body.${CLASS_READING_MODE} [role="banner"], body.${CLASS_READING_MODE} [role="complementary"], body.${CLASS_READING_MODE} [role="contentinfo"],
-            body.${CLASS_READING_MODE} [role="navigation"], body.${CLASS_READING_MODE} [role="search"],
-            body.${CLASS_READING_MODE} #${MENU_BUTTON_ID}, body.${CLASS_READING_MODE} #${MENU_PANEL_ID} { display: none !important; }
+            
+            body.${CLASS_READING_MODE} header, 
+            body.${CLASS_READING_MODE} footer, 
+            body.${CLASS_READING_MODE} nav, 
+            body.${CLASS_READING_MODE} aside,
+            body.${CLASS_READING_MODE} [role="banner"],
+            body.${CLASS_READING_MODE} [role="complementary"],
+            body.${CLASS_READING_MODE} [role="contentinfo"],
+            body.${CLASS_READING_MODE} [role="navigation"],
+            body.${CLASS_READING_MODE} [role="search"]
+            { display: none !important; }
+
             body.${CLASS_READING_MODE} { font-size: 1.1em; line-height: 1.7; } 
             body.${CLASS_READING_MODE} main, body.${CLASS_READING_MODE} article, body.${CLASS_READING_MODE} .content { width: 90% !important; max-width: 800px !important; margin: 20px auto !important; padding: 10px !important; }
+
             .${READING_MASK_TOP_ID}, .${READING_MASK_BOTTOM_ID} { position: fixed; left: 0; width: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 2147483640; pointer-events: none; display: none; }
             .${READING_MASK_TOP_ID} { top: 0; }
             .${READING_MASK_BOTTOM_ID} { bottom: 0; }
