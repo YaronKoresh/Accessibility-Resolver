@@ -18,23 +18,23 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 
 	Menu.isOpen = false;
 	Menu.isDyslexiaFontActive = false;
-	Menu.activeContrastMode = 'default';
+	Menu.activeContrastMode = 'default'; 
 	Menu.areLinksHighlighted = false;
 	Menu.isFocusEnhanced = false;
 	Menu.areAnimationsStopped = false;
-	Menu.isReadingAloud = false;
-    Menu.fontScaleLevel = 0;
+	Menu.isReadingAloud = false; 
+    Menu.fontScaleLevel = 0; 
     Menu.isReadingModeActive = false;
     Menu.isReadingMaskActive = false;
     Menu.isReadingLineActive = false;
 
 	Menu.isPanelDragging = false;
 	Menu.isButtonDragging = false;
-	Menu.buttonDragOccurred = false;
-    Menu.buttonWasDragged = false;
-    Menu.panelWasDragged = false;
+	Menu.buttonDragOccurred = false; 
+    Menu.buttonWasDragged = false; 
+    Menu.panelWasDragged = false; 
 
-	Menu._originalFontSizes = new Map();
+	Menu._originalFontSizes = new Map(); 
 	Menu._initialButtonX = 0; Menu._initialButtonY = 0;
 	Menu._initialPanelX = 0; Menu._initialPanelY = 0;
 	Menu._initialMouseX = 0; Menu._initialMouseY = 0;
@@ -78,13 +78,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this._injectStyles();
 		this._createMenuButton();
 		this._createMenuPanel();
-        this._createReadingAidElements();
+        this._createReadingAidElements(); 
 		this._attachEventListeners();
-        this._loadSettings();
+        this._loadSettings(); 
 		logAction('Initialized successfully.');
 	};
 
-	Menu._injectStyles = function () {
+	Menu._injectStyles = function () { 
         const styleId = 'aaa-menu-styles';
 		if (document.getElementById(styleId)) return;
 		const css = `
@@ -108,10 +108,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #d1ecf1; border-color: #007bff; color: #004085 !important; }
             #${MENU_PANEL_ID} button.ar-aaa-reset-btn:hover { background-color: #b8e0e8; }
             #${MENU_PANEL_ID} .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor; }
+
             html.${CLASS_INVERT_COLORS} { filter: invert(100%) hue-rotate(180deg) !important; background-color: #fff !important; }
             html.${CLASS_INVERT_COLORS} #${MENU_BUTTON_ID}, html.${CLASS_INVERT_COLORS} #${MENU_PANEL_ID} { filter: invert(100%) hue-rotate(180deg) !important; }
             html.${CLASS_INVERT_COLORS} img, html.${CLASS_INVERT_COLORS} video, html.${CLASS_INVERT_COLORS} [style*="background-image"] { filter: invert(100%) hue-rotate(180deg) !important; }
-            body.${CLASS_HIGH_CONTRAST} { background-color: #000 !important; color: #fff !important; }
+            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; }
+
+            body.${CLASS_HIGH_CONTRAST} { background-color: #fff !important; color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} p, body.${CLASS_HIGH_CONTRAST} p[style],
             body.${CLASS_HIGH_CONTRAST} span, body.${CLASS_HIGH_CONTRAST} span[style],
             body.${CLASS_HIGH_CONTRAST} div:not(#${MENU_BUTTON_ID}):not(#${MENU_BUTTON_ID} *):not(#${MENU_PANEL_ID}):not(#${MENU_PANEL_ID} *):not([class*="icon"]), 
@@ -119,7 +122,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${CLASS_HIGH_CONTRAST} li, body.${CLASS_HIGH_CONTRAST} li[style],
             body.${CLASS_HIGH_CONTRAST} h1, body.${CLASS_HIGH_CONTRAST} h1[style], 
             body.${CLASS_HIGH_CONTRAST} h2, body.${CLASS_HIGH_CONTRAST} h2[style], 
-            body.${CLASS_HIGH_CONTRAST} h3, body.${CLASS_HIGH_CONTRAST} h3[style], 
+            body.${CLASS_HIGH_CONTRAST} h3:not(#ar-aaa-menu-title), body.${CLASS_HIGH_CONTRAST} h3[style]:not(#ar-aaa-menu-title), 
             body.${CLASS_HIGH_CONTRAST} h4, body.${CLASS_HIGH_CONTRAST} h4[style], 
             body.${CLASS_HIGH_CONTRAST} h5, body.${CLASS_HIGH_CONTRAST} h5[style], 
             body.${CLASS_HIGH_CONTRAST} h6, body.${CLASS_HIGH_CONTRAST} h6[style],
@@ -135,23 +138,24 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${CLASS_HIGH_CONTRAST} sub, body.${CLASS_HIGH_CONTRAST} sub[style], 
             body.${CLASS_HIGH_CONTRAST} sup, body.${CLASS_HIGH_CONTRAST} sup[style] {
                 background-color: transparent !important;
-                color: #fff !important;
+                color: #000 !important;
             }
-            body.${CLASS_HIGH_CONTRAST} a, body.${CLASS_HIGH_CONTRAST} a[style] { color: #FFFF00 !important; background-color: #000000 !important; text-decoration: underline !important; }
-            body.${CLASS_HIGH_CONTRAST} svg { background-color: transparent !important; fill: #fff !important; }
+            body.${CLASS_HIGH_CONTRAST} a, body.${CLASS_HIGH_CONTRAST} a[style] { color: #0000EE !important; background-color: transparent !important; text-decoration: underline !important; }
+            body.${CLASS_HIGH_CONTRAST} svg { background-color: transparent !important; fill: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} button:not(#${MENU_BUTTON_ID}):not(#${MENU_PANEL_ID} button), 
             body.${CLASS_HIGH_CONTRAST} input, 
             body.${CLASS_HIGH_CONTRAST} select, 
             body.${CLASS_HIGH_CONTRAST} textarea { 
-                background-color: #333333 !important; color: #fff !important; border: 1px solid #FFFFFF !important; 
+                background-color: #eee !important; color: #000 !important; border: 1px solid #000 !important; 
             }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} { background-color: white !important; border-color: #0056b3 !important; color: #333 !important; }
+            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} { background-color: #f0f0f0 !important; border-color: #0056b3 !important; color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} h3 { color: #0056b3 !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button { background-color: #f8f9fa !important; color: #0056b3 !important; border-color: #0056b3 !important; }
+            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button { background-color: #fff !important; color: #0056b3 !important; border-color: #0056b3 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active { background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #d1ecf1 !important; border-color: #007bff !important; color: #004085 !important; }
+            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #e0e0e0 !important; border-color: #0056b3 !important; color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_BUTTON_ID} { background-color: #0056b3 !important; color: white !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} .ar-aaa-menu-icon svg { fill: currentColor !important; }
+
             body.${CLASS_HIGHLIGHT_LINKS} a[href] { background-color: yellow !important; color: black !important; outline: 2px solid orange !important; border-radius: 2px; }
             body.${CLASS_ENHANCED_FOCUS} *:focus-visible { outline: 10px dotted red !important; background-color: yellow !important; border: 5px solid limegreen !important; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important; }
             body.${CLASS_ANIMATIONS_STOPPED} *, body.${CLASS_ANIMATIONS_STOPPED} *::before, body.${CLASS_ANIMATIONS_STOPPED} *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0ms !important; }
