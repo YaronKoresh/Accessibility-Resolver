@@ -21,8 +21,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		panel.style.display = 'none';
 		panel.innerHTML = Menu.panel.getMenuPanelHTML();
 		document.body.appendChild(panel);
-		panel.addEventListener('mousedown', Menu._handlePanelMouseDown.bind(Menu));
-		panel.addEventListener('touchstart', Menu._handlePanelMouseDown.bind(Menu), { passive: false });
 	};
 	Menu.panel.createReadingAidElements = function () {
 		Menu.readingMaskTop = document.createElement('div');
