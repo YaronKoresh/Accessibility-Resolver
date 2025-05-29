@@ -23,7 +23,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu.buttonOffsetX = 0;
 	Menu.buttonOffsetY = 0;
 	Menu.buttonDragOccurred = false;
-	Menu.justDragged = false;
 	Menu._originalFontSizes = new Map();
 	Menu.translations = {
 		'he': {
@@ -259,10 +258,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } {
                 background-color: white !important; /* שמור על צבעי התפריט המוגדרים */
                 border-color: #0056b3 !important; /* שמור על צבעי התפריט המוגדרים */
-            }
-            /* ודא שכל הטקסטים הכלליים בתוך הפאנל יהיו כחולים כהים במצב ניגודיות גבוהה */
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } {
-                color: #0056b3 !important;
+                color: #0056b3 !important; /* צבע טקסט כללי בפאנל: כחול כהה */
             }
             /* ודא שכפתורים בתוך התפריט שומרים על צבעיהם המיועדים במצב ניגודיות גבוהה */
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button {
@@ -453,8 +449,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.addEventListener('keydown', this._handleTabKeyFocusTrap.bind(this))
 	};
 	Menu._handleMenuButtonClick = function (event) {
-		if (Menu.justDragged) {
-			Menu.justDragged = false;
+		if (Menu.buttonDragOccurred) {
+			Menu.buttonDragOccurred = false;
 			return
 		}
 		this.toggleMenu()
@@ -615,9 +611,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			const button = document.getElementById(MENU_BUTTON_ID);
 			if (button)
 				button.classList.remove('dragging');
-			Menu.justDragged = true;
+			Menu.buttonDragOccurred = true;
 			setTimeout(() => {
-				Menu.justDragged = false
+				Menu.buttonDragOccurred = false
 			}, 50)
 		}
 		if (this.isPanelDragging) {
