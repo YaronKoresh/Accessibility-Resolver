@@ -39,8 +39,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		console.log(`[ARMenu] ${ message } ${ isUserAction ? '(User Action)' : '' }`)
 	}
 	Menu.init = function () {
-		if (document.getElementById(MENU_BUTTON_ID))
-			return;
+		if (document.getElementById(MENU_BUTTON_ID)) {
+			return
+		}
 		this._injectStyles();
 		this._createMenuButton();
 		this._createMenuPanel();
@@ -50,30 +51,31 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	};
 	Menu._injectStyles = function () {
 		const styleId = 'aaa-menu-styles';
-		if (document.getElementById(styleId))
-			return;
+		if (document.getElementById(styleId)) {
+			return
+		}
 		const css = `
             /* OpenDyslexic Font Face Rules */
             @font-face {
-              font-family: 'OpenDyslexic';
-              font-style: normal;
-              font-display: swap; /* Use swap for better perceived performance */
-              font-weight: 400;
-              src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff');
+                font-family: 'OpenDyslexic';
+                font-style: normal;
+                font-display: swap; /* Use swap for better perceived performance */
+                font-weight: 400;
+                src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff');
             }
             @font-face {
-              font-family: 'OpenDyslexic';
-              font-style: normal;
-              font-display: swap;
-              font-weight: 700;
-              src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff');
+                font-family: 'OpenDyslexic';
+                font-style: normal;
+                font-display: swap;
+                font-weight: 700;
+                src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff');
             }
 
             /* Menu Button */
             #${ MENU_BUTTON_ID } {
                 position: fixed;
                 /* Initial position will be set to center via JS */
-                z-index: 2147483647;
+                z-index: 2147483647; /* Highest z-index */
                 background-color: #0056b3;
                 color: white !important;
                 border: none;
@@ -107,14 +109,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 border: 1px solid #dee2e6;
                 border-radius: 8px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-                z-index: 2147483646; 
+                z-index: 2147483646; /* Just below button */
                 padding: 15px;
                 font-family: 'Inter', Arial, sans-serif;
                 font-size: 14px;
                 color: #212529;
                 cursor: grab;
             }
-            #${ MENU_PANEL_ID }.ar-aaa-menu-open { display: block; } /* Changed class prefix */
+            #${ MENU_PANEL_ID }.ar-aaa-menu-open { display: block; }
             #${ MENU_PANEL_ID } h3 {
                 margin-top: 0;
                 margin-bottom: 15px;
@@ -122,7 +124,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 color: #0056b3;
                 text-align: center;
             }
-            #${ MENU_PANEL_ID } .ar-aaa-menu-group { /* Changed class prefix */
+            #${ MENU_PANEL_ID } .ar-aaa-menu-group {
                 margin-bottom: 15px;
                 padding-bottom: 10px;
                 border-bottom: 1px solid #e9ecef;
@@ -132,13 +134,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 padding-bottom: 0;
                 border-bottom: none;
             }
-            #${ MENU_PANEL_ID } .ar-aaa-button-row { /* Changed class prefix */
+            #${ MENU_PANEL_ID } .ar-aaa-button-row {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 8px;
             }
             #${ MENU_PANEL_ID } button {
-                flex: 1 1 calc(50% - 4px); 
+                flex: 1 1 calc(50% - 4px); /* Two buttons per row with gap */
                 padding: 8px 10px;
                 font-size: 0.95em;
                 background-color: #e9ecef;
@@ -157,15 +159,15 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 border-color: #adb5bd;
                 outline: 1px solid #0056b3;
             }
-            #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active { /* Changed class prefix */
+            #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active {
                 background-color: #0056b3 !important;
                 color: white !important;
                 border-color: #004085 !important;
             }
-            #${ MENU_PANEL_ID } button.ar-aaa-fullwidth-btn { /* Changed class prefix */
-                flex-basis: 100%;
+            #${ MENU_PANEL_ID } button.ar-aaa-fullwidth-btn {
+                flex-basis: 100%; /* Full width button */
             }
-            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn { /* Changed class prefix */
+            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn {
                 background-color: #cce5ff;
                 border-color: #b8daff;
                 color: #004085 !important;
@@ -179,17 +181,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             #${ FILTER_OVERLAY_ID } {
                 position: fixed;
                 top: 0; left: 0; width: 100%; height: 100%;
-                pointer-events: none;
-                z-index: -1; 
-                display: none; 
-                mix-blend-mode: normal; 
+                pointer-events: none; /* Allows interaction with elements beneath */
+                z-index: -1; /* Initially behind everything */
+                display: none; /* Hidden by default */
+                mix-blend-mode: normal;
             }
-             body.${ CLASS_INVERT_COLORS } #${ FILTER_OVERLAY_ID } { /* Changed selector */
+            body.${ CLASS_INVERT_COLORS } #${ FILTER_OVERLAY_ID } {
                 display: block !important;
                 filter: invert(100%) hue-rotate(180deg) !important;
-                mix-blend-mode: difference; 
-                background-color: white; 
-                z-index: 2147483640; 
+                mix-blend-mode: difference; /* Ensures proper inversion */
+                background-color: white; /* Base layer for inversion */
+                z-index: 2147483640; /* High z-index for overlay */
             }
             /* Ensure menu UI itself is NOT affected by filters */
             #${ MENU_BUTTON_ID }, #${ MENU_PANEL_ID } { filter: none !important; }
@@ -197,16 +199,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 
             /* High Contrast Mode (Direct Styling via Class) */
             body.${ CLASS_HIGH_CONTRAST } { background-color: #000 !important; color: #fff !important; }
-            body.${ CLASS_HIGH_CONTRAST } a { color: #0ff !important; } 
+            body.${ CLASS_HIGH_CONTRAST } a { color: #0ff !important; }
             body.${ CLASS_HIGH_CONTRAST } button, body.${ CLASS_HIGH_CONTRAST } input, body.${ CLASS_HIGH_CONTRAST } select, body.${ CLASS_HIGH_CONTRAST } textarea {
                 background-color: #222 !important; color: #fff !important; border: 1px solid #fff !important;
             }
             /* Exclude menu from high contrast direct styles */
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID }, body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } * {
-                 background-color: #f8f9fa !important; color: #212529 !important; border-color: #dee2e6 !important;
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID }, body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } *,
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID }, body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } * {
+                background-color: #f8f9fa !important; color: #212529 !important; border-color: #dee2e6 !important;
             }
-             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active { /* Changed class prefix */
-                 background-color: #0056b3 !important; color: white !important; border-color: #004085 !important;
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active {
+                background-color: #0056b3 !important; color: white !important; border-color: #004085 !important;
             }
 
 
@@ -235,9 +238,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 transition-delay: 0ms !important;
                 animation-play-state: paused !important;
             }
-             /* Ensure menu animation still works */
-            body.${ CLASS_ANIMATIONS_STOPPED } #${ MENU_PANEL_ID }.ar-aaa-menu-open { /* Changed class prefix */
-                animation: ar-slide-up .3s ease-out !important;
+            /* Ensure menu animation still works (if any) */
+            body.${ CLASS_ANIMATIONS_STOPPED } #${ MENU_PANEL_ID }.ar-aaa-menu-open {
+                /* If you have a specific animation for opening, define it here */
+                /* animation: ar-slide-up .3s ease-out !important; */
                 animation-play-state: running !important;
             }
 
@@ -246,17 +250,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${ CLASS_DYSLEXIA_FONT } {
                 font-family: 'OpenDyslexic', Arial, sans-serif !important;
             }
+            /* Apply dyslexia font to all elements except scripts, styles, and links */
             body.${ CLASS_DYSLEXIA_FONT } *:not(script):not(style):not(link) {
                 font-family: inherit !important;
             }
-            #${ MENU_PANEL_ID }.${ CLASS_DYSLEXIA_FONT }, #${ MENU_PANEL_ID } *.${ CLASS_DYSLEXIA_FONT },
-            #${ MENU_BUTTON_ID }.${ CLASS_DYSLEXIA_FONT }, #${ MENU_BUTTON_ID } *.${ CLASS_DYSLEXIA_FONT } {
-                font-family: 'Inter', Arial, sans-serif !important; /* Keep menu font consistent */
-            }
-             /* Ensure menu itself does not get dyslexia font if body has it */
+            /* Ensure menu itself does not get dyslexia font if body has it */
             #${ MENU_PANEL_ID }, #${ MENU_PANEL_ID } *,
             #${ MENU_BUTTON_ID }, #${ MENU_BUTTON_ID } * {
-                font-family: 'Inter', Arial, sans-serif !important;
+                font-family: 'Inter', Arial, sans-serif !important; /* Keep menu font consistent */
             }
 
 
@@ -272,7 +273,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 #${ MENU_BUTTON_ID } {
                     width: 50px; height: 50px; font-size: 20px;
                 }
-                 #${ MENU_PANEL_ID } button {
+                #${ MENU_PANEL_ID } button {
                     flex-basis: 100%; /* Full width buttons on very small screens */
                 }
             }
@@ -283,8 +284,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		styleEl.textContent = css
 	};
 	Menu._createFilterOverlay = function () {
-		if (document.getElementById(FILTER_OVERLAY_ID))
-			return;
+		if (document.getElementById(FILTER_OVERLAY_ID)) {
+			return
+		}
 		this.filterOverlayElement = document.createElement('div');
 		this.filterOverlayElement.id = FILTER_OVERLAY_ID;
 		document.body.appendChild(this.filterOverlayElement)
@@ -332,7 +334,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		};
 		let html = `<h3 id="ar-aaa-menu-title">Accessibility Tools</h3>`;
 		html += `
-            <div class="ar-aaa-menu-group"> <div class="ar-aaa-button-row">
+            <div class="ar-aaa-menu-group">
+                <div class="ar-aaa-button-row">
                     <button data-action="increase-text">${ ICONS.textSize } Increase Text</button>
                     <button data-action="decrease-text">${ ICONS.textSize } Decrease Text</button>
                 </div>
@@ -344,7 +347,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 </div>
             </div>
             <div class="ar-aaa-menu-group">
-                 <div class="ar-aaa-button-row">
+                <div class="ar-aaa-button-row">
                     <button data-action="highlight-links">${ ICONS.highlight } Highlight Links</button>
                     <button data-action="enhanced-focus">${ ICONS.highlight } Enhanced Focus</button>
                 </div>
@@ -397,53 +400,59 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 	};
 	Menu._handlePanelKeydown = function (event) {
-		if (event.key === 'Escape' && this.isOpen)
+		if (event.key === 'Escape' && this.isOpen) {
 			this.toggleMenu()
+		}
+	};
+	Menu._startDragging = function (event, isButtonDrag) {
+		const element = isButtonDrag ? document.getElementById(MENU_BUTTON_ID) : document.getElementById(MENU_PANEL_ID);
+		if (!element)
+			return;
+		if (!isButtonDrag) {
+			const target = event.target;
+			const isButtonClick = target.closest('button');
+			const isLegendClick = target.closest('legend');
+			const isPanelDirectClick = target === element;
+			if (isButtonClick || !isPanelDirectClick && !isLegendClick) {
+				if (isButtonDrag)
+					this.isButtonDragging = false;
+				else
+					this.isPanelDragging = false;
+				return
+			}
+		}
+		if (isButtonDrag)
+			this.isButtonDragging = true;
+		else
+			this.isPanelDragging = true;
+		element.classList.add('dragging');
+		element.style.position = 'fixed';
+		const coords = getClientCoords(event);
+		const rect = element.getBoundingClientRect();
+		element.style.left = `${ rect.left }px`;
+		element.style.top = `${ rect.top }px`;
+		element.style.right = 'auto';
+		element.style.bottom = 'auto';
+		if (isButtonDrag) {
+			element.style.transform = 'none'
+		}
+		if (isButtonDrag) {
+			this.buttonOffsetX = coords.clientX - rect.left;
+			this.buttonOffsetY = coords.clientY - rect.top;
+			this.buttonDragOccurred = false
+		} else {
+			this.panelOffsetX = coords.clientX - rect.left;
+			this.panelOffsetY = coords.clientY - rect.top
+		}
+		if (event.type === 'touchstart') {
+			event.preventDefault()
+		}
 	};
 	Menu._handleButtonMouseDown = function (event) {
-		this.isButtonDragging = true;
-		const button = document.getElementById(MENU_BUTTON_ID);
-		if (button)
-			button.classList.add('dragging');
-		this.buttonDragOccurred = false;
-		const coords = getClientCoords(event);
-		const buttonRect = button.getBoundingClientRect();
-		button.style.position = 'fixed';
-		button.style.left = `${ buttonRect.left }px`;
-		button.style.top = `${ buttonRect.top }px`;
-		button.style.right = 'auto';
-		button.style.bottom = 'auto';
-		button.style.transform = 'none';
-		this.buttonOffsetX = coords.clientX - buttonRect.left;
-		this.buttonOffsetY = coords.clientY - buttonRect.top;
-		if (event.type === 'touchstart')
-			event.preventDefault()
+		this._startDragging(event, true)
 	};
 	Menu._handlePanelMouseDown = function (event) {
-		const panel = document.getElementById(MENU_PANEL_ID);
-		const target = event.target;
-		const isButton = target.closest('button');
-		const isLegend = target.closest('legend');
-		const isPanelDirectClick = target === panel;
-		if (isButton || !isPanelDirectClick && !isLegend) {
-			this.isPanelDragging = false;
-			return
-		}
-		this.isPanelDragging = true;
-		if (panel)
-			panel.classList.add('dragging');
-		if (panel)
-			panel.style.position = 'fixed';
-		const coords = getClientCoords(event);
-		const panelRect = panel.getBoundingClientRect();
-		panel.style.left = `${ panelRect.left }px`;
-		panel.style.top = `${ panelRect.top }px`;
-		panel.style.right = 'auto';
-		panel.style.bottom = 'auto';
-		this.panelOffsetX = coords.clientX - panelRect.left;
-		this.panelOffsetY = coords.clientY - panelRect.top;
-		if (event.type === 'touchstart')
-			event.preventDefault()
+		this._startDragging(event, false)
 	};
 	Menu._handleDocumentMouseMove = function (event) {
 		let element, offsetX, offsetY;
@@ -468,8 +477,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		newTop = Math.max(0, Math.min(newTop, window.innerHeight - element.offsetHeight));
 		element.style.left = `${ newLeft }px`;
 		element.style.top = `${ newTop }px`;
-		if (event.type === 'touchmove')
+		if (event.type === 'touchmove') {
 			event.preventDefault()
+		}
 	};
 	Menu._handleDocumentMouseUp = function () {
 		if (this.isButtonDragging) {
@@ -506,20 +516,23 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 			if (newTop < 10)
 				newTop = buttonRect.bottom + 10;
-			if (newTop + panelRect.height > window.innerHeight - 10)
-				newTop = Math.max(10, window.innerHeight - panelRect.height - 10);
+			if (newTop + panelRect.height > window.innerHeight - 10) {
+				newTop = Math.max(10, window.innerHeight - panelRect.height - 10)
+			}
 			if (newLeft < 10)
 				newLeft = 10;
-			if (newLeft + panelRect.width > window.innerWidth - 10)
-				newLeft = window.innerWidth - panelRect.width - 10;
+			if (newLeft + panelRect.width > window.innerWidth - 10) {
+				newLeft = window.innerWidth - panelRect.width - 10
+			}
 			panel.style.position = 'fixed';
 			panel.style.top = `${ newTop }px`;
 			panel.style.left = `${ newLeft }px`;
 			panel.style.bottom = 'auto';
 			panel.style.right = 'auto';
 			const firstFocusableButton = panel.querySelector('button:not([disabled])');
-			if (firstFocusableButton)
+			if (firstFocusableButton) {
 				firstFocusableButton.focus()
+			}
 		} else {
 			button.focus()
 		}
@@ -563,8 +576,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			const parentGroup = buttonElement.closest('.ar-aaa-button-row') || buttonElement.closest('.ar-aaa-menu-group');
 			if (parentGroup) {
 				parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
-					if (btn !== buttonElement)
+					if (btn !== buttonElement) {
 						btn.classList.remove('ar-aaa-menu-btn-active')
+					}
 				})
 			}
 		}
@@ -580,12 +594,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			elements = Array.from(document.querySelectorAll('p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '), h1, h2, h3, h4, h5, h6, a, label, td, th, caption'))
 		}
 		let factor = 1;
-		if (action === 'increase-text')
-			factor = FONT_SIZE_MULTIPLIER;
-		else if (action === 'decrease-text')
-			factor = 1 / FONT_SIZE_MULTIPLIER;
-		else if (action === 'reset-font')
-			factor = 0;
+		if (action === 'increase-text') {
+			factor = FONT_SIZE_MULTIPLIER
+		} else if (action === 'decrease-text') {
+			factor = 1 / FONT_SIZE_MULTIPLIER
+		} else if (action === 'reset-font') {
+			factor = 0
+		}
 		elements.forEach(el => {
 			if (factor === 0) {
 				el.style.removeProperty('font-size')
@@ -598,7 +613,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		});
 		logAction(`Text size ${ action }`, true);
 		if (action === 'reset-font' && button && button.closest('.ar-aaa-menu-group')) {
-			button.closest('.ar-aaa-menu-group').querySelectorAll('button[data-action="increase-text"], button[data-action="decrease-text"]').forEach(btn => this._updateButtonActiveState(btn, false))
+			button.closest('.ar-aaa-menu-group').querySelectorAll('button[data-action="increase-text"], button[data-action="decrease-text"]').forEach(btn => {
+				this._updateButtonActiveState(btn, false)
+			})
 		}
 	};
 	Menu._handleContrastAction = function (action, button) {
@@ -607,8 +624,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const parentGroup = button.closest('.ar-aaa-button-row') || button.closest('.ar-aaa-menu-group');
 		if (parentGroup) {
 			parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
-				if (btn !== button)
+				if (btn !== button) {
 					this._updateButtonActiveState(btn, false)
+				}
 			})
 		}
 		if (action === 'contrast-high') {
@@ -662,8 +680,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				}
 			});
 			gifsToFreeze.forEach(img => {
-				if (typeof ar_isVisuallyHidden === 'function' && ar_isVisuallyHidden(img))
-					return;
+				if (typeof ar_isVisuallyHidden === 'function' && ar_isVisuallyHidden(img)) {
+					return
+				}
 				img.dataset.arOriginalSrc = img.src;
 				img.dataset.arOriginalAlt = img.alt || '';
 				img.dataset.arOriginalDisplay = img.style.display || '';
@@ -687,17 +706,20 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 					canvas.setAttribute('role', 'img');
 					canvas.setAttribute('aria-label', img.dataset.arOriginalAlt || `Frozen animation: ${ img.src.split('/').pop() }`);
 					canvas.dataset.arFrozenGifCanvas = 'true';
-					if (!img.id)
-						img.id = typeof ar_generateUniqueElementId === 'function' ? ar_generateUniqueElementId('ar-original-gif-') : `ar-gif-${ Date.now() }-${ Math.random() }`;
+					if (!img.id) {
+						img.id = typeof ar_generateUniqueElementId === 'function' ? ar_generateUniqueElementId('ar-original-gif-') : `ar-gif-${ Date.now() }-${ Math.random() }`
+					}
 					canvas.dataset.arOriginalImgId = img.id;
 					const ctx = canvas.getContext('2d');
 					try {
 						ctx.drawImage(tempImage, 0, 0, canvas.width, canvas.height);
 						img.style.display = 'none';
 						img.dataset.arGifFrozen = 'true';
-						if (img.parentNode)
+						if (img.parentNode) {
 							img.parentNode.insertBefore(canvas, img.nextSibling)
+						}
 					} catch (e) {
+						console.error('ARMenu: Failed to freeze GIF using canvas, falling back to blank GIF.', e);
 						img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 						img.style.display = img.dataset.arOriginalDisplay || '';
 						img.dataset.arGifFrozen = 'true';
@@ -705,6 +727,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 					}
 				};
 				tempImage.onerror = () => {
+					console.error('ARMenu: Failed to load GIF for freezing, falling back to blank GIF.');
 					img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 					img.dataset.arGifFrozen = 'true';
 					img.dataset.arGifFrozenFallback = 'true'
@@ -726,15 +749,19 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 							'arOriginalWidth',
 							'arOriginalHeight',
 							'arGifFrozenFallback'
-						].forEach(attr => delete originalImg.dataset[attr])
+						].forEach(attr => {
+							delete originalImg.dataset[attr]
+						})
 					}
 				}
-				if (canvas.parentNode)
+				if (canvas.parentNode) {
 					canvas.parentNode.removeChild(canvas)
+				}
 			});
 			document.querySelectorAll('img[data-ar-gif-frozen-fallback="true"]').forEach(img => {
-				if (img.dataset.arOriginalSrc)
-					img.src = img.dataset.arOriginalSrc;
+				if (img.dataset.arOriginalSrc) {
+					img.src = img.dataset.arOriginalSrc
+				}
 				[
 					'arGifFrozen',
 					'arGifFrozenFallback',
@@ -743,7 +770,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 					'arOriginalDisplay',
 					'arOriginalWidth',
 					'arOriginalHeight'
-				].forEach(attr => delete img.dataset[attr])
+				].forEach(attr => {
+					delete img.dataset[attr]
+				})
 			})
 		}
 		logAction('Stop animations ' + (this.areAnimationsStopped ? 'enabled' : 'disabled'), true)
@@ -758,11 +787,15 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this._handleTextSizeAction('reset-font', document.querySelector(`#${ MENU_PANEL_ID } button[data-action="reset-font"]`));
 		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_INVERT_COLORS);
 		this.activeContrastMode = 'default';
-		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action^="contrast-"]`).forEach(btn => this._updateButtonActiveState(btn, false));
+		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action^="contrast-"]`).forEach(btn => {
+			this._updateButtonActiveState(btn, false)
+		});
 		document.body.classList.remove(CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS);
 		this.areLinksHighlighted = false;
 		this.isFocusEnhanced = false;
-		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action="highlight-links"], #${ MENU_PANEL_ID } button[data-action="enhanced-focus"]`).forEach(btn => this._updateButtonActiveState(btn, false));
+		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action="highlight-links"], #${ MENU_PANEL_ID } button[data-action="enhanced-focus"]`).forEach(btn => {
+			this._updateButtonActiveState(btn, false)
+		});
 		if (this.areAnimationsStopped) {
 			this._handleStopAnimationsAction(document.querySelector(`#${ MENU_PANEL_ID } button[data-action="stop-animations"]`))
 		}
@@ -770,7 +803,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this._handleDyslexiaFontAction(document.querySelector(`#${ MENU_PANEL_ID } button[data-action="toggle-dyslexia-font"]`))
 		}
 		logAction('All settings reset', true);
-		const panel = document.getElementById(MENU_PANEL_ID);
 		const menuButton = document.getElementById(MENU_BUTTON_ID);
 		if (menuButton) {
 			menuButton.style.left = '50%';
@@ -779,119 +811,32 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			menuButton.style.bottom = 'auto';
 			menuButton.style.right = 'auto'
 		}
-		if (panel && this.isOpen) {
-			this.toggleMenu();
-			this.toggleMenu()
-		} else if (panel) {
-			const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
-			if (docDir === 'rtl') {
-				panel.style.left = '20px';
-				panel.style.right = 'auto'
+		const panel = document.getElementById(MENU_PANEL_ID);
+		if (panel) {
+			if (this.isOpen) {
+				this.toggleMenu();
+				this.toggleMenu()
 			} else {
-				panel.style.right = '20px';
-				panel.style.left = 'auto'
-			}
-			panel.style.bottom = '90px';
-			panel.style.top = 'auto'
-		}
-	};
-	Menu._startDragging = function (event, isButtonDrag) {
-		const element = isButtonDrag ? document.getElementById(MENU_BUTTON_ID) : document.getElementById(MENU_PANEL_ID);
-		if (!element)
-			return;
-		if (!isButtonDrag) {
-			const target = event.target;
-			const isButtonClick = target.closest('button');
-			const isLegendClick = target.closest('legend');
-			const isPanelDirectClick = target === element;
-			if (isButtonClick || !isPanelDirectClick && !isLegendClick) {
-				if (isButtonDrag)
-					this.isButtonDragging = false;
-				else
-					this.isPanelDragging = false;
-				return
+				const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
+				if (docDir === 'rtl') {
+					panel.style.left = '20px';
+					panel.style.right = 'auto'
+				} else {
+					panel.style.right = '20px';
+					panel.style.left = 'auto'
+				}
+				panel.style.bottom = '90px';
+				panel.style.top = 'auto'
 			}
 		}
-		if (isButtonDrag)
-			this.isButtonDragging = true;
-		else
-			this.isPanelDragging = true;
-		if (element)
-			element.classList.add('dragging');
-		if (element)
-			element.style.position = 'fixed';
-		const coords = getClientCoords(event);
-		const rect = element.getBoundingClientRect();
-		element.style.left = `${ rect.left }px`;
-		element.style.top = `${ rect.top }px`;
-		element.style.right = 'auto';
-		element.style.bottom = 'auto';
-		if (isButtonDrag)
-			element.style.transform = 'none';
-		if (isButtonDrag) {
-			this.buttonOffsetX = coords.clientX - rect.left;
-			this.buttonOffsetY = coords.clientY - rect.top;
-			this.buttonDragOccurred = false
-		} else {
-			this.panelOffsetX = coords.clientX - rect.left;
-			this.panelOffsetY = coords.clientY - rect.top
-		}
-		if (event.type === 'touchstart')
-			event.preventDefault()
 	};
-	Menu._handleButtonMouseDown = function (event) {
-		this._startDragging(event, true)
-	};
-	Menu._handlePanelMouseDown = function (event) {
-		this._startDragging(event, false)
-	};
-	Menu._handleDocumentMouseMove = function (event) {
-		let element, offsetX, offsetY;
-		if (this.isButtonDragging) {
-			element = document.getElementById(MENU_BUTTON_ID);
-			offsetX = this.buttonOffsetX;
-			offsetY = this.buttonOffsetY;
-			this.buttonDragOccurred = true
-		} else if (this.isPanelDragging) {
-			element = document.getElementById(MENU_PANEL_ID);
-			offsetX = this.panelOffsetX;
-			offsetY = this.panelOffsetY
-		} else {
-			return
-		}
-		if (!element)
-			return;
-		const coords = getClientCoords(event);
-		let newLeft = coords.clientX - offsetX;
-		let newTop = coords.clientY - offsetY;
-		newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - element.offsetWidth));
-		newTop = Math.max(0, Math.min(newTop, window.innerHeight - element.offsetHeight));
-		element.style.left = `${ newLeft }px`;
-		element.style.top = `${ newTop }px`;
-		if (event.type === 'touchmove')
-			event.preventDefault()
-	};
-	Menu._handleDocumentMouseUp = function () {
-		if (this.isButtonDragging) {
-			this.isButtonDragging = false;
-			const button = document.getElementById(MENU_BUTTON_ID);
-			if (button)
-				button.classList.remove('dragging')
-		}
-		if (this.isPanelDragging) {
-			this.isPanelDragging = false;
-			const panel = document.getElementById(MENU_PANEL_ID);
-			if (panel)
-				panel.classList.remove('dragging')
-		}
+	if (document.readyState === 'complete' || document.readyState === 'interactive') {
+		setTimeout(function () {
+			AR_AccessibilityMenu.init()
+		}, 100)
+	} else {
+		document.addEventListener('DOMContentLoaded', function () {
+			AR_AccessibilityMenu.init()
+		})
 	}
-}(AR_AccessibilityMenu));
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-	setTimeout(function () {
-		AR_AccessibilityMenu.init()
-	}, 100)
-} else {
-	document.addEventListener('DOMContentLoaded', function () {
-		AR_AccessibilityMenu.init()
-	})
-}
+}(AR_AccessibilityMenu))
