@@ -23,6 +23,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu.buttonOffsetX = 0;
 	Menu.buttonOffsetY = 0;
 	Menu.buttonDragOccurred = false;
+	Menu.justDragged = false;
 	Menu._originalFontSizes = new Map();
 	Menu.translations = {
 		'he': {
@@ -118,9 +119,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 color: white !important;
                 border: none;
                 border-radius: 50%;
-                width: 70px; /* גודל מוגדל לאייקון גדול יותר */
-                height: 70px; /* גודל מוגדל לאייקון גדול יותר */
-                font-size: 40px; /* גודל גופן מוגדל לאייקון SVG גדול יותר */
+                width: 80px; /* גודל מוגדל לאייקון גדול יותר */
+                height: 80px; /* גודל מוגדל לאייקון גדול יותר */
+                font-size: 50px; /* גודל גופן מוגדל לאייקון SVG גדול יותר */
                 cursor: grab;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.2);
                 display: flex;
@@ -140,13 +141,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                width: 100%; /* ודא שהספאן ממלא את הכפתור */
-                height: 100%; /* ודא שהספאן ממלא את הכפתור */
+                width: 100% !important; /* ודא שהספאן ממלא את הכפתור */
+                height: 100% !important; /* ודא שהספאן ממלא את הכפתור */
             }
             #${ MENU_BUTTON_ID } .ar-aaa-menu-icon svg {
-                width: 100%; /* ודא שה-SVG ממלא את הספאן */
-                height: 100%; /* ודא שה-SVG ממלא את הספאן */
-                fill: currentColor; /* ודא שהצבע יורש מהכפתור */
+                width: 100% !important; /* ודא שה-SVG ממלא את הספאן */
+                height: 100% !important; /* ודא שה-SVG ממלא את הספאן */
+                fill: currentColor !important; /* ודא שהצבע יורש מהכפתור בעדיפות עליונה */
+                color: inherit !important; /* ודא שהצבע יורש מהכפתור בעדיפות עליונה */
             }
 
 
@@ -236,15 +238,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 top: 0; left: 0; width: 100%; height: 100%;
                 pointer-events: none; /* מאפשר אינטראקציה עם אלמנטים מתחת */
                 z-index: -1; /* בהתחלה מאחורי הכל */
-                display: none; /* מוסתר כברירת מחדל */
-                mix-blend-mode: normal;
+                display: none; /* שכבת על זו אינה נחוצה יותר עבור היפוך עצמו */
             }
-            body.${ CLASS_INVERT_COLORS } #${ FILTER_OVERLAY_ID } {
-                display: block !important;
+            /* מצב היפוך צבעים (עיצוב ישיר באמצעות קלאס) */
+            body.${ CLASS_INVERT_COLORS } {
                 filter: invert(100%) hue-rotate(180deg) !important;
-                mix-blend-mode: difference; /* מבטיח היפוך נכון */
-                background-color: white; /* שכבת בסיס להיפוך */
-                z-index: 2147483640; /* Z-index גבוה לשכבת העל */
             }
             /* ודא שממשק המשתמש של התפריט עצמו אינו מושפע מפילטרים */
             #${ MENU_BUTTON_ID }, #${ MENU_PANEL_ID } { filter: none !important; }
@@ -364,7 +362,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		btn.setAttribute('aria-label', Menu._getLocalizedString('menuTitle'));
 		btn.setAttribute('aria-expanded', 'false');
 		btn.setAttribute('aria-controls', MENU_PANEL_ID);
-		btn.innerHTML = `<span class="ar-aaa-menu-icon" role="img" aria-label="${ Menu._getLocalizedString('accessibilityIcon') }"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A2,2 0 0,1 14,4A2,2 0 0,1 12,6A2,2 0 0,1 10,4A2,2 0 0,1 12,2M21,9H15V22H13V16H11V22H9V16H3V9A2,2 0 0,1 5,7H19A2,2 0 0,1 21,9Z" /></svg></span>`;
+		btn.innerHTML = `<span class="ar-aaa-menu-icon" role="img" aria-label="${ Menu._getLocalizedString('accessibilityIcon') }"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,7A2,2 0 0,1 14,9A2,2 0 0,1 12,11A2,2 0 0,1 10,9A2,2 0 0,1 12,7M12,13A1,1 0 0,1 13,14V17A1,1 0 0,1 12,18A1,1 0 0,1 11,17V14A1,1 0 0,1 12,13Z" /></svg></span>`;
 		btn.style.right = '20px';
 		btn.style.top = '50%';
 		btn.style.transform = 'translateY(-50%)';
@@ -455,8 +453,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.addEventListener('keydown', this._handleTabKeyFocusTrap.bind(this))
 	};
 	Menu._handleMenuButtonClick = function (event) {
-		if (this.buttonDragOccurred) {
-			this.buttonDragOccurred = false;
+		if (Menu.justDragged) {
+			Menu.justDragged = false;
 			return
 		}
 		this.toggleMenu()
@@ -616,7 +614,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this.isButtonDragging = false;
 			const button = document.getElementById(MENU_BUTTON_ID);
 			if (button)
-				button.classList.remove('dragging')
+				button.classList.remove('dragging');
+			Menu.justDragged = true;
+			setTimeout(() => {
+				Menu.justDragged = false
+			}, 50)
 		}
 		if (this.isPanelDragging) {
 			this.isPanelDragging = false;
