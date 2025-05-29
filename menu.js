@@ -101,7 +101,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             #${MENU_PANEL_ID} .ar-aaa-menu-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e9ecef; }
             #${MENU_PANEL_ID} .ar-aaa-menu-group:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
             #${MENU_PANEL_ID} .ar-aaa-button-row { display: flex; flex-wrap: wrap; gap: 8px; }
-            #${MENU_PANEL_ID} button { flex: 1 1 calc(50% - 4px); padding: 8px 10px; font-size: 0.95em; background-color: #f8f9fa; color: #0056b3; border: 1px solid #0056b3; border-radius: 4px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; }
+            #${MENU_PANEL_ID} button { flex: 1 1 calc(50% - 4px); padding: 8px 10px; font-size: 0.95em; background-color: #f8f9fa; color: #0056b3 !important; border: 1px solid #0056b3; border-radius: 4px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; }
             #${MENU_PANEL_ID} button:hover, #${MENU_PANEL_ID} button:focus-visible { background-color: #e9ecef; border-color: #003d82; outline: 1px solid #0056b3; }
             #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active { background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important; }
             #${MENU_PANEL_ID} button.ar-aaa-fullwidth-btn { flex-basis: 100%; }
@@ -150,7 +150,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} { background-color: #f0f0f0 !important; border-color: #0056b3 !important; color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} h3 { color: #0056b3 !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button { background-color: #fff !important; color: #0056b3 !important; border-color: #0056b3 !important; }
+            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button { background-color: #fff !important; color: #000 !important; border-color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active { background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #e0e0e0 !important; border-color: #0056b3 !important; color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_BUTTON_ID} { background-color: #0056b3 !important; color: white !important; }
