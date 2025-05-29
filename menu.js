@@ -1,4 +1,4 @@
-var AR_SimpleAccessibilityMenu = AR_SimpleAccessibilityMenu || {};
+var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 (function (SimpleMenu) {
 	const MENU_BUTTON_ID = 'simple-aaa-menu-button';
 	const MENU_PANEL_ID = 'simple-aaa-menu-panel';
@@ -883,13 +883,13 @@ var AR_SimpleAccessibilityMenu = AR_SimpleAccessibilityMenu || {};
 				panel.classList.remove('dragging')
 		}
 	}
-}(AR_SimpleAccessibilityMenu));
+}(AR_AccessibilityMenu));
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
 	setTimeout(function () {
-		AR_SimpleAccessibilityMenu.init()
+		AR_AccessibilityMenu.init()
 	}, 100)
 } else {
 	document.addEventListener('DOMContentLoaded', function () {
-		AR_SimpleAccessibilityMenu.init()
+		AR_AccessibilityMenu.init()
 	})
 }
