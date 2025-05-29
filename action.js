@@ -123,7 +123,15 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			readingLineIcon: 'אייקון קו קריאה',
 			pageStructureIcon: 'אייקון מבנה עמוד',
 			profileIcon: 'אייקון פרופיל',
-			speechNotSupported: 'סינתזת דיבור אינה נתמכת בדפדפן זה.'
+			speechNotSupported: 'סינתזת דיבור אינה נתמכת בדפדפן זה.',
+			mainContent: 'תוכן ראשי',
+			navigation: 'ניווט',
+			header: 'כותרת עליונה',
+			footer: 'כותרת תחתונה',
+			complementary: 'תוכן משלים',
+			form: 'טופס',
+			search: 'חיפוש',
+			region: 'אזור'
 		},
 		'en': {
 			menuTitle: 'Accessibility Tools',
@@ -166,7 +174,15 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			readingLineIcon: 'Reading Line Icon',
 			pageStructureIcon: 'Page Structure Icon',
 			profileIcon: 'Profile Icon',
-			speechNotSupported: 'Speech synthesis not supported in this browser.'
+			speechNotSupported: 'Speech synthesis not supported in this browser.',
+			mainContent: 'Main Content',
+			navigation: 'Navigation',
+			header: 'Header',
+			footer: 'Footer',
+			complementary: 'Sidebar',
+			form: 'Form',
+			search: 'Search',
+			region: 'Region'
 		}
 	};
 	Menu._getLocalizedString = function (key) {
@@ -906,8 +922,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu._handleReadingMaskAction = function (button) {
 		Menu.isReadingMaskActive = !Menu.isReadingMaskActive;
 		if (Menu.readingMaskTop && Menu.readingMaskBottom) {
-			Menu.readingMaskTop.style.display = 'block';
-			Menu.readingMaskBottom.style.display = 'block';
+			Menu.readingMaskTop.style.display = Menu.isReadingMaskActive ? 'block' : 'none';
+			Menu.readingMaskBottom.style.display = Menu.isReadingMaskActive ? 'block' : 'none';
 		}
 		this._updateButtonActiveState(button, Menu.isReadingMaskActive);
 		logAction('Reading mask ' + (Menu.isReadingMaskActive ? 'enabled' : 'disabled'), true);
@@ -915,7 +931,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu._handleReadingLineAction = function (button) {
 		Menu.isReadingLineActive = !Menu.isReadingLineActive;
 		if (Menu.readingLine) {
-			Menu.readingLine.style.display = 'block';
+			Menu.readingLine.style.display = Menu.isReadingLineActive ? 'block' : 'none';
 		}
 		this._updateButtonActiveState(button, Menu.isReadingLineActive);
 		logAction('Reading line ' + (Menu.isReadingLineActive ? 'enabled' : 'disabled'), true);
