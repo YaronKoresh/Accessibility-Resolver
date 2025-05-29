@@ -140,7 +140,7 @@
  #aaa-menu-panel button.ar-aaa-reset-btn:hover {
 	 background-color: #d0d0d0 !important;
 }
- #aaa-menu-panel .ar-aaa-menu-icon svg, #aaa-menu-panel .ar-aaa-menu-icon svg * {
+ #aaa-menu-panel .ar-aaa-menu-icon svg {
 	 fill: currentColor !important;
 	 stroke: currentColor !important;
 }
@@ -319,7 +319,6 @@
  @media (max-width: 480px) {
 	 #aaa-menu-panel {
 		 width: calc(100% - 76px) !important;
-		/* 2 * EDGE_MARGIN_PX */
 		 left: 38px !important;
 		 right: 38px !important;
 		 bottom: 38px !important;
@@ -346,6 +345,6 @@
 	 transition: outline 0.2s ease-out, background-color 0.2s ease-out !important;
 }
  .ar-text-scaled-by-menu {
-	 font-size: var(--ar-scaled-font-size-px, inherit) !important;
+	 font-size: var(--ar-scaled-font-size, inherit) !important;
 }
  
