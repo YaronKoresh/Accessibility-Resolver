@@ -15,6 +15,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	const CLASS_DYSLEXIA_FONT = 'ar-aaa-dyslexia-font';
     const CLASS_READING_MODE = 'ar-aaa-reading-mode';
     const CLASS_TEMP_HIGHLIGHT = 'ar-aaa-temp-highlight';
+    const CLASS_TEXT_SCALED = 'ar-text-scaled-by-menu';
     const STORAGE_KEY = 'AR_AccessibilityMenu_Settings_v1.4';
     const EDGE_MARGIN_PX = 38;
 
@@ -127,26 +128,27 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             @font-face { font-family: 'OpenDyslexic'; font-style: normal; font-display: swap; font-weight: 700; src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff'); }
             
             #${MENU_BUTTON_ID} { 
-                position: fixed; z-index: 2147483647; 
+                position: fixed !important; z-index: 2147483647 !important; 
                 background-color: #000000 !important; 
                 color: #ffffff !important; 
-                border: none !important; 
-                border-radius: 50%; width: 70px; height: 70px; font-size: 36px; 
-                cursor: grab; box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
-                display: flex; align-items: center; justify-content: center; 
-                padding: 0;
+                border: 2px solid #ffffff !important; 
+                border-radius: 50% !important; width: 70px !important; height: 70px !important; font-size: 36px !important; 
+                cursor: grab !important; box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important; 
+                display: flex !important; align-items: center !important; justify-content: center !important; 
+                padding: 0 !important;
                 filter: none !important;
                 font-family: 'Inter', Arial, sans-serif !important;
+                transition: none !important;
             }
             #${MENU_BUTTON_ID}:hover { 
-                background-color: #000000 !important; /* No hover change */
+                background-color: #000000 !important; 
             }
             #${MENU_BUTTON_ID}:focus-visible {
                  outline: 2px solid #ffffff !important; 
-                 outline-offset: 2px;
+                 outline-offset: 2px !important;
             }
-            #${MENU_BUTTON_ID}.dragging { cursor: grabbing; }
-            #${MENU_BUTTON_ID} .ar-aaa-menu-icon { display: flex; align-items: center; justify-content: center; width: 60% !important; height: 60% !important; }
+            #${MENU_BUTTON_ID}.dragging { cursor: grabbing !important; }
+            #${MENU_BUTTON_ID} .ar-aaa-menu-icon { display: flex !important; align-items: center !important; justify-content: center !important; width: 60% !important; height: 60% !important; }
             #${MENU_BUTTON_ID} .ar-aaa-menu-icon svg, #${MENU_BUTTON_ID} .ar-aaa-menu-icon svg * { 
                 fill: #ffffff !important; 
                 stroke: #ffffff !important;
@@ -162,24 +164,25 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             #${MENU_PANEL_ID} { display: none; position: fixed; width: 320px; max-height: 45vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 2147483646; padding: 15px; cursor: grab; }
             #${MENU_PANEL_ID} h3#ar-aaa-menu-title, 
             #${MENU_PANEL_ID} .ar-aaa-profile-title { 
-                margin-top: 0; margin-bottom: 15px; font-size: 1.2em; 
+                margin-top: 0 !important; margin-bottom: 15px !important; font-size: 1.2em !important; 
                 color: #000000 !important; 
-                text-align: center; 
+                text-align: center !important; 
                 background-color: transparent !important;
+                font-family: 'Inter', Arial, sans-serif !important;
             }
-            #${MENU_PANEL_ID} .ar-aaa-profile-title { text-align: left; font-weight: bold; }
-            #${MENU_PANEL_ID}.ar-aaa-menu-open { display: block; }
-            #${MENU_PANEL_ID} .ar-aaa-menu-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #000000 !important; }
-            #${MENU_PANEL_ID} .ar-aaa-menu-group:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-            #${MENU_PANEL_ID} .ar-aaa-button-row { display: flex; flex-wrap: wrap; gap: 8px; }
+            #${MENU_PANEL_ID} .ar-aaa-profile-title { text-align: left !important; font-weight: bold !important; }
+            #${MENU_PANEL_ID}.ar-aaa-menu-open { display: block !important; }
+            #${MENU_PANEL_ID} .ar-aaa-menu-group { margin-bottom: 15px !important; padding-bottom: 10px !important; border-bottom: 1px solid #000000 !important; }
+            #${MENU_PANEL_ID} .ar-aaa-menu-group:last-of-type { margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: none !important; }
+            #${MENU_PANEL_ID} .ar-aaa-button-row { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; }
             #${MENU_PANEL_ID} button { 
-                flex: 1 1 calc(50% - 4px); padding: 10px 12px; font-size: 1em; 
+                flex: 1 1 calc(50% - 4px) !important; padding: 10px 12px !important; font-size: 1em !important; 
                 background-color: #ffffff !important; 
                 color: #000000 !important; 
                 border: 1px solid #000000 !important; 
-                border-radius: 4px; cursor: pointer; 
+                border-radius: 4px !important; cursor: pointer !important; 
                 transition: none !important; 
-                display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px;
+                display: flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; min-height: 40px !important;
                 font-family: 'Inter', Arial, sans-serif !important;
             }
             #${MENU_PANEL_ID} button:hover, #${MENU_PANEL_ID} button:focus-visible { 
@@ -191,25 +194,23 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 color: #ffffff !important; 
                 border-color: #000000 !important; 
             }
-            #${MENU_PANEL_ID} button.ar-aaa-fullwidth-btn { flex-basis: 100%; }
+            #${MENU_PANEL_ID} button.ar-aaa-fullwidth-btn { flex-basis: 100% !important; }
             #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #e0e0e0 !important; border-color: #000000 !important; color: #000000 !important; }
             #${MENU_PANEL_ID} button.ar-aaa-reset-btn:hover { background-color: #d0d0d0 !important; }
             #${MENU_PANEL_ID} .ar-aaa-menu-icon svg, #${MENU_PANEL_ID} .ar-aaa-menu-icon svg * { fill: currentColor !important; stroke: currentColor !important; }
 
             #${PAGE_STRUCTURE_PANEL_ID} { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; max-height: 70vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 2147483647; padding: 20px; }
-            #${PAGE_STRUCTURE_PANEL_ID} h3#ar-aaa-structure-title { margin-top: 0; margin-bottom: 15px; font-size: 1.3em; color: #000000 !important; }
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4 { font-size: 1.1em; margin-bottom: 8px; color: #000000 !important; border-bottom: 1px solid #cccccc !important; padding-bottom: 5px;}
-            #${PAGE_STRUCTURE_PANEL_ID} ul { list-style: none; padding-left: 0; margin:0; }
-            #${PAGE_STRUCTURE_PANEL_ID} li button { display: block; width: 100%; text-align: left; padding: 8px 10px; background-color: #f9f9f9 !important; border: 1px solid #ccc !important; border-radius: 4px; margin-bottom: 5px; cursor: pointer; font-size: 0.9em; color: #000000 !important; transition: none !important; font-family: 'Inter', Arial, sans-serif !important;}
+            #${PAGE_STRUCTURE_PANEL_ID} h3#ar-aaa-structure-title { margin-top: 0 !important; margin-bottom: 15px !important; font-size: 1.3em !important; color: #000000 !important; background-color: transparent !important; }
+            #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4 { font-size: 1.1em !important; margin-bottom: 8px !important; color: #000000 !important; border-bottom: 1px solid #cccccc !important; padding-bottom: 5px !important; background-color: transparent !important;}
+            #${PAGE_STRUCTURE_PANEL_ID} ul { list-style: none !important; padding-left: 0 !important; margin:0 !important; }
+            #${PAGE_STRUCTURE_PANEL_ID} li button { display: block !important; width: 100% !important; text-align: left !important; padding: 8px 10px !important; background-color: #f9f9f9 !important; border: 1px solid #ccc !important; border-radius: 4px !important; margin-bottom: 5px !important; cursor: pointer !important; font-size: 0.9em !important; color: #000000 !important; transition: none !important; font-family: 'Inter', Arial, sans-serif !important;}
             #${PAGE_STRUCTURE_PANEL_ID} li button:hover { background-color: #efefef !important; }
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn { display: block; margin: 15px auto 0; padding: 8px 15px; background-color: #333 !important; color: #fff !important; border: 1px solid #000 !important; border-radius: 4px; cursor: pointer; font-family: 'Inter', Arial, sans-serif !important;}
+            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn { display: block !important; margin: 15px auto 0 !important; padding: 8px 15px !important; background-color: #333 !important; color: #fff !important; border: 1px solid #000 !important; border-radius: 4px !important; cursor: pointer !important; font-family: 'Inter', Arial, sans-serif !important;}
             #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn:hover { background-color: #555 !important; }
             
-
             html.${CLASS_INVERT_COLORS} { filter: invert(100%) hue-rotate(180deg) !important; background-color: #fff !important; }
-            /* Menu UI is exempted from invert by its own filter:none and specific styling */
             html.${CLASS_INVERT_COLORS} img, html.${CLASS_INVERT_COLORS} video, html.${CLASS_INVERT_COLORS} [style*="background-image"] { filter: invert(100%) hue-rotate(180deg) !important; }
-            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; } /* SVGs on page get inverted once */
+            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; }
 
             body.${CLASS_HIGH_CONTRAST} { background-color: #fff !important; color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} p, body.${CLASS_HIGH_CONTRAST} p[style],
@@ -289,6 +290,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 #${PAGE_STRUCTURE_PANEL_ID} { width: calc(100% - 20px); max-height: 80vh; }
             }
             .${CLASS_TEMP_HIGHLIGHT} { outline: 3px dashed #FFD700 !important; outline-offset: 2px !important; background-color: rgba(255,215,0,0.1) !important; transition: outline 0.2s ease-out, background-color 0.2s ease-out; }
+            .${CLASS_TEXT_SCALED} { font-size: var(--ar-scaled-font-size, inherit) !important; }
         `;
 		const styleEl = document.createElement('style');
 		styleEl.id = styleId;
@@ -563,7 +565,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
     };
 
 	Menu._updateButtonActiveState = function (buttonElement, isActive) { if (!buttonElement) return; const action = buttonElement.dataset.action; if (isActive && action && action.startsWith('contrast-')) { const parentGroup = buttonElement.closest('.ar-aaa-button-row') || buttonElement.closest('.ar-aaa-menu-group'); if (parentGroup) { parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => { if (btn !== buttonElement) { btn.classList.remove('ar-aaa-menu-btn-active'); } }); } } buttonElement.classList.toggle('ar-aaa-menu-btn-active', isActive); };
-	Menu._applyFontScaleToElements = function() { let elements = []; if (typeof window.ar_getElementsForMenuTextStyleAdjustments === 'function') { elements = window.ar_getElementsForMenuTextStyleAdjustments(); } if (!elements || elements.length === 0) { elements = Array.from(document.querySelectorAll( 'p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '):not([class*="icon"]):not(:empty),' +  'h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup' )).filter(el => el.closest(`#${MENU_PANEL_ID}`) === null && el.closest(`#${MENU_BUTTON_ID}`) === null);  } elements.forEach(el => { if (!document.body.contains(el)) return;  if (!Menu._originalFontSizes.has(el)) { const initialComputedPx = parseFloat(window.getComputedStyle(el).fontSize); Menu._originalFontSizes.set(el, {  inline: el.style.fontSize || "", initialPx: initialComputedPx }); } const sizeData = Menu._originalFontSizes.get(el); let newSize = sizeData.initialPx * Math.pow(FONT_SIZE_MULTIPLIER, Menu.fontScaleLevel); if (newSize < 8) newSize = 8;  if (newSize > 72) newSize = 72;  el.style.setProperty('font-size', `${newSize}px`, 'important'); }); };
+	Menu._applyFontScaleToElements = function() { let elements = []; if (typeof window.ar_getElementsForMenuTextStyleAdjustments === 'function') { elements = window.ar_getElementsForMenuTextStyleAdjustments(); } if (!elements || elements.length === 0) { elements = Array.from(document.querySelectorAll( 'p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '):not([class*="icon"]):not(:empty),' +  'h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup' )).filter(el => el.closest(`#${MENU_PANEL_ID}`) === null && el.closest(`#${MENU_BUTTON_ID}`) === null);  } elements.forEach(el => { if (!document.body.contains(el)) return;  if (!Menu._originalFontSizes.has(el)) { const initialComputedPx = parseFloat(window.getComputedStyle(el).fontSize); Menu._originalFontSizes.set(el, {  inline: el.style.fontSize || "", initialPx: initialComputedPx }); } const sizeData = Menu._originalFontSizes.get(el); let newSize = sizeData.initialPx * Math.pow(FONT_SIZE_MULTIPLIER, Menu.fontScaleLevel); if (newSize < 8) newSize = 8;  if (newSize > 72) newSize = 72;  el.classList.add(CLASS_TEXT_SCALED); el.style.setProperty('--ar-scaled-font-size', newSize + 'px'); }); };
     Menu._handleTextSizeAction = function (action, button) { if (action === 'increase-text') { Menu.fontScaleLevel++; } else if (action === 'decrease-text') { Menu.fontScaleLevel--; } this._applyFontScaleToElements(); };
 	Menu._handleContrastAction = function (action, button) { const htmlEl = document.documentElement;  const bodyEl = document.body;  const isHighContrastAction = action === 'contrast-high'; const isInvertColorsAction = action === 'contrast-invert'; let newMode = 'default'; if (isHighContrastAction) { newMode = (this.activeContrastMode === 'high') ? 'default' : 'high'; } else if (isInvertColorsAction) { newMode = (this.activeContrastMode === 'inverted') ? 'default' : 'inverted'; }  htmlEl.classList.remove(CLASS_INVERT_COLORS); bodyEl.classList.remove(CLASS_HIGH_CONTRAST); const parentGroup = button.closest('.ar-aaa-button-row') || button.closest('.ar-aaa-menu-group'); if (parentGroup) { parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => { this._updateButtonActiveState(btn, false); }); } if (newMode === 'high') { bodyEl.classList.add(CLASS_HIGH_CONTRAST); this._updateButtonActiveState(button, true);  } else if (newMode === 'inverted') { htmlEl.classList.add(CLASS_INVERT_COLORS); this._updateButtonActiveState(button, true);  }  this.activeContrastMode = newMode; logAction(`Contrast mode set to: ${this.activeContrastMode}`); };
 	Menu._handleHighlightAction = function (action, button) { const body = document.body; if (action === 'highlight-links') { this.areLinksHighlighted = !this.areLinksHighlighted; body.classList.toggle(CLASS_HIGHLIGHT_LINKS, this.areLinksHighlighted); this._updateButtonActiveState(button, this.areLinksHighlighted); logAction(`Highlight links ${this.areLinksHighlighted ? 'enabled' : 'disabled'}. Class on body: ${body.classList.contains(CLASS_HIGHLIGHT_LINKS)}`); } else if (action === 'enhanced-focus') { this.isFocusEnhanced = !this.isFocusEnhanced; body.classList.toggle(CLASS_ENHANCED_FOCUS, this.isFocusEnhanced); this._updateButtonActiveState(button, this.isFocusEnhanced); logAction(`Enhanced focus ${this.isFocusEnhanced ? 'enabled' : 'disabled'}. Class on body: ${body.classList.contains(CLASS_ENHANCED_FOCUS)}`); } };
@@ -591,7 +593,20 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 
 	Menu._resetAllSettings = function (calledByProfile = false) {
         Menu.fontScaleLevel = 0;
-		Menu._originalFontSizes.forEach((sizeState, el) => { if (document.body.contains(el)) { if (sizeState.inline === "" || sizeState.inline === null) { el.style.removeProperty('font-size'); } else { el.style.setProperty('font-size', sizeState.inline, 'important'); } } });
+        document.querySelectorAll('.' + CLASS_TEXT_SCALED).forEach(el => {
+            el.classList.remove(CLASS_TEXT_SCALED);
+            el.style.removeProperty('--ar-scaled-font-size');
+            if (Menu._originalFontSizes.has(el)) {
+                const sizeState = Menu._originalFontSizes.get(el);
+                if (sizeState.inline) {
+                    el.style.fontSize = sizeState.inline; 
+                } else {
+                    el.style.removeProperty('font-size');
+                }
+            } else {
+                 el.style.removeProperty('font-size');
+            }
+        });
 		Menu._originalFontSizes.clear(); 
         if (Menu.isReadingAloud && 'speechSynthesis' in window) { window.speechSynthesis.cancel(); }
         Menu.isReadingAloud = false; Menu.isReadingModeActive = false; Menu.isReadingMaskActive = false; Menu.isReadingLineActive = false;
