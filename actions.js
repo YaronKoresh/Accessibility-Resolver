@@ -7,6 +7,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	const READING_MASK_BOTTOM_ID = 'aaa-reading-mask-bottom';
 	const READING_LINE_ID = 'aaa-reading-line';
 	const FONT_SIZE_MULTIPLIER = 1.1;
+	const STORAGE_KEY = 'AR_AccessibilityMenu_Settings_v1.4';
+	const EDGE_MARGIN_PX = 38;
 	const CLASS_HIGH_CONTRAST = 'ar-aaa-high-contrast';
 	const CLASS_INVERT_COLORS = 'ar-aaa-invert-colors';
 	const CLASS_HIGHLIGHT_LINKS = 'ar-aaa-highlight-links';
@@ -16,8 +18,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	const CLASS_READING_MODE = 'ar-aaa-reading-mode';
 	const CLASS_TEMP_HIGHLIGHT = 'ar-aaa-temp-highlight';
 	const CLASS_TEXT_SCALED = 'ar-text-scaled-by-menu';
-	const STORAGE_KEY = 'AR_AccessibilityMenu_Settings_v1.4';
-	const EDGE_MARGIN_PX = 38;
 	Menu.isOpen = false;
 	Menu.isDyslexiaFontActive = false;
 	Menu.activeContrastMode = 'default';
@@ -78,7 +78,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				activeContrastMode: 'high'
 			},
 			labelKey: 'profileVision',
-			iconPath: '<path d="M12,4.5C7,4.5 2.73,7.61 1,12c1.73,4.39 6,7.5 11,7.5s9.27-3.11 11-7.5C21.27,7.61 17,4.5 12,4.5zM12,17a4.5,4.5 0 1,1 0-9 4.5,4.5 0 0,1 0,9zm0-7a2.5,2.5 0 1,0 0,5 2.5,2.5 0 0,0 0-5z"/>'
+			iconPath: '<path d="M12,4.5C7,4.5 2.73,7.61 1,12c1.73,4.39 6,7.5 11,7.5s9.27-3.11 11-7.5C21.27,7.61 17,4.5 12,4.5zM12,17a4.5,4.5 0 1,1 0-9 4.5,4.5 0 0,1 0,9zm0-7a2.5,2.5 0 0,0 0,5 2.5,2.5 0 0,0 0-5z"/>'
 		}
 	};
 	Menu.translations = {
@@ -192,29 +192,77 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	function logAction(message, isUserAction = false) {
 		console.log(`[ARMenu] ${ message } ${ isUserAction ? '(User Action)' : '' }`);
 	}
+	function showCustomMessage(message) {
+		const existingModal = document.getElementById('ar-aaa-message-modal');
+		if (existingModal) {
+			existingModal.remove();
+		}
+		const modal = document.createElement('div');
+		modal.id = 'ar-aaa-message-modal';
+		modal.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            border: 2px solid black;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 2147483647;
+            text-align: center;
+            font-family: 'Inter', Arial, sans-serif;
+            max-width: 90%;
+            width: 300px;
+        `;
+		const messageText = document.createElement('p');
+		messageText.textContent = message;
+		messageText.style.marginBottom = '15px';
+		messageText.style.color = 'black';
+		const closeButton = document.createElement('button');
+		closeButton.textContent = 'OK';
+		closeButton.style.cssText = `
+            padding: 8px 20px;
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #000000;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            font-family: 'Inter', Arial, sans-serif;
+        `;
+		closeButton.addEventListener('click', () => modal.remove());
+		modal.appendChild(messageText);
+		modal.appendChild(closeButton);
+		document.body.appendChild(modal);
+		closeButton.focus();
+	}
 	Menu.init = function () {
 		if (document.getElementById(MENU_BUTTON_ID)) {
 			logAction('Already initialized.');
 			return;
 		}
 		this._createMenuButton();
-		this._createMenuPanel();
-		this._createReadingAidElements();
-		this._createPageStructurePanel();
+		if (typeof Menu.panel !== 'undefined' && typeof Menu.panel.createMenuPanel === 'function') {
+			Menu.panel.createMenuPanel();
+			Menu.panel.createReadingAidElements();
+			Menu.panel.createPageStructurePanel();
+		} else {
+			console.error('ARMenu: panel.js not loaded or not properly initialized.');
+			return;
+		}
 		this._attachEventListeners();
 		this._loadSettings();
 		logAction('Initialized successfully.');
 	};
-	Menu._createFilterOverlay = function () {
-	};
 	Menu._createMenuButton = function () {
 		const btn = document.createElement('button');
 		btn.id = MENU_BUTTON_ID;
-		btn.setAttribute('aria-label', Menu._getLocalizedString('menuTitle'));
+		btn.setAttribute('aria-label', this._getLocalizedString('menuTitle'));
 		btn.setAttribute('aria-expanded', 'false');
 		btn.setAttribute('aria-controls', MENU_PANEL_ID);
 		const accessibilityIconSVG = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/></svg>';
-		btn.innerHTML = `<span class="ar-aaa-menu-icon" role="img" aria-label="${ Menu._getLocalizedString('accessibilityIcon') }">${ accessibilityIconSVG }</span>`;
+		btn.innerHTML = `<span class="ar-aaa-menu-icon" role="img" aria-label="${ this._getLocalizedString('accessibilityIcon') }">${ accessibilityIconSVG }</span>`;
 		btn.style.right = '20px';
 		btn.style.top = '50%';
 		btn.style.transform = 'translateY(-50%)';
@@ -223,90 +271,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.body.appendChild(btn);
 		btn.addEventListener('mousedown', this._handleButtonMouseDown.bind(this));
 		btn.addEventListener('touchstart', this._handleButtonMouseDown.bind(this), { passive: false });
-	};
-	Menu._createMenuPanel = function () {
-		const panel = document.createElement('div');
-		panel.id = MENU_PANEL_ID;
-		panel.setAttribute('role', 'dialog');
-		panel.setAttribute('aria-modal', 'true');
-		panel.setAttribute('aria-labelledby', 'ar-aaa-menu-title');
-		panel.style.display = 'none';
-		panel.innerHTML = this._getMenuPanelHTML();
-		document.body.appendChild(panel);
-		panel.addEventListener('mousedown', this._handlePanelMouseDown.bind(this));
-		panel.addEventListener('touchstart', this._handlePanelMouseDown.bind(this), { passive: false });
-	};
-	Menu._createReadingAidElements = function () {
-		Menu.readingMaskTop = document.createElement('div');
-		Menu.readingMaskTop.className = READING_MASK_TOP_ID;
-		document.body.appendChild(Menu.readingMaskTop);
-		Menu.readingMaskBottom = document.createElement('div');
-		Menu.readingMaskBottom.className = READING_MASK_BOTTOM_ID;
-		document.body.appendChild(Menu.readingMaskBottom);
-		Menu.readingLine = document.createElement('div');
-		Menu.readingLine.className = READING_LINE_ID;
-		document.body.appendChild(Menu.readingLine);
-	};
-	Menu._createPageStructurePanel = function () {
-		Menu.pageStructurePanel = document.createElement('div');
-		Menu.pageStructurePanel.id = PAGE_STRUCTURE_PANEL_ID;
-		Menu.pageStructurePanel.setAttribute('role', 'dialog');
-		Menu.pageStructurePanel.setAttribute('aria-modal', 'true');
-		Menu.pageStructurePanel.setAttribute('aria-labelledby', 'ar-aaa-structure-title');
-		Menu.pageStructurePanel.style.display = 'none';
-		let panelHTML = `<h3 id="ar-aaa-structure-title">${ Menu._getLocalizedString('pageStructureTitle') }</h3>`;
-		panelHTML += `<div class="ar-structure-category" id="ar-aaa-structure-headings"><h4>${ Menu._getLocalizedString('headings') }</h4><ul></ul></div>`;
-		panelHTML += `<div class="ar-structure-category" id="ar-aaa-structure-landmarks"><h4>${ Menu._getLocalizedString('landmarks') }</h4><ul></ul></div>`;
-		panelHTML += `<div class="ar-structure-category" id="ar-aaa-structure-links"><h4>${ Menu._getLocalizedString('links') }</h4><ul></ul></div>`;
-		panelHTML += `<button class="ar-aaa-structure-close-btn" data-action="close-structure-panel">${ Menu._getLocalizedString('closeStructurePanel') }</button>`;
-		Menu.pageStructurePanel.innerHTML = panelHTML;
-		document.body.appendChild(Menu.pageStructurePanel);
-		Menu.pageStructurePanel.querySelector('.ar-aaa-structure-close-btn').addEventListener('click', () => {
-			this._togglePageStructurePanel(false);
-		});
-		Menu.pageStructurePanel.addEventListener('keydown', event => {
-			if (event.key === 'Escape') {
-				this._togglePageStructurePanel(false);
-			}
-		});
-	};
-	Menu._getIconSVG = function (pathData, label = '') {
-		return `<span class="ar-aaa-menu-icon" role="img" aria-label="${ label }"><svg viewBox="0 0 24 24">${ pathData }</svg></span>`;
-	};
-	Menu._getMenuPanelHTML = function () {
-		const ICONS = {
-			textSize: this._getIconSVG('<path d="M2.5,4V7H7.5V19H10.5V7H15.5V4M10.5,10.5H13.5V13.5H10.5V10.5Z"/>', Menu._getLocalizedString('textSize')),
-			contrast: this._getIconSVG('<path d="M12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6V18M20,15L19.3,14C19.5,13.4 19.6,12.7 19.6,12C19.6,11.3 19.5,10.6 19.3,10L20,9L17.3,4L16.7,5C15.9,4.3 14.9,3.8 13.8,3.5L13.5,2H10.5L10.2,3.5C9.1,3.8 8.1,4.3 7.3,5L6.7,4L4,9L4.7,10C4.5,10.6 4.4,11.3 4.4,12C4.4,12.7 4.5,13.4 4.7,14L4,15L6.7,20L7.3,19C8.1,19.7 9.1,20.2 10.2,20.5L10.5,22H13.5L13.8,20.5C14.9,20.2 15.9,19.7 16.7,19L17.3,20L20,15Z"/>', Menu._getLocalizedString('contrast')),
-			highlight: this._getIconSVG('<path d="M16.2,12L12,16.2L7.8,12L12,7.8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"/>', Menu._getLocalizedString('highlight')),
-			readAloud: this._getIconSVG('<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>', Menu._getLocalizedString('readAloudIcon')),
-			readingMode: this._getIconSVG('<path d="M5 5v14h14V5H5zm8 12H7v-2h6v2zm4-4H7v-2h10v2zm0-4H7V7h10v2z"/>', Menu._getLocalizedString('readingModeIcon')),
-			readingMask: this._getIconSVG('<path d="M11.5,6C8.46,6 5.83,7.43 4.42,9.59L2.93,8.1L1.87,9.16L3.87,11.16C3.67,11.46 3.5,11.72 3.5,12C3.5,12.28 3.67,12.54 3.87,12.84L1.87,14.84L2.93,15.9L4.42,14.41C5.83,16.57 8.46,18 11.5,18C14.54,18 17.17,16.57 18.58,14.41L20.07,15.9L21.13,14.84L19.13,12.84C19.33,12.54 19.5,12.28 19.5,12C19.5,11.72 19.33,11.46 19.13,11.16L21.13,9.16L20.07,8.1L18.58,9.59C17.17,7.43 14.54,6 11.5,6M11.5,8A4.5,4.5 0 0,1 16,12.5A4.5,4.5 0 0,1 11.5,17A4.5,4.5 0 0,1 7,12.5A4.5,4.5 0 0,1 11.5,8M11.5,10A2.5,2.5 0 0,0 9,12.5A2.5,2.5 0 0,0 11.5,15A2.5,2.5 0 0,0 14,12.5A2.5,2.5 0 0,0 11.5,10Z"/>', Menu._getLocalizedString('readingMaskIcon')),
-			readingLine: this._getIconSVG('<path d="M19 13H5v-2h14v2z"/>', Menu._getLocalizedString('readingLineIcon')),
-			pageStructure: this._getIconSVG('<path d="M3,3H9V7H3V3M15,3H21V7H15V3M3,10H9V14H3V10M15,10H21V14H15V10M3,17H9V21H3V17M15,17H21V21H15V17Z"/>', Menu._getLocalizedString('pageStructureIcon')),
-			animation: this._getIconSVG('<path d="M8,5V19L19,12L8,5Z"/>', Menu._getLocalizedString('animation')),
-			fontStyle: this._getIconSVG('<path d="M9.25,4V5.5H6.75V4H5.25V5.5H2.75V4H1.25V14.5H2.75V16H5.25V14.5H7.75V16H10.25V14.5H11.75V4H9.25M17.75,4V14.5H19.25V16H21.75V14.5H24.25V4H21.75V5.5H19.25V4H17.75M10.25,7H7.75V13H10.25V7M16.25,7H13.75V13H16.25V7Z"/>', Menu._getLocalizedString('fontStyle')),
-			reset: this._getIconSVG('<path d="M12,5V1L7,6L12,11V7A6,6 0 0,1 18,13A6,6 0 0,1 12,19A6,6 0 0,1 6,13H4A8,8 0 0,0 12,21A8,8 0 0,0 20,13A8,8 0 0,0 12,5Z"/>', Menu._getLocalizedString('reset')),
-			close: this._getIconSVG('<path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>', Menu._getLocalizedString('closeMenu'))
-		};
-		let html = `<h3 id="ar-aaa-menu-title">${ Menu._getLocalizedString('menuTitle') }</h3>`;
-		html += `<div class="ar-aaa-menu-group"><h4 class="ar-aaa-profile-title">${ Menu._getLocalizedString('profilesTitle') }</h4><div class="ar-aaa-button-row">`;
-		for (const profileKey in Menu.profiles) {
-			const profile = Menu.profiles[profileKey];
-			html += `<button data-action="profile-${ profileKey }">${ Menu._getIconSVG(profile.iconPath, Menu._getLocalizedString('profileIcon')) } ${ Menu._getLocalizedString(profile.labelKey) }</button>`;
-		}
-		html += `</div></div>`;
-		html += `
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="increase-text">${ ICONS.textSize } ${ Menu._getLocalizedString('increaseText') }</button> <button data-action="decrease-text">${ ICONS.textSize } ${ Menu._getLocalizedString('decreaseText') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="contrast-high">${ ICONS.contrast } ${ Menu._getLocalizedString('highContrast') }</button> <button data-action="contrast-invert">${ ICONS.contrast } ${ Menu._getLocalizedString('invertColors') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="highlight-links">${ ICONS.highlight } ${ Menu._getLocalizedString('highlightLinks') }</button> <button data-action="enhanced-focus">${ ICONS.highlight } ${ Menu._getLocalizedString('enhancedFocus') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="page-structure" class="ar-aaa-fullwidth-btn">${ ICONS.pageStructure } ${ Menu._getLocalizedString('pageStructure') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="read-aloud" class="ar-aaa-fullwidth-btn">${ ICONS.readAloud } ${ Menu._getLocalizedString('readAloud') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="reading-mode" class="ar-aaa-fullwidth-btn">${ ICONS.readingMode } ${ Menu._getLocalizedString('readingMode') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="reading-mask">${ ICONS.readingMask } ${ Menu._getLocalizedString('readingMask') }</button> <button data-action="reading-line">${ ICONS.readingLine } ${ Menu._getLocalizedString('readingLine') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="stop-animations" class="ar-aaa-fullwidth-btn">${ ICONS.animation } ${ Menu._getLocalizedString('stopAnimations') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="toggle-dyslexia-font" class="ar-aaa-fullwidth-btn">${ ICONS.fontStyle } ${ Menu._getLocalizedString('dyslexiaFont') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="reset-all" class="ar-aaa-fullwidth-btn ar-aaa-reset-btn">${ ICONS.reset } ${ Menu._getLocalizedString('resetAll') }</button> <button data-action="close-menu" class="ar-aaa-fullwidth-btn">${ ICONS.close } ${ Menu._getLocalizedString('closeMenu') }</button> </div></div>`;
-		return html;
 	};
 	Menu._attachEventListeners = function () {
 		const menuButton = document.getElementById(MENU_BUTTON_ID);
@@ -325,9 +289,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.addEventListener('touchend', this._handleDocumentMouseUp.bind(this));
 		document.addEventListener('keydown', this._handleTabKeyFocusTrap.bind(this));
 		window.addEventListener('resize', this._handleWindowResize.bind(this));
-		if (Menu.pageStructurePanel) {
-			Menu.pageStructurePanel.addEventListener('keydown', this._handleStructurePanelKeydown.bind(this));
-		}
+		document.addEventListener('DOMContentLoaded', () => {
+			if (Menu.pageStructurePanel) {
+				Menu.pageStructurePanel.addEventListener('keydown', this._handleStructurePanelKeydown.bind(this));
+			}
+		});
 	};
 	Menu._handleStructurePanelKeydown = function (event) {
 		if (event.key === 'Escape' && Menu.isStructurePanelOpen) {
@@ -534,13 +500,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const coords = getClientCoords(event);
 		const deltaX = coords.clientX - Menu._initialMouseX;
 		const deltaY = coords.clientY - Menu._initialMouseY;
-		let targetButtonX, targetButtonY, targetPanelX, targetPanelY;
+		let targetButtonX, targetButtonY;
 		if (this.isButtonDragging) {
 			targetButtonX = Menu._initialButtonX + deltaX;
 			targetButtonY = Menu._initialButtonY + deltaY;
 		} else if (this.isPanelDragging) {
-			targetPanelX = Menu._initialPanelX + deltaX;
-			targetPanelY = Menu._initialPanelY + deltaY;
+			const targetPanelX = Menu._initialPanelX + deltaX;
+			const targetPanelY = Menu._initialPanelY + deltaY;
 			targetButtonX = targetPanelX - Menu._panelRelativeOffsetX;
 			targetButtonY = targetPanelY - Menu._panelRelativeOffsetY;
 		}
@@ -694,7 +660,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		Menu.pageStructurePanel.style.display = Menu.isStructurePanelOpen ? 'block' : 'none';
 		Menu.pageStructurePanel.setAttribute('aria-hidden', String(!Menu.isStructurePanelOpen));
 		if (Menu.isStructurePanelOpen) {
-			this._populatePageStructurePanel();
+			if (typeof Menu.panel !== 'undefined' && typeof Menu.panel.populatePageStructurePanel === 'function') {
+				Menu.panel.populatePageStructurePanel();
+			}
 			const firstFocusable = Menu.pageStructurePanel.querySelector('button, [href]');
 			if (firstFocusable)
 				firstFocusable.focus();
@@ -711,67 +679,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 		}
 	};
-	Menu._populatePageStructurePanel = function () {
-		if (!Menu.pageStructurePanel)
-			return;
-		const createList = (selector, containerId, itemType) => {
-			const container = Menu.pageStructurePanel.querySelector(`#${ containerId } ul`);
-			if (!container)
-				return;
-			container.innerHTML = '';
-			let elements;
-			if (itemType === 'landmarks') {
-				const landmarkRoles = [
-					'main',
-					'navigation',
-					'banner',
-					'contentinfo',
-					'complementary',
-					'form',
-					'region',
-					'search'
-				];
-				const semanticLandmarks = 'main, nav, header, footer, aside, section[aria-label], section[aria-labelledby], form[aria-label], form[aria-labelledby]';
-				elements = Array.from(document.querySelectorAll(landmarkRoles.map(r => `[role="${ r }"]`).join(', ') + `, ${ semanticLandmarks }`));
-			} else {
-				elements = Array.from(document.querySelectorAll(selector));
-			}
-			elements = elements.filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
-			if (elements.length === 0) {
-				container.innerHTML = `<li>${ Menu._getLocalizedString('noItemsFound') || 'No items found.' }</li>`;
-				return;
-			}
-			elements.forEach((el, index) => {
-				let text = el.textContent.trim().substring(0, 50) + (el.textContent.trim().length > 50 ? '...' : '');
-				if (itemType === 'links' && !text)
-					text = el.href;
-				if (itemType === 'landmarks' && !text)
-					text = el.getAttribute('aria-label') || el.tagName.toLowerCase();
-				if (!text)
-					text = `${ itemType } ${ index + 1 }`;
-				const li = document.createElement('li');
-				const button = document.createElement('button');
-				button.textContent = text;
-				button.title = el.textContent.trim();
-				button.addEventListener('click', () => {
-					el.scrollIntoView({
-						behavior: 'smooth',
-						block: 'center'
-					});
-					el.classList.add(CLASS_TEMP_HIGHLIGHT);
-					setTimeout(() => {
-						el.classList.remove(CLASS_TEMP_HIGHLIGHT);
-					}, 2000);
-					this._togglePageStructurePanel(false);
-				});
-				li.appendChild(button);
-				container.appendChild(li);
-			});
-		};
-		createList('h1, h2, h3, h4, h5, h6', 'ar-aaa-structure-headings', 'Heading');
-		createList('', 'ar-aaa-structure-landmarks', 'landmarks');
-		createList('a[href]', 'ar-aaa-structure-links', 'Link');
-	};
 	Menu._applyProfile = function (profileName) {
 		const profile = Menu.profiles[profileName];
 		if (!profile) {
@@ -781,6 +688,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		logAction(`Applying profile: ${ profileName }`);
 		this._resetAllSettings(true);
 		const panel = document.getElementById(MENU_PANEL_ID);
+		if (!panel)
+			return;
 		if (profile.settings.fontScaleLevel !== undefined) {
 			Menu.fontScaleLevel = profile.settings.fontScaleLevel;
 			this._applyFontScaleToElements();
@@ -802,8 +711,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 		if (profile.settings.stopAnimations) {
 			const saButton = panel.querySelector('button[data-action="stop-animations"]');
-			if (saButton && !Menu.areAnimationsStopped)
+			if (saButton) {
+				Menu.areAnimationsStopped = false;
 				this._handleStopAnimationsAction(saButton);
+			}
 		}
 		if (profile.settings.dyslexiaFont) {
 			const dfButton = panel.querySelector('button[data-action="toggle-dyslexia-font"]');
@@ -923,7 +834,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	};
 	Menu._handleReadAloudAction = function (button) {
 		if (!('speechSynthesis' in window)) {
-			alert(Menu._getLocalizedString('speechNotSupported') || 'Speech synthesis not supported in this browser.');
+			showCustomMessage(this._getLocalizedString('speechNotSupported'));
 			button.disabled = true;
 			return;
 		}
@@ -1132,13 +1043,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		Menu.isReadingModeActive = false;
 		Menu.isReadingMaskActive = false;
 		Menu.isReadingLineActive = false;
-		document.documentElement.classList.remove(CLASS_INVERT_COLORS);
-		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS, CLASS_ANIMATIONS_STOPPED, CLASS_DYSLEXIA_FONT, CLASS_READING_MODE);
 		this.activeContrastMode = 'default';
 		this.areLinksHighlighted = false;
 		this.isFocusEnhanced = false;
 		this.areAnimationsStopped = false;
 		this.isDyslexiaFontActive = false;
+		document.documentElement.classList.remove(CLASS_INVERT_COLORS);
+		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS, CLASS_ANIMATIONS_STOPPED, CLASS_DYSLEXIA_FONT, CLASS_READING_MODE);
 		if (Menu.readingMaskTop)
 			Menu.readingMaskTop.style.display = 'none';
 		if (Menu.readingMaskBottom)
@@ -1244,8 +1155,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				if (stopAnimButton) {
 					Menu.areAnimationsStopped = false;
 					this._handleStopAnimationsAction(stopAnimButton);
-					Menu.areAnimationsStopped = true;
-					document.body.classList.add(CLASS_ANIMATIONS_STOPPED);
 				}
 			}
 			Menu.isDyslexiaFontActive = savedSettings.isDyslexiaFontActive || false;
