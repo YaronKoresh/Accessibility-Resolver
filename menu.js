@@ -1,30 +1,28 @@
-var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
-(function (AR_AccessibilityMenuProto) {
-	AR_AccessibilityMenuProto.isOpen = false;
-	AR_AccessibilityMenuProto.readingGuideLineElement = null;
-	AR_AccessibilityMenuProto.readingMaskTopElement = null;
-	AR_AccessibilityMenuProto.readingMaskBottomElement = null;
-	AR_AccessibilityMenuProto.activeContrastModeClassName = 'default';
-	AR_AccessibilityMenuProto.isDyslexiaFontActive = false;
-	AR_AccessibilityMenuProto.isVirtualKeyboardActive = false;
-	AR_AccessibilityMenuProto.isContentSimplified = false;
-	AR_AccessibilityMenuProto.areImagesHidden = false;
-	AR_AccessibilityMenuProto.isFocusHighlightActive = false;
-	AR_AccessibilityMenuProto.virtualKeyboardElement = null;
-	AR_AccessibilityMenuProto.isDragging = false;
-	AR_AccessibilityMenuProto.offsetX = 0;
-	AR_AccessibilityMenuProto.offsetY = 0;
-	AR_AccessibilityMenuProto.isButtonDragging = false;
-	AR_AccessibilityMenuProto.buttonOffsetX = 0;
-	AR_AccessibilityMenuProto.buttonOffsetY = 0;
-	AR_AccessibilityMenuProto.isDraggingOccurred = false;
-	AR_AccessibilityMenuProto.isTextToSpeechActive = false;
-	AR_AccessibilityMenuProto.currentSpeechUtterance = null;
-	AR_AccessibilityMenuProto.currentZoomLevel = 1;
-	AR_AccessibilityMenuProto.activeCursorClassName = 'default';
-	AR_AccessibilityMenuProto.filterOverlayElement = null;
-	AR_AccessibilityMenuProto._boundUpdateReadingGuide = null;
-	AR_AccessibilityMenuProto._boundReadClickedText = null;
+var AR_SimpleAccessibilityMenu = AR_SimpleAccessibilityMenu || {};
+(function (SimpleMenu) {
+	const MENU_BUTTON_ID = 'simple-aaa-menu-button';
+	const MENU_PANEL_ID = 'simple-aaa-menu-panel';
+	const FILTER_OVERLAY_ID = 'simple-aaa-filter-overlay';
+	const FONT_SIZE_MULTIPLIER = 1.1;
+	const CLASS_HIGH_CONTRAST = 'ar-simple-high-contrast';
+	const CLASS_INVERT_COLORS = 'ar-simple-invert-colors';
+	const CLASS_HIGHLIGHT_LINKS = 'ar-simple-highlight-links';
+	const CLASS_ENHANCED_FOCUS = 'ar-simple-enhanced-focus';
+	const CLASS_ANIMATIONS_STOPPED = 'ar-simple-animations-stopped';
+	const CLASS_DYSLEXIA_FONT = 'ar-simple-dyslexia-font';
+	SimpleMenu.isOpen = false;
+	SimpleMenu.isDyslexiaFontActive = false;
+	SimpleMenu.activeContrastMode = 'default';
+	SimpleMenu.areLinksHighlighted = false;
+	SimpleMenu.isFocusEnhanced = false;
+	SimpleMenu.areAnimationsStopped = false;
+	SimpleMenu.isPanelDragging = false;
+	SimpleMenu.panelOffsetX = 0;
+	SimpleMenu.panelOffsetY = 0;
+	SimpleMenu.isButtonDragging = false;
+	SimpleMenu.buttonOffsetX = 0;
+	SimpleMenu.buttonOffsetY = 0;
+	SimpleMenu.buttonDragOccurred = false;
 	function getClientCoords(event) {
 		if (event.touches && event.touches.length > 0) {
 			return {
@@ -37,15 +35,21 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			clientY: event.clientY
 		}
 	}
-	AR_AccessibilityMenuProto.init = function () {
+	function logAction(message, isUserAction) {
+		console.log(`[SimpleMenu] ${ message } ${ isUserAction ? '(User Action)' : '' }`)
+	}
+	SimpleMenu.init = function () {
+		if (document.getElementById(MENU_BUTTON_ID))
+			return;
 		this._injectStyles();
 		this._createMenuButton();
 		this._createMenuPanel();
+		this._createFilterOverlay();
 		this._attachEventListeners();
-		console.log('Accessibility Menu Initialized.')
+		logAction('Initialized', false)
 	};
-	AR_AccessibilityMenuProto._injectStyles = function () {
-		const styleId = 'ar-menu-styles';
+	SimpleMenu._injectStyles = function () {
+		const styleId = 'simple-aaa-menu-styles';
 		if (document.getElementById(styleId))
 			return;
 		const css = `
@@ -53,188 +57,232 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             @font-face {
               font-family: 'OpenDyslexic';
               font-style: normal;
-              font-display: auto;
+              font-display: swap; /* Use swap for better perceived performance */
               font-weight: 400;
-              src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.ttf) format('truetype');
+              src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff');
             }
             @font-face {
               font-family: 'OpenDyslexic';
               font-style: normal;
-              font-display: auto;
+              font-display: swap;
               font-weight: 700;
-              src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.ttf) format('truetype');
+              src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff');
             }
 
-            /* Main Menu Button */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } {
-                position: fixed; bottom: 20px; z-index: 2147483647;
-                background-color: #0056b3; color: ${ AR_CONFIG.MENU_ICON_ACTIVE_COLOR }!important;
-                border: none; border-radius: 50%; width: 60px; height: 60px;
-                font-size: 28px; cursor: grab;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-                display: flex !important; align-items: center; justify-content: center;
-                transition: background-color .3s, transform .2s, box-shadow .2s;
+            /* Menu Button */
+            #${ MENU_BUTTON_ID } {
+                position: fixed;
+                bottom: 20px;
+                right: 20px; /* Default LTR */
+                z-index: 2147483647;
+                background-color: #0056b3;
+                color: white !important;
+                border: none;
+                border-radius: 50%;
+                width: 56px;
+                height: 56px;
+                font-size: 24px;
+                cursor: grab;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: background-color 0.2s, transform 0.2s;
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } .ar-menu-icon svg { fill: ${ AR_CONFIG.MENU_ICON_ACTIVE_COLOR }!important; display: block !important; }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }:hover, #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }:focus-visible {
-                background-color: #003d82; color: ${ AR_CONFIG.MENU_ICON_ACTIVE_COLOR }!important;
-                outline: 3px solid #70a1ff; outline-offset: 2px;
-                transform: scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            #${ MENU_BUTTON_ID }:hover, #${ MENU_BUTTON_ID }:focus-visible {
+                background-color: #003d82;
+                transform: scale(1.1);
+                outline: 2px solid #007bff;
+                outline-offset: 2px;
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }.dragging { cursor: grabbing; box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+            #${ MENU_BUTTON_ID }.dragging { cursor: grabbing; }
 
-            /* Main Menu Panel */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } {
-                display: none; position: fixed; /* bottom/right/left set dynamically */
-                width: 400px; max-height: calc(100vh - 120px); overflow-y: auto;
-                background-color: #fff; border: 1px solid #bdbdbd; border-radius: 12px;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 2147483647;
-                padding: 20px; font-family: 'Inter', sans-serif;
-                font-size: 15px; color: #212121; cursor: grab;
-                transition: box-shadow 0.2s ease-in-out;
+            /* Menu Panel */
+            #${ MENU_PANEL_ID } {
+                display: none;
+                position: fixed;
+                width: 320px;
+                max-height: calc(100vh - 100px);
+                overflow-y: auto;
+                background-color: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+                z-index: 2147483646; /* Below button when closed, above when open */
+                padding: 15px;
+                font-family: 'Inter', Arial, sans-serif;
+                font-size: 14px;
+                color: #212529;
+                cursor: grab;
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }.ar-menu-open { display: block; animation: ar-slide-up .3s ease-out; }
-            @keyframes ar-slide-up { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }.dragging { cursor: grabbing; box-shadow: 0 12px 40px rgba(0,0,0,0.25); }
-
-            /* Fieldset Groups */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } fieldset.ar-menu-group {
-                border: 1px solid #e0e0e0; padding: 12px 18px 18px; margin-bottom: 18px; border-radius: 8px;
-                background-color: #fcfcfc;
+            #${ MENU_PANEL_ID }.ar-simple-menu-open { display: block; }
+            #${ MENU_PANEL_ID } h3 {
+                margin-top: 0;
+                margin-bottom: 15px;
+                font-size: 1.2em;
+                color: #0056b3;
+                text-align: center;
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } legend {
-                font-size: 1.15em; font-weight: 600; color: #004a99; padding: 0 8px; margin-left: 8px;
-                display: flex; align-items: center; gap: 6px; cursor: grab;
+            #${ MENU_PANEL_ID } .ar-simple-menu-group {
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #e9ecef;
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-button-row { display: flex; flex-wrap: wrap; margin: 0 -3px; gap: 6px; }
-
-            /* Menu Buttons */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button {
-                display: flex; align-items: center; justify-content: center; gap: 8px;
-                flex: 1 1 calc(50% - 6px); min-width: calc(50% - 6px);
-                padding: 10px 8px; border: 1px solid #ccc; border-radius: 8px;
-                background-color: #f0f0f0; cursor: pointer; 
-                transition: background-color .2s, transform .1s, box-shadow .2s, color .2s, border-color .2s;
-                color: #333!important; line-height: 1.2; text-align: center;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            #${ MENU_PANEL_ID } .ar-simple-menu-group:last-of-type {
+                margin-bottom: 0;
+                padding-bottom: 0;
+                border-bottom: none;
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button .ar-menu-icon { display: inline-block; width: 18px; height: 18px; fill: currentColor; vertical-align: middle; transition: fill .2s; }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button .ar-menu-text { vertical-align: middle; flex-grow:1; text-align:center; font-size: 16px; line-height: 1.4; }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button:hover { background-color: #e0e0e0; border-color: #0056b3; transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button:focus-visible { outline: 2px solid #0056b3; outline-offset: 2px; box-shadow: 0 0 0 3px rgba(0,86,179,0.3); }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-fullwidth-btn { width: calc(100% - 6px); flex-basis: calc(100% - 6px); }
-
-            /* Reset Button Specifics */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn { background-color: #e6ffed; border-color: #a3d4b7; font-weight: 500; color: #1e4620!important; }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn .ar-menu-icon { fill: #1e4620!important; }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn:hover, #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn:focus-visible { background-color: #c8f0d3; border-color: #4caf50; }
-
-            /* Active Button State */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-btn-active {
-                background-color: #0056b3!important; color: ${ AR_CONFIG.MENU_TEXT_ACTIVE_COLOR }!important;
-                border-color: #003d82!important; font-weight: bold; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+            #${ MENU_PANEL_ID } .ar-simple-button-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-btn-active .ar-menu-icon { fill: ${ AR_CONFIG.MENU_ICON_ACTIVE_COLOR }!important; }
-
-            /* Close Button */
-            #ar-menu-close-button { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24!important; margin-top:10px; }
-            #ar-menu-close-button:hover, #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } #ar-menu-close-button:focus-visible { background-color: #f1b0b7; border-color: #e08890; }
-            #ar-menu-close-button .ar-menu-icon { fill: #721c24!important; }
-
-            /* Virtual Keyboard */
-            #ar-virtual-keyboard {
-                position: fixed; bottom: 0; left: 0; width: 100%;
-                background-color: #333; padding: 10px; z-index: 2147483647;
-                display: flex; flex-wrap: wrap; justify-content: center;
-                box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
-                border-top-left-radius: 8px; border-top-right-radius: 8px;
-                transition: transform 0.3s ease-out;
+            #${ MENU_PANEL_ID } button {
+                flex: 1 1 calc(50% - 4px); /* Two buttons per row */
+                padding: 8px 10px;
+                font-size: 0.95em;
+                background-color: #e9ecef;
+                color: #343a40 !important;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.2s, border-color 0.2s;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
             }
-            #ar-virtual-keyboard.hidden { transform: translateY(100%); }
-            #ar-virtual-keyboard button {
-                background-color: #555; color: white; border: 1px solid #666;
-                border-radius: 4px; padding: 8px 12px; margin: 4px; font-size: 16px; cursor: pointer;
-                transition: background-color 0.2s, transform 0.1s; min-width: 40px; text-align: center;
+            #${ MENU_PANEL_ID } button:hover, #${ MENU_PANEL_ID } button:focus-visible {
+                background-color: #dde1e5;
+                border-color: #adb5bd;
+                outline: 1px solid #0056b3;
             }
-            #ar-virtual-keyboard button:hover, #ar-virtual-keyboard button:focus-visible { background-color: #777; transform: translateY(-1px); outline: 2px solid #0056b3; outline-offset: 1px; }
-            #ar-virtual-keyboard .key-space { flex-grow: 2; }
-            #ar-virtual-keyboard .key-backspace, #ar-virtual-keyboard .key-enter { flex-basis: auto; min-width: 80px; }
-            #ar-virtual-keyboard .key-shift, #ar-virtual-keyboard .key-caps { background-color: #0056b3; }
-            #ar-virtual-keyboard .key-shift.active, #ar-virtual-keyboard .key-caps.active { background-color: #003d82; }
+            #${ MENU_PANEL_ID } button.ar-simple-menu-btn-active {
+                background-color: #0056b3 !important;
+                color: white !important;
+                border-color: #004085 !important;
+            }
+            #${ MENU_PANEL_ID } button.ar-simple-fullwidth-btn {
+                flex-basis: 100%;
+            }
+            #${ MENU_PANEL_ID } button.ar-simple-reset-btn {
+                background-color: #cce5ff;
+                border-color: #b8daff;
+                color: #004085 !important;
+            }
+            #${ MENU_PANEL_ID } button.ar-simple-reset-btn:hover {
+                background-color: #b8daff;
+            }
+            #${ MENU_PANEL_ID } .ar-simple-menu-icon svg { width: 1em; height: 1em; fill: currentColor; }
 
-            /* Content Simplifier */
-            .ar-content-simplified body { max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f9f9f9; }
-            .ar-content-simplified header, .ar-content-simplified footer, .ar-content-simplified nav, .ar-content-simplified aside,
-            .ar-content-simplified .sidebar, .ar-content-simplified .ad, .ar-content-simplified #comments, .ar-content-simplified .related-posts,
-            .ar-content-simplified [role="complementary"], .ar-content-simplified [role="navigation"],
-            .ar-content-simplified [role="banner"], .ar-content-simplified [role="contentinfo"] { display: none !important; }
-            .ar-content-simplified img { max-width: 100%; height: auto; display: block; margin: 15px auto; }
-            .ar-content-simplified p, .ar-content-simplified li { line-height: 1.8 !important; font-size: 1.1em !important; max-width: 65ch; }
+            /* Filter Overlay for contrast modes */
+            #${ FILTER_OVERLAY_ID } {
+                position: fixed;
+                top: 0; left: 0; width: 100%; height: 100%;
+                pointer-events: none;
+                z-index: -1; /* Behind content, filters apply to what's under it */
+                display: none; /* Hidden by default */
+                mix-blend-mode: normal; /* Default, can be changed by contrast modes */
+            }
+            body.${ CLASS_HIGH_CONTRAST } #${ FILTER_OVERLAY_ID } {
+                /* High contrast is complex; often better done by adjusting element colors directly.
+                   This is a simplified filter approach. A true high contrast often involves specific color palettes. */
+                /* filter: contrast(1.75) saturate(0.8); */
+                /* For simplicity, high contrast will now toggle a body class that CSS rules can target directly */
+                /* No filter overlay for high contrast, direct CSS changes are better */
+            }
+            body.${ CLASS_INVERT_COLORS } #${ FILTER_OVERLAY_ID } {
+                display: block !important;
+                filter: invert(100%) hue-rotate(180deg) !important;
+                mix-blend-mode: difference; /* Or screen/multiply depending on desired effect */
+                background-color: white; /* Needed for invert to work on background */
+                z-index: 2147483640; /* Ensure it's above most content but below menu */
+            }
+            /* Ensure menu UI itself is NOT affected by filters */
+            #${ MENU_BUTTON_ID }, #${ MENU_PANEL_ID } { filter: none !important; }
 
-            /* Hide Images */
-            .ar-hide-images img, .ar-hide-images picture, .ar-hide-images figure { display: none !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; line-height: 0 !important; font-size: 0 !important; }
-            .ar-hide-images [style*="background-image"] { background-image: none !important; }
 
-            /* Focus Highlight */
-            .ar-focus-highlight *:focus-visible { outline: 4px solid #ffcc00 !important; outline-offset: 3px !important; box-shadow: 0 0 0 5px rgba(255, 204, 0, 0.5) !important; transition: outline-color 0.2s, box-shadow 0.2s; }
+            /* High Contrast Mode (Direct Styling via Class) */
+            body.${ CLASS_HIGH_CONTRAST } { background-color: #000 !important; color: #fff !important; }
+            body.${ CLASS_HIGH_CONTRAST } a { color: #0ff !important; } /* Cyan links */
+            body.${ CLASS_HIGH_CONTRAST } button, body.${ CLASS_HIGH_CONTRAST } input, body.${ CLASS_HIGH_CONTRAST } select, body.${ CLASS_HIGH_CONTRAST } textarea {
+                background-color: #222 !important; color: #fff !important; border: 1px solid #fff !important;
+            }
+            /* Exclude menu from high contrast direct styles */
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID }, body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } * {
+                 background-color: #f8f9fa !important; color: #212529 !important; border-color: #dee2e6 !important;
+            }
+             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-simple-menu-btn-active {
+                 background-color: #0056b3 !important; color: white !important; border-color: #004085 !important;
+            }
 
-            /* Custom Cursor - Applied to HTML element for better persistence */
-            html.ar-cursor-large, html.ar-cursor-large body, html.ar-cursor-large a, html.ar-cursor-large button, html.ar-cursor-large input, html.ar-cursor-large textarea, html.ar-cursor-large [role="button"], html.ar-cursor-large [role="link"], html.ar-cursor-large [tabindex]:not([tabindex="-1"]) { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="black" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
-            html.ar-cursor-xlarge, html.ar-cursor-xlarge body, html.ar-cursor-xlarge a, html.ar-cursor-xlarge button, html.ar-cursor-xlarge input, html.ar-cursor-xlarge textarea, html.ar-cursor-xlarge [role="button"], html.ar-cursor-xlarge [role="link"], html.ar-cursor-xlarge [tabindex]:not([tabindex="-1"]) { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24"><path fill="black" stroke="white" stroke-width="1" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 16 16, auto !important; }
-            html.ar-cursor-red, html.ar-cursor-red body, html.ar-cursor-red a, html.ar-cursor-red button, html.ar-cursor-red input, html.ar-cursor-red textarea, html.ar-cursor-red [role="button"], html.ar-cursor-red [role="link"], html.ar-cursor-red [tabindex]:not([tabindex="-1"]) { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="red" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
-            html.ar-cursor-green, html.ar-cursor-green body, html.ar-cursor-green a, html.ar-cursor-green button, html.ar-cursor-green input, html.ar-cursor-green textarea, html.ar-cursor-green [role="button"], html.ar-cursor-green [role="link"], html.ar-cursor-green [tabindex]:not([tabindex="-1"]) { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="green" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
-            
-            /* Text-to-Speech Highlight */
-            .ar-tts-highlight { background-color: yellow !important; color: black !important; box-shadow: 0 0 5px yellow; transition: background-color 0.1s ease-in-out; }
 
-            /* Page Zoom */
-            html.ar-page-zoom-active { transform-origin: top left; overflow: auto; }
+            /* Highlight Links */
+            body.${ CLASS_HIGHLIGHT_LINKS } a[href] {
+                background-color: yellow !important;
+                color: black !important;
+                outline: 2px solid orange !important;
+                border-radius: 2px;
+            }
 
-            /* Text Spacing */
-            .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } p, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } li, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } span, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } div, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } a, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } button, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } input, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } textarea, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h1, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h2, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h3, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h4, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h5, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h6 { letter-spacing: 0.12em !important; }
-            .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } p, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } li, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } span, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } div, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } a, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } button, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } input, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } textarea, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h1, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h2, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h3, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h4, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h5, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h6 { word-spacing: 0.16em !important; }
-            .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } p, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } li, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } span, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } div, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } a, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } button, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } input, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } textarea, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h1, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h2, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h3, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h4, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h5, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h6 { line-height: 1.8 !important; }
+            /* Enhanced Focus */
+            body.${ CLASS_ENHANCED_FOCUS } *:focus-visible {
+                outline: 3px solid #007bff !important;
+                outline-offset: 2px !important;
+                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important;
+            }
 
-            /* Text Alignment */
-            .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left body *:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *),
-            .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left p, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left li, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left span, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }), .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left a, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left button, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left input, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left textarea, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h1, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h2, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h3, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h4, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h5, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h6 { text-align: left !important; }
-            .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center body *:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *),
-            .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center p, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center li, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center span, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }), .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center a, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center button, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center input, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center textarea, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h1, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h2, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h3, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h4, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h5, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h6 { text-align: center !important; }
+            /* Stop Animations */
+            body.${ CLASS_ANIMATIONS_STOPPED } *,
+            body.${ CLASS_ANIMATIONS_STOPPED } *::before,
+            body.${ CLASS_ANIMATIONS_STOPPED } *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                transition-delay: 0ms !important;
+                animation-play-state: paused !important;
+            }
+             /* Ensure menu animation still works */
+            body.${ CLASS_ANIMATIONS_STOPPED } #${ MENU_PANEL_ID }.ar-simple-menu-open {
+                animation: ar-slide-up .3s ease-out !important;
+                animation-play-state: running !important;
+            }
+
 
             /* Dyslexia Font */
-            body.${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } {
-                font-family: 'OpenDyslexic', sans-serif !important;
+            body.${ CLASS_DYSLEXIA_FONT } {
+                font-family: 'OpenDyslexic', Arial, sans-serif !important;
             }
-            body.${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } *:not(script):not(style):not(link) {
+            body.${ CLASS_DYSLEXIA_FONT } *:not(script):not(style):not(link) {
                 font-family: inherit !important;
             }
-            /* Explicitly set menu font back to its original, overriding dyslexia font */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }, 
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *,
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID },
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } * {
-                font-family: 'Inter', sans-serif !important; /* Assuming Inter is the menu's base font */
+            #${ MENU_PANEL_ID }.${ CLASS_DYSLEXIA_FONT }, #${ MENU_PANEL_ID } *.${ CLASS_DYSLEXIA_FONT },
+            #${ MENU_BUTTON_ID }.${ CLASS_DYSLEXIA_FONT }, #${ MENU_BUTTON_ID } *.${ CLASS_DYSLEXIA_FONT } {
+                font-family: 'Inter', Arial, sans-serif !important; /* Keep menu font consistent */
+            }
+             /* Ensure menu itself does not get dyslexia font if body has it */
+            #${ MENU_PANEL_ID }, #${ MENU_PANEL_ID } *,
+            #${ MENU_BUTTON_ID }, #${ MENU_BUTTON_ID } * {
+                font-family: 'Inter', Arial, sans-serif !important;
             }
 
-            /* Contrast & Color Filters */
-            #ar-filter-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2147483645; transition: filter 0.3s ease-in-out; display: none; }
-            body.${ AR_CONFIG.HIGH_CONTRAST_MODE_CLASS_NAME } #ar-filter-overlay { filter: contrast(200%) brightness(120%) !important; display: block !important; }
-            body.${ AR_CONFIG.INVERTED_CONTRAST_MODE_CLASS_NAME } #ar-filter-overlay { filter: invert(100%) hue-rotate(180deg) !important; display: block !important; }
-            body.${ AR_CONFIG.GRAYSCALE_CONTRAST_MODE_CLASS_NAME } #ar-filter-overlay { filter: grayscale(100%) !important; display: block !important; }
-            body.${ AR_CONFIG.SATURATION_FILTER_CLASS_NAME } #ar-filter-overlay { filter: saturate(30%) !important; display: block !important; }
 
-
-            /* Ensure menu UI is not affected by filters */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }, #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }, #ar-virtual-keyboard { filter: none !important; }
-
-            /* Highlight Links & Headings */
-            body.${ AR_CONFIG.HIGHLIGHTED_LINKS_CLASS_NAME } a[href] { outline: 2px solid #FFD700 !important; background-color: rgba(255, 215, 0, 0.2) !important; border-radius: 3px !important; }
-            body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h1, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h2, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h3, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h4, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h5, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h6 { outline: 2px dashed #008000 !important; background-color: rgba(0, 128, 0, 0.1) !important; border-radius: 3px !important; }
-
-            /* Responsive adjustments */
-            @media (max-width: 768px) {
-                #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } { width: calc(100% - 40px); left: 20px; right: 20px; bottom: 20px; max-height: calc(100vh - 40px); padding: 15px; }
-                #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-button-row button { flex: 1 1 calc(100% - 6px); min-width: calc(100% - 6px); }
+            /* Responsive */
+            @media (max-width: 480px) {
+                #${ MENU_PANEL_ID } {
+                    width: calc(100% - 20px);
+                    left: 10px;
+                    right: 10px;
+                    bottom: 10px;
+                    max-height: calc(100vh - 80px); /* Adjust for smaller button */
+                }
+                #${ MENU_BUTTON_ID } {
+                    width: 50px; height: 50px; font-size: 20px;
+                }
+                 #${ MENU_PANEL_ID } button {
+                    flex-basis: 100%; /* Full width buttons on very small screens */
+                }
             }
         `;
 		const styleEl = document.createElement('style');
@@ -242,15 +290,20 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.head.appendChild(styleEl);
 		styleEl.textContent = css
 	};
-	AR_AccessibilityMenuProto._createMenuButton = function () {
-		if (document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID))
+	SimpleMenu._createFilterOverlay = function () {
+		if (document.getElementById(FILTER_OVERLAY_ID))
 			return;
+		this.filterOverlayElement = document.createElement('div');
+		this.filterOverlayElement.id = FILTER_OVERLAY_ID;
+		document.body.appendChild(this.filterOverlayElement)
+	};
+	SimpleMenu._createMenuButton = function () {
 		const btn = document.createElement('button');
-		btn.id = AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID;
+		btn.id = MENU_BUTTON_ID;
 		btn.setAttribute('aria-label', 'Accessibility Menu');
 		btn.setAttribute('aria-expanded', 'false');
-		btn.setAttribute('aria-controls', AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
-		btn.innerHTML = `<svg class="ar-menu-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="32px" height="32px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/></svg>`;
+		btn.setAttribute('aria-controls', MENU_PANEL_ID);
+		btn.innerHTML = `<span class="ar-simple-menu-icon" role="img" aria-label="Accessibility Icon"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A2,2 0 0,1 14,4A2,2 0 0,1 12,6A2,2 0 0,1 10,4A2,2 0 0,1 12,2M21,9H15V22H13V16H11V22H9V16H3V9A2,2 0 0,1 5,7H19A2,2 0 0,1 21,9Z" /></svg></span>`;
 		const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
 		if (docDir === 'rtl') {
 			btn.style.left = '20px';
@@ -259,138 +312,202 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			btn.style.right = '20px';
 			btn.style.left = 'auto'
 		}
-		btn.style.top = '50%';
-		btn.style.transform = 'translateY(-50%)';
+		btn.style.bottom = '20px';
 		document.body.appendChild(btn);
-		btn.addEventListener('mousedown', this._startButtonDragging.bind(this));
-		btn.addEventListener('touchstart', this._startButtonDragging.bind(this), { passive: false })
+		btn.addEventListener('mousedown', this._handleButtonMouseDown.bind(this));
+		btn.addEventListener('touchstart', this._handleButtonMouseDown.bind(this), { passive: false })
 	};
-	AR_AccessibilityMenuProto._createMenuPanel = function () {
-		if (document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID))
-			return;
+	SimpleMenu._createMenuPanel = function () {
 		const panel = document.createElement('div');
-		panel.id = AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID;
+		panel.id = MENU_PANEL_ID;
 		panel.setAttribute('role', 'dialog');
-		panel.setAttribute('aria-labelledby', 'ar-menu-title');
-		panel.setAttribute('aria-hidden', 'true');
+		panel.setAttribute('aria-modal', 'true');
+		panel.setAttribute('aria-labelledby', 'ar-simple-menu-title');
 		panel.style.display = 'none';
-		const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
-		if (docDir === 'rtl') {
-			panel.style.left = '20px';
-			panel.style.right = 'auto'
-		} else {
-			panel.style.right = '20px';
-			panel.style.left = 'auto'
-		}
-		panel.style.bottom = '90px';
 		panel.innerHTML = this._getMenuPanelHTML();
 		document.body.appendChild(panel);
-		panel.addEventListener('mousedown', this._startDragging.bind(this));
-		panel.addEventListener('touchstart', this._startDragging.bind(this), { passive: false });
-		if (!this.filterOverlayElement) {
-			this.filterOverlayElement = document.createElement('div');
-			this.filterOverlayElement.id = 'ar-filter-overlay';
-			document.body.appendChild(this.filterOverlayElement)
-		}
+		panel.addEventListener('mousedown', this._handlePanelMouseDown.bind(this));
+		panel.addEventListener('touchstart', this._handlePanelMouseDown.bind(this), { passive: false })
 	};
-	AR_AccessibilityMenuProto._getMenuIconSVG = function (pathData, altText = '') {
-		return `<span class="ar-menu-icon" role="img" aria-label="${ altText }"><svg viewBox="0 0 24 24">${ pathData }</svg></span>`
+	SimpleMenu._getIconSVG = function (pathData, label = '') {
+		return `<span class="ar-simple-menu-icon" role="img" aria-label="${ label }"><svg viewBox="0 0 24 24">${ pathData }</svg></span>`
 	};
-	AR_AccessibilityMenuProto._getMenuButtonHTML = function (action, iconSVG, text, isFullWidth = false, isReset = false) {
-		let classNames = [];
-		if (isFullWidth)
-			classNames.push('ar-menu-fullwidth-btn');
-		if (isReset)
-			classNames.push('ar-menu-reset-btn');
-		return `<button data-action="${ action }" ${ classNames.length ? `class="${ classNames.join(' ') }"` : '' } aria-label="${ text }">
-                    ${ iconSVG }<span class="ar-menu-text">${ text }</span>
-                </button>`
-	};
-	AR_AccessibilityMenuProto._getMenuFieldsetHTML = function (legendIconSVG, legendText, buttonsHTML) {
-		return `<fieldset class="ar-menu-group">
-                    <legend>${ legendIconSVG }<span class="ar-menu-text">${ legendText }</span></legend>
-                    <div class="ar-button-row">${ buttonsHTML }</div>
-                </fieldset>`
-	};
-	AR_AccessibilityMenuProto._getMenuPanelHTML = function () {
+	SimpleMenu._getMenuPanelHTML = function () {
 		const ICONS = {
-			fontSize: this._getMenuIconSVG('<path d="M9.93 13.5h4.14L12 7.98zM20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-4.05 11.89h-1.6L12.7 8.33h1.6l1.65 7.56zM6.25 8.33l1.65 7.56h-1.6L4.65 8.33h1.6z"/>', 'Font size'),
-			contrast: this._getMenuIconSVG('<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18V4c4.41 0 8 3.59 8 8s-3.59 8-8 8z"/>', 'Contrast'),
-			spacing: this._getMenuIconSVG('<path d="M6 17h12v2H6zm8-4H6v2h8zm-4-4H6v2h4zm0-4H6v2h4zm10 0v10h2V5zM4 5H2v10h2z"/>', 'Spacing'),
-			alignLeft: this._getMenuIconSVG('<path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"/>', 'Align left'),
-			alignCenter: this._getMenuIconSVG('<path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"/>', 'Align center'),
-			highlight: this._getMenuIconSVG('<path d="m17.68 8.47-2.12-2.12c-.2-.2-.51-.2-.71 0l-8.35 8.35-1.06 3.18c-.1.3.12.61.42.72l3.18-1.06 8.35-8.35c.2-.2.2-.51 0-.72zm-9.24 7.09L7 14.12l6.56-6.56 1.44 1.44-6.56 6.56zM4 20h16v-2H4v2z"/>', 'Highlight'),
-			readingAid: this._getMenuIconSVG('<path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 2v.01L12 13 4 8.01V8h16zm0 8H4v-2.01L12 11l8 4.99V16z"/>', 'Reading aid'),
-			fontStyle: this._getMenuIconSVG('<path d="M9.25 4v1.5H6.75V4h-1.5v1.5H2.75V4H1.25v10.5h1.5V16h2.5v-1.5h-2.5V5.5h2.5V7h1.5V5.5h2.5v8.25c0 .93.53 1.74 1.32 2.13.23.11.48.17.73.17.83 0 1.5-.67 1.5-1.5V4h-1.5zm8.5 0v1.5h-2.5V4h-1.5v1.5h-2.5V4H7.25v10.5h1.5V16h2.5v-1.5H8.75V5.5h2.5V7h1.5V5.5h2.5v8.25c0 .93.53 1.74 1.32 2.13.23.11.48.17.73.17.83 0 1.5-.67 1.5-1.5V4h-1.5z"/>', 'Font style'),
-			animation: this._getMenuIconSVG('<path d="M8 5v14l11-7z"/>', 'Animation'),
-			reset: this._getMenuIconSVG('<path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>', 'Reset'),
-			close: this._getMenuIconSVG('<path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>', 'Close'),
-			textIncrease: this._getMenuIconSVG('<path d="M14.5 16.5h-1.25l-2.6-7h1.25l1.98 5.58L15.85 9.5h1.3l-2.65 7zm5-11H4.5c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-9c0-.83-.67-1.5-1.5-1.5zm0 10.5H4.5v-9h15v9zM10 12.5H7.5v-1h2.5v-1H7.5v-1h2.5V8.5H6.25v5h3.75z"/>', 'Increase text'),
-			textDecrease: this._getMenuIconSVG('<path d="M14.5 16.5h-1.25l-2.6-7h1.25l1.98 5.58L15.85 9.5h1.3l-2.65 7zm5-11H4.5c-.83 0-1.5.67-1.5 1.5v9c0 .83.67 1.5 1.5 1.5h15c.83 0 1.5-.67 1.5-1.5v-9c0-.83-.67-1.5-1.5-1.5zm0 10.5H4.5v-9h15v9zM10 10.5H6.25v1h3.75z"/>', 'Decrease text'),
-			keyboard: this._getMenuIconSVG('<path d="M20 5H4c-1.1 0-1.99.9-1.99 2L2 17c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-9 3h2v2h-2zm0 3h2v2h-2zM8 8h2v2H8zm0 3h2v2H8zm-1 2H5v-2h2zm0-3H5V8h2zm9 7H8v-2h8v2zm-3-4h2v2h-2zm0-3h2v2h-2zm3 3h2v2h-2zm0-3h2v2h-2z"/>', 'Virtual Keyboard'),
-			simplify: this._getMenuIconSVG('<path d="M3 13h18v-2H3v2zm0 4h18v-2H3v2zm0-8h18V7H3v2zm0-4h18V3H3v2z"/>', 'Simplify Content'),
-			hide: this._getMenuIconSVG('<path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>', 'Hide Images'),
-			focus: this._getMenuIconSVG('<path d="M12 12c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0-8c-4.42 0-8 3.58-8 8s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>', 'Focus Highlight'),
-			readAloud: this._getMenuIconSVG('<path d="M4 18h16V6H4v12zm2-2v-4h4v4H6zm10 0v-4h4v4h-4z"/>', 'Read Aloud'),
-			cursor: this._getMenuIconSVG('<path d="M13 14.5V19h2v-4.5h2V21H7v-6.5h2V19h2v-4.5zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>', 'Custom Cursor'),
-			zoom: this._getMenuIconSVG('<path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>', 'Page Zoom')
+			textSize: this._getIconSVG('<path d="M2.5,4V7H7.5V19H10.5V7H15.5V4M10.5,10.5H13.5V13.5H10.5"/>', 'Text Size'),
+			contrast: this._getIconSVG('<path d="M12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6V18M20,15L19.3,14C19.5,13.4 19.6,12.7 19.6,12C19.6,11.3 19.5,10.6 19.3,10L20,9L17.3,4L16.7,5C15.9,4.3 14.9,3.8 13.8,3.5L13.5,2H10.5L10.2,3.5C9.1,3.8 8.1,4.3 7.3,5L6.7,4L4,9L4.7,10C4.5,10.6 4.4,11.3 4.4,12C4.4,12.7 4.5,13.4 4.7,14L4,15L6.7,20L7.3,19C8.1,19.7 9.1,20.2 10.2,20.5L10.5,22H13.5L13.8,20.5C14.9,20.2 15.9,19.7 16.7,19L17.3,20L20,15Z"/>', 'Contrast'),
+			highlight: this._getIconSVG('<path d="M16.2,12L12,16.2L7.8,12L12,7.8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"/>', 'Highlight'),
+			animation: this._getIconSVG('<path d="M8,5V19L19,12"/>', 'Animation'),
+			fontStyle: this._getIconSVG('<path d="M9.25,4V5.5H6.75V4H5.25V5.5H2.75V4H1.25V14.5H2.75V16H5.25V14.5H7.75V16H10.25V14.5H11.75V4H9.25M17.75,4V14.5H19.25V16H21.75V14.5H24.25V4H21.75V5.5H19.25V4H17.75M10.25,7H7.75V13H10.25V7M16.25,7H13.75V13H16.25V7Z"/>', 'Font Style'),
+			reset: this._getIconSVG('<path d="M12,5V1L7,6L12,11V7A6,6 0 0,1 18,13A6,6 0 0,1 12,19A6,6 0 0,1 6,13H4A8,8 0 0,0 12,21A8,8 0 0,0 20,13A8,8 0 0,0 12,5Z"/>', 'Reset'),
+			close: this._getIconSVG('<path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>', 'Close')
 		};
-		let html = `<h3 id="ar-menu-title">Accessibility Tools</h3>`;
-		html += this._getMenuFieldsetHTML(ICONS.fontSize, 'Text & Display', this._getMenuButtonHTML('increase-font', ICONS.textIncrease, 'Increase Text') + this._getMenuButtonHTML('decrease-font', ICONS.textDecrease, 'Decrease Text') + this._getMenuButtonHTML('reset-font', ICONS.reset, 'Reset Text Size', true, true) + this._getMenuButtonHTML('text-spacing-letter', ICONS.spacing, 'Letter Spacing') + this._getMenuButtonHTML('text-spacing-word', ICONS.spacing, 'Word Spacing') + this._getMenuButtonHTML('text-spacing-line', ICONS.spacing, 'Line Height') + this._getMenuButtonHTML('text-spacing-reset', ICONS.reset, 'Reset Spacing', true, true) + this._getMenuButtonHTML('text-align-left', ICONS.alignLeft, 'Align Left') + this._getMenuButtonHTML('text-align-center', ICONS.alignCenter, 'Align Center') + this._getMenuButtonHTML('text-align-reset', ICONS.reset, 'Reset Alignment', true, true) + this._getMenuButtonHTML('toggle-dyslexia-font', ICONS.fontStyle, 'Dyslexia Font', true));
-		html += this._getMenuFieldsetHTML(ICONS.contrast, 'Visual & Color', this._getMenuButtonHTML('contrast-high', ICONS.contrast, 'High Contrast') + this._getMenuButtonHTML('contrast-inverted', ICONS.contrast, 'Invert Colors') + this._getMenuButtonHTML('contrast-grayscale', ICONS.contrast, 'Grayscale') + this._getMenuButtonHTML('saturation-low', ICONS.contrast, 'Low Saturation') + this._getMenuButtonHTML('reset-contrast', ICONS.reset, 'Reset Colors', true, true) + this._getMenuButtonHTML('toggle-hide-images', ICONS.hide, 'Hide Images', true));
-		html += this._getMenuFieldsetHTML(ICONS.highlight, 'Navigation & Focus', this._getMenuButtonHTML('highlight-links', ICONS.highlight, 'Highlight Links') + this._getMenuButtonHTML('highlight-headings', ICONS.highlight, 'Highlight Headings') + this._getMenuButtonHTML('focus-highlight', ICONS.focus, 'Focus Highlight') + this._getMenuButtonHTML('reset-highlights', ICONS.reset, 'Reset Highlights', true, true) + this._getMenuButtonHTML('toggle-reading-line', ICONS.readingAid, 'Reading Line') + this._getMenuButtonHTML('toggle-reading-mask', ICONS.readingAid, 'Reading Mask'));
-		html += this._getMenuFieldsetHTML(this._getMenuIconSVG('<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18V4c4.41 0 8 3.59 8 8s-3.59 8-8 8z"/>', 'Advanced Tools'), 'Advanced Tools', this._getMenuButtonHTML('toggle-virtual-keyboard', ICONS.keyboard, 'Virtual Keyboard', true) + this._getMenuButtonHTML('toggle-content-simplifier', ICONS.simplify, 'Simplify Content', true) + this._getMenuButtonHTML('toggle-text-to-speech', ICONS.readAloud, 'Read Aloud', true) + this._getMenuButtonHTML('stop-text-to-speech', ICONS.reset, 'Stop Reading', true) + this._getMenuButtonHTML('toggle-custom-cursor', ICONS.cursor, 'Custom Cursor', true) + this._getMenuButtonHTML('zoom-in', ICONS.zoom, 'Zoom In') + this._getMenuButtonHTML('zoom-out', ICONS.zoom, 'Zoom Out') + this._getMenuButtonHTML('reset-zoom', ICONS.reset, 'Reset Zoom', true) + this._getMenuButtonHTML('stop-animations', ICONS.animation, 'Stop Animations', true));
-		html += `<fieldset class="ar-menu-group">
-                    <div class="ar-button-row">
-                        ${ this._getMenuButtonHTML('reset-all-menu', ICONS.reset, 'Reset All Settings', true, true) }
-                        <button id="ar-menu-close-button" data-action="close-menu" class="ar-menu-fullwidth-btn">
-                            ${ ICONS.close }<span class="ar-menu-text">Close Menu</span>
-                        </button>
-                    </div>
-                 </fieldset>`;
+		let html = `<h3 id="ar-simple-menu-title">Accessibility Tools</h3>`;
+		html += `
+            <div class="ar-simple-menu-group">
+                <div class="ar-simple-button-row">
+                    <button data-action="increase-text">${ ICONS.textSize } Increase Text</button>
+                    <button data-action="decrease-text">${ ICONS.textSize } Decrease Text</button>
+                </div>
+            </div>
+            <div class="ar-simple-menu-group">
+                <div class="ar-simple-button-row">
+                    <button data-action="contrast-high">${ ICONS.contrast } High Contrast</button>
+                    <button data-action="contrast-invert">${ ICONS.contrast } Invert Colors</button>
+                </div>
+            </div>
+            <div class="ar-simple-menu-group">
+                 <div class="ar-simple-button-row">
+                    <button data-action="highlight-links">${ ICONS.highlight } Highlight Links</button>
+                    <button data-action="enhanced-focus">${ ICONS.highlight } Enhanced Focus</button>
+                </div>
+            </div>
+            <div class="ar-simple-menu-group">
+                <div class="ar-simple-button-row">
+                    <button data-action="stop-animations" class="ar-simple-fullwidth-btn">${ ICONS.animation } Stop Animations</button>
+                </div>
+            </div>
+            <div class="ar-simple-menu-group">
+                <div class="ar-simple-button-row">
+                    <button data-action="toggle-dyslexia-font" class="ar-simple-fullwidth-btn">${ ICONS.fontStyle } Dyslexia Font</button>
+                </div>
+            </div>
+            <div class="ar-simple-menu-group">
+                <div class="ar-simple-button-row">
+                    <button data-action="reset-all" class="ar-simple-fullwidth-btn ar-simple-reset-btn">${ ICONS.reset } Reset All</button>
+                    <button data-action="close-menu" class="ar-simple-fullwidth-btn">${ ICONS.close } Close Menu</button>
+                </div>
+            </div>
+        `;
 		return html
 	};
-	AR_AccessibilityMenuProto._attachEventListeners = function () {
-		const menuButton = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
-		const menuPanel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
+	SimpleMenu._attachEventListeners = function () {
+		const menuButton = document.getElementById(MENU_BUTTON_ID);
+		const menuPanel = document.getElementById(MENU_PANEL_ID);
 		if (menuButton) {
-			menuButton.addEventListener('click', event => {
-				if (this.isDraggingOccurred) {
-					this.isDraggingOccurred = false;
-					return
-				}
-				this.toggleMenu()
-			})
+			menuButton.addEventListener('click', this._handleMenuButtonClick.bind(this))
 		}
 		if (menuPanel) {
-			menuPanel.addEventListener('click', event => {
-				const targetButton = event.target.closest('button');
-				if (targetButton && targetButton.dataset.action) {
-					this.handleAction(targetButton.dataset.action, targetButton)
-				}
-			});
-			menuPanel.addEventListener('keydown', event => {
-				if (event.key === 'Escape' && this.isOpen)
-					this.toggleMenu()
-			});
-			document.addEventListener('mousemove', this._doDragging.bind(this));
-			document.addEventListener('mouseup', this._stopDragging.bind(this));
-			document.addEventListener('touchmove', this._doDragging.bind(this), { passive: false });
-			document.addEventListener('touchend', this._stopDragging.bind(this));
-			document.addEventListener('mousemove', this._doButtonDragging.bind(this));
-			document.addEventListener('mouseup', this._stopButtonDragging.bind(this));
-			document.addEventListener('touchmove', this._doButtonDragging.bind(this), { passive: false });
-			document.addEventListener('touchend', this._stopButtonDragging.bind(this))
+			menuPanel.addEventListener('click', this._handlePanelActionClick.bind(this));
+			menuPanel.addEventListener('keydown', this._handlePanelKeydown.bind(this))
+		}
+		document.addEventListener('mousemove', this._handleDocumentMouseMove.bind(this));
+		document.addEventListener('mouseup', this._handleDocumentMouseUp.bind(this));
+		document.addEventListener('touchmove', this._handleDocumentMouseMove.bind(this), { passive: false });
+		document.addEventListener('touchend', this._handleDocumentMouseUp.bind(this))
+	};
+	SimpleMenu._handleMenuButtonClick = function (event) {
+		if (this.buttonDragOccurred) {
+			this.buttonDragOccurred = false;
+			return
+		}
+		this.toggleMenu()
+	};
+	SimpleMenu._handlePanelActionClick = function (event) {
+		const targetButton = event.target.closest('button');
+		if (targetButton && targetButton.dataset.action) {
+			this.handleAction(targetButton.dataset.action, targetButton)
 		}
 	};
-	AR_AccessibilityMenuProto.toggleMenu = function () {
-		const panel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
-		const button = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
+	SimpleMenu._handlePanelKeydown = function (event) {
+		if (event.key === 'Escape' && this.isOpen)
+			this.toggleMenu()
+	};
+	SimpleMenu._handleButtonMouseDown = function (event) {
+		this.isButtonDragging = true;
+		const button = document.getElementById(MENU_BUTTON_ID);
+		if (button)
+			button.classList.add('dragging');
+		this.buttonDragOccurred = false;
+		const coords = getClientCoords(event);
+		const buttonRect = button.getBoundingClientRect();
+		button.style.position = 'fixed';
+		button.style.left = `${ buttonRect.left }px`;
+		button.style.top = `${ buttonRect.top }px`;
+		button.style.right = 'auto';
+		button.style.bottom = 'auto';
+		button.style.transform = 'none';
+		this.buttonOffsetX = coords.clientX - buttonRect.left;
+		this.buttonOffsetY = coords.clientY - buttonRect.top;
+		if (event.type === 'touchstart')
+			event.preventDefault()
+	};
+	SimpleMenu._handlePanelMouseDown = function (event) {
+		const panel = document.getElementById(MENU_PANEL_ID);
+		const target = event.target;
+		const isButton = target.closest('button');
+		const isLegend = target.closest('legend');
+		const isPanelDirectClick = target === panel;
+		if (isButton || !isPanelDirectClick && !isLegend) {
+			this.isPanelDragging = false;
+			return
+		}
+		this.isPanelDragging = true;
+		panel.classList.add('dragging');
+		panel.style.position = 'fixed';
+		const coords = getClientCoords(event);
+		const panelRect = panel.getBoundingClientRect();
+		panel.style.left = `${ panelRect.left }px`;
+		panel.style.top = `${ panelRect.top }px`;
+		panel.style.right = 'auto';
+		panel.style.bottom = 'auto';
+		this.panelOffsetX = coords.clientX - panelRect.left;
+		this.panelOffsetY = coords.clientY - panelRect.top;
+		if (event.type === 'touchstart')
+			event.preventDefault()
+	};
+	SimpleMenu._handleDocumentMouseMove = function (event) {
+		if (this.isButtonDragging) {
+			const button = document.getElementById(MENU_BUTTON_ID);
+			if (!button)
+				return;
+			this.buttonDragOccurred = true;
+			const coords = getClientCoords(event);
+			let newLeft = coords.clientX - this.buttonOffsetX;
+			let newTop = coords.clientY - this.buttonOffsetY;
+			newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - button.offsetWidth));
+			newTop = Math.max(0, Math.min(newTop, window.innerHeight - button.offsetHeight));
+			button.style.left = `${ newLeft }px`;
+			button.style.top = `${ newTop }px`;
+			if (event.type === 'touchmove')
+				event.preventDefault()
+		} else if (this.isPanelDragging) {
+			const panel = document.getElementById(MENU_PANEL_ID);
+			if (!panel)
+				return;
+			const coords = getClientCoords(event);
+			let newLeft = coords.clientX - this.panelOffsetX;
+			let newTop = coords.clientY - this.panelOffsetY;
+			newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - panel.offsetWidth));
+			newTop = Math.max(0, Math.min(newTop, window.innerHeight - panel.offsetHeight));
+			panel.style.left = `${ newLeft }px`;
+			panel.style.top = `${ newTop }px`;
+			if (event.type === 'touchmove')
+				event.preventDefault()
+		}
+	};
+	SimpleMenu._handleDocumentMouseUp = function () {
+		if (this.isButtonDragging) {
+			this.isButtonDragging = false;
+			const button = document.getElementById(MENU_BUTTON_ID);
+			if (button)
+				button.classList.remove('dragging')
+		}
+		if (this.isPanelDragging) {
+			this.isPanelDragging = false;
+			const panel = document.getElementById(MENU_PANEL_ID);
+			if (panel)
+				panel.classList.remove('dragging')
+		}
+	};
+	SimpleMenu.toggleMenu = function () {
+		const panel = document.getElementById(MENU_PANEL_ID);
+		const button = document.getElementById(MENU_BUTTON_ID);
 		if (!panel || !button)
 			return;
 		this.isOpen = !this.isOpen;
 		panel.style.display = this.isOpen ? 'block' : 'none';
-		panel.classList.toggle('ar-menu-open', this.isOpen);
+		panel.classList.toggle('ar-simple-menu-open', this.isOpen);
 		panel.setAttribute('aria-hidden', String(!this.isOpen));
 		button.setAttribute('aria-expanded', String(this.isOpen));
 		if (this.isOpen) {
@@ -402,17 +519,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (docDir === 'rtl') {
 				newLeft = buttonRect.right - panelRect.width
 			}
-			if (newTop < 10) {
+			if (newTop < 10)
 				newTop = buttonRect.bottom + 10;
-				if (newTop + panelRect.height > window.innerHeight - 10) {
-					newTop = Math.max(10, window.innerHeight - panelRect.height - 10)
-				}
-			}
+			if (newTop + panelRect.height > window.innerHeight - 10)
+				newTop = Math.max(10, window.innerHeight - panelRect.height - 10);
 			if (newLeft < 10)
 				newLeft = 10;
-			if (newLeft + panelRect.width > window.innerWidth - 10) {
-				newLeft = window.innerWidth - panelRect.width - 10
-			}
+			if (newLeft + panelRect.width > window.innerWidth - 10)
+				newLeft = window.innerWidth - panelRect.width - 10;
 			panel.style.position = 'fixed';
 			panel.style.top = `${ newTop }px`;
 			panel.style.left = `${ newLeft }px`;
@@ -422,372 +536,146 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (firstFocusableButton)
 				firstFocusableButton.focus()
 		} else {
-			button.focus();
-			if (this.isVirtualKeyboardActive) {
-				this._removeVirtualKeyboard();
-				const vkButton = document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-virtual-keyboard"]`);
-				if (vkButton)
-					this._updateButtonActiveState(vkButton, false);
-				this.isVirtualKeyboardActive = false
-			}
+			button.focus()
 		}
 	};
-	AR_AccessibilityMenuProto.handleAction = function (action, targetButton) {
+	SimpleMenu.handleAction = function (action, targetButton) {
 		if (action === 'close-menu') {
 			this.toggleMenu();
 			return
 		}
-		if (action.startsWith('font') || action.startsWith('text-spacing') || action.startsWith('text-align') || action === 'toggle-dyslexia-font') {
-			if (action.includes('font'))
-				this._handleFontAction(action, targetButton);
-			else if (action.includes('spacing'))
-				this._handleTextSpacingAction(action, targetButton);
-			else if (action.includes('align'))
-				this._handleTextAlignAction(action, targetButton);
-			else if (action === 'toggle-dyslexia-font')
-				this._handleFontStyleAction(action, targetButton)
-		} else if (action.startsWith('contrast') || action.startsWith('saturation') || action === 'toggle-hide-images') {
-			if (action.includes('contrast') || action.includes('saturation'))
-				this._handleContrastColorAction(action, targetButton);
-			else if (action === 'toggle-hide-images')
-				this._handleHideImagesAction(targetButton)
-		} else if (action.startsWith('highlight') || action.startsWith('reading') || action === 'focus-highlight') {
-			if (action.includes('highlight') || action === 'focus-highlight')
-				this._handleHighlightAction(action, targetButton);
-			else if (action.includes('reading'))
-				this._handleReadingAidAction(action, targetButton)
-		} else if (action === 'stop-animations') {
-			this._handleAnimationAction(action, targetButton)
-		} else if (action === 'toggle-virtual-keyboard') {
-			this._handleVirtualKeyboardAction(targetButton)
-		} else if (action === 'toggle-content-simplifier') {
-			this._handleContentSimplifierAction(targetButton)
-		} else if (action === 'toggle-text-to-speech' || action === 'stop-text-to-speech') {
-			if (action === 'toggle-text-to-speech')
-				this._handleTextToSpeechAction(targetButton);
-			else
-				this._stopReading(targetButton)
-		} else if (action === 'toggle-custom-cursor') {
-			this._handleCustomCursorAction(targetButton)
-		} else if (action.startsWith('zoom-') || action === 'reset-zoom') {
-			this._handlePageZoomAction(action, targetButton)
-		} else if (action === 'reset-all-menu') {
-			this._resetAllMenuSettings()
-		}
-	};
-	AR_AccessibilityMenuProto._updateButtonActiveState = function (buttonElement, isActive, isToggleableGroup = false) {
-		if (!buttonElement)
-			return;
-		buttonElement.classList.toggle('ar-menu-btn-active', isActive);
-		if (isActive && !isToggleableGroup) {
-			const parentFieldset = buttonElement.closest('fieldset.ar-menu-group');
-			if (parentFieldset && !buttonElement.classList.contains('ar-menu-reset-btn')) {
-				Array.from(parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)')).forEach(btn => {
-					if (btn !== buttonElement) {
-						btn.classList.remove('ar-menu-btn-active')
-					}
-				})
-			}
-		}
-	};
-	AR_AccessibilityMenuProto._handleFontAction = function (action, targetButton) {
-		let elementsForFontAdjust = [];
-		if (typeof ar_getElementsForMenuTextStyleAdjustments === 'function') {
-			elementsForFontAdjust = ar_getElementsForMenuTextStyleAdjustments()
-		}
-		if (!elementsForFontAdjust || elementsForFontAdjust.length === 0) {
-			console.warn('AR_Menu: ar_getElementsForMenuTextStyleAdjustments() not found or returned empty. Using fallback selector for font adjustments.');
-			elementsForFontAdjust = Array.from(document.querySelectorAll('p, li, span, div:not(#' + AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID + '):not(#' + AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID + '), h1, h2, h3, h4, h5, h6, a, label, td, th, caption'))
-		}
-		const FONT_SIZE_MULTIPLIER = 1.1;
-		let factor = 1;
-		let decreaseButton, increaseButton;
-		if (targetButton && targetButton.parentElement) {
-			decreaseButton = targetButton.parentElement.querySelector('[data-action="decrease-font"]');
-			increaseButton = targetButton.parentElement.querySelector('[data-action="increase-font"]')
-		}
-		if (action === 'increase-font') {
-			factor = FONT_SIZE_MULTIPLIER;
-			if (decreaseButton)
-				this._updateButtonActiveState(decreaseButton, false);
-			if (targetButton)
-				this._updateButtonActiveState(targetButton, true)
-		} else if (action === 'decrease-font') {
-			factor = 1 / FONT_SIZE_MULTIPLIER;
-			if (increaseButton)
-				this._updateButtonActiveState(increaseButton, false);
-			if (targetButton)
-				this._updateButtonActiveState(targetButton, true)
-		} else if (action === 'reset-font') {
-			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
-			if (parentFieldset) {
-				parentFieldset.querySelectorAll('button[data-action="increase-font"], button[data-action="decrease-font"]').forEach(b => this._updateButtonActiveState(b, false))
-			}
-			this._applyFontSize(elementsForFontAdjust, 0);
-			this._logMenuChange('Font size reset.', true);
-			return
-		}
-		this._applyFontSize(elementsForFontAdjust, factor);
-		this._logMenuChange(`Font size adjusted by ${ factor > 1 ? 'x' + factor.toFixed(1) : '/' + (1 / factor).toFixed(1) }.`, true)
-	};
-	AR_AccessibilityMenuProto._applyFontSize = function (elements, factor) {
-		elements.forEach(el => {
-			const styleProp = 'font-size';
-			if (factor === 0) {
-				el.style.removeProperty(styleProp)
-			} else {
-				const currentSizeString = window.getComputedStyle(el).fontSize;
-				const currentSize = parseFloat(currentSizeString);
-				if (!isNaN(currentSize) && currentSize > 0) {
-					el.style.setProperty(styleProp, `${ currentSize * factor }px`, 'important')
-				}
-			}
-		})
-	};
-	AR_AccessibilityMenuProto._handleTextSpacingAction = function (action, targetButton) {
-		const bodyEl = document.body;
-		const spacingClasses = {
-			'text-spacing-letter': AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME,
-			'text-spacing-word': AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME,
-			'text-spacing-line': AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME
-		};
-		if (action === 'text-spacing-reset') {
-			bodyEl.classList.remove(spacingClasses['text-spacing-letter'], spacingClasses['text-spacing-word'], spacingClasses['text-spacing-line']);
-			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
-			if (parentFieldset)
-				parentFieldset.querySelectorAll('button[data-action^="text-spacing-"]:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false));
-			this._logMenuChange('Text spacing reset', true)
-		} else if (spacingClasses[action]) {
-			const targetClass = spacingClasses[action];
-			bodyEl.classList.toggle(targetClass);
-			const isActive = bodyEl.classList.contains(targetClass);
-			this._updateButtonActiveState(targetButton, isActive, true);
-			this._logMenuChange(`${ targetButton.textContent.trim() } spacing`, isActive)
-		}
-	};
-	AR_AccessibilityMenuProto._handleTextAlignAction = function (action, targetButton) {
-		const bodyEl = document.body;
-		const alignPrefix = AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX;
-		const alignClasses = {
-			'text-align-left': `${ alignPrefix }left`,
-			'text-align-center': `${ alignPrefix }center`
-		};
-		bodyEl.classList.remove(`${ alignPrefix }left`, `${ alignPrefix }center`);
-		if (action === 'text-align-reset') {
-			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
-			if (parentFieldset)
-				parentFieldset.querySelectorAll('button[data-action^="text-align-"]:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false));
-			this._logMenuChange('Text alignment reset', true)
-		} else if (alignClasses[action]) {
-			const targetClass = alignClasses[action];
-			bodyEl.classList.add(targetClass);
-			this._updateButtonActiveState(targetButton, true);
-			this._logMenuChange(`Text align to ${ action.split('-')[2] }`, true)
-		}
-	};
-	AR_AccessibilityMenuProto._handleFontStyleAction = function (action, targetButton) {
-		if (action === 'toggle-dyslexia-font')
-			this._toggleDyslexiaFont(targetButton)
-	};
-	AR_AccessibilityMenuProto._toggleDyslexiaFont = function (buttonElement) {
-		const body = document.body;
-		this.isDyslexiaFontActive = !this.isDyslexiaFontActive;
-		if (this.isDyslexiaFontActive) {
-			body.classList.add(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
-		} else {
-			body.classList.remove(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
-		}
-		this._updateButtonActiveState(buttonElement, this.isDyslexiaFontActive);
-		this._logMenuChange(`Dyslexia font ${ this.isDyslexiaFontActive ? 'enabled' : 'disabled' }.`, this.isDyslexiaFontActive)
-	};
-	AR_AccessibilityMenuProto._handleContrastColorAction = function (action, targetButton) {
-		const bodyEl = document.body;
-		const contrastClasses = [
-			AR_CONFIG.HIGH_CONTRAST_MODE_CLASS_NAME,
-			AR_CONFIG.INVERTED_CONTRAST_MODE_CLASS_NAME,
-			AR_CONFIG.GRAYSCALE_CONTRAST_MODE_CLASS_NAME
-		];
-		const saturationClass = AR_CONFIG.SATURATION_FILTER_CLASS_NAME;
-		if (action === 'reset-contrast') {
-			bodyEl.classList.remove(...contrastClasses, saturationClass);
-			this.activeContrastModeClassName = 'default';
-			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
-			if (parentFieldset)
-				parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false));
-			this._logMenuChange('Contrast and saturation reset', true);
-			return
-		}
-		let targetClass = '', logMsg = '';
 		switch (action) {
+		case 'increase-text':
+		case 'decrease-text':
+		case 'reset-font':
+			this._handleTextSizeAction(action, targetButton);
+			break;
 		case 'contrast-high':
-			targetClass = AR_CONFIG.HIGH_CONTRAST_MODE_CLASS_NAME;
-			logMsg = 'High contrast';
+		case 'contrast-invert':
+		case 'reset-contrast':
+			this._handleContrastAction(action, targetButton);
 			break;
-		case 'contrast-inverted':
-			targetClass = AR_CONFIG.INVERTED_CONTRAST_MODE_CLASS_NAME;
-			logMsg = 'Inverted colors';
+		case 'highlight-links':
+		case 'enhanced-focus':
+			this._handleHighlightAction(action, targetButton);
 			break;
-		case 'contrast-grayscale':
-			targetClass = AR_CONFIG.GRAYSCALE_CONTRAST_MODE_CLASS_NAME;
-			logMsg = 'Grayscale mode';
+		case 'stop-animations':
+			this._handleStopAnimationsAction(targetButton);
 			break;
-		case 'saturation-low':
-			targetClass = saturationClass;
-			logMsg = 'Low saturation';
+		case 'toggle-dyslexia-font':
+			this._handleDyslexiaFontAction(targetButton);
+			break;
+		case 'reset-all':
+			this._resetAllSettings();
 			break
 		}
-		const isActiveNow = !bodyEl.classList.contains(targetClass);
-		bodyEl.classList.remove(...contrastClasses, saturationClass);
-		if (isActiveNow) {
-			bodyEl.classList.add(targetClass);
-			this.activeContrastModeClassName = targetClass
-		} else {
-			this.activeContrastModeClassName = 'default'
-		}
-		this._updateButtonActiveState(targetButton, isActiveNow);
-		this._logMenuChange(logMsg, isActiveNow)
 	};
-	AR_AccessibilityMenuProto._handleHideImagesAction = function (targetButton) {
-		this.areImagesHidden = !this.areImagesHidden;
-		this._updateButtonActiveState(targetButton, this.areImagesHidden);
-		document.body.classList.toggle('ar-hide-images', this.areImagesHidden);
-		this._logMenuChange('Hide images', this.areImagesHidden)
-	};
-	AR_AccessibilityMenuProto._handleHighlightAction = function (action, targetButton) {
-		const bodyEl = document.body;
-		const highlightClasses = {
-			'highlight-links': AR_CONFIG.HIGHLIGHTED_LINKS_CLASS_NAME,
-			'highlight-headings': AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME
-		};
-		if (action === 'reset-highlights') {
-			bodyEl.classList.remove(...Object.values(highlightClasses), 'ar-focus-highlight');
-			this.isFocusHighlightActive = false;
-			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
-			if (parentFieldset)
-				parentFieldset.querySelectorAll('button[data-action^="highlight-"], button[data-action="focus-highlight"]').forEach(b => this._updateButtonActiveState(b, false));
-			this._logMenuChange('Highlights reset', true)
-		} else if (highlightClasses[action]) {
-			const targetClass = highlightClasses[action];
-			bodyEl.classList.toggle(targetClass);
-			const isActive = bodyEl.classList.contains(targetClass);
-			this._updateButtonActiveState(targetButton, isActive, true);
-			this._logMenuChange(`${ targetButton.textContent.trim() } highlight`, isActive)
-		} else if (action === 'focus-highlight') {
-			this.isFocusHighlightActive = !this.isFocusHighlightActive;
-			bodyEl.classList.toggle('ar-focus-highlight', this.isFocusHighlightActive);
-			this._updateButtonActiveState(targetButton, this.isFocusHighlightActive);
-			this._logMenuChange('Focus highlight', this.isFocusHighlightActive)
-		}
-	};
-	AR_AccessibilityMenuProto._handleReadingAidAction = function (action, targetButton) {
-		const type = action === 'toggle-reading-line' ? 'line' : 'mask';
-		this._toggleReadingGuide(type, targetButton)
-	};
-	AR_AccessibilityMenuProto._toggleReadingGuide = function (type, buttonElement) {
-		const otherGuideType = type === 'line' ? 'mask' : 'line';
-		const otherButton = document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-reading-${ otherGuideType }"]`);
-		if (ar_activeReadingGuideType === type) {
-			this._deactivateReadingGuide(type);
-			if (buttonElement)
-				this._updateButtonActiveState(buttonElement, false);
-			ar_activeReadingGuideType = null
-		} else {
-			if (ar_activeReadingGuideType) {
-				this._deactivateReadingGuide(ar_activeReadingGuideType);
-				if (otherButton)
-					this._updateButtonActiveState(otherButton, false)
-			}
-			this._activateReadingGuide(type);
-			if (buttonElement)
-				this._updateButtonActiveState(buttonElement, true);
-			ar_activeReadingGuideType = type
-		}
-		this._logMenuChange(`Reading guide (${ type })`, ar_activeReadingGuideType === type)
-	};
-	AR_AccessibilityMenuProto._activateReadingGuide = function (type) {
-		this._deactivateReadingGuide(type === 'line' ? 'mask' : 'line');
-		if (type === 'line') {
-			if (!this.readingGuideLineElement) {
-				this.readingGuideLineElement = document.createElement('div');
-				this.readingGuideLineElement.id = AR_CONFIG.READING_LINE_ELEMENT_ID;
-				Object.assign(this.readingGuideLineElement.style, {
-					position: 'fixed',
-					left: '0',
-					width: '100%',
-					height: '3px',
-					backgroundColor: 'rgba(0, 0, 255, 0.7)',
-					zIndex: '2147483647',
-					pointerEvents: 'none'
-				});
-				document.body.appendChild(this.readingGuideLineElement)
-			}
-			this._boundUpdateReadingGuide = this._updateReadingGuidePosition.bind(this);
-			document.addEventListener('mousemove', this._boundUpdateReadingGuide)
-		} else if (type === 'mask') {
-			if (!this.readingMaskTopElement) {
-				this.readingMaskTopElement = document.createElement('div');
-				this.readingMaskBottomElement = document.createElement('div');
-				[
-					this.readingMaskTopElement,
-					this.readingMaskBottomElement
-				].forEach((el, index) => {
-					el.id = `ar-reading-mask-${ index === 0 ? 'top' : 'bottom' }`;
-					Object.assign(el.style, {
-						position: 'fixed',
-						left: '0',
-						width: '100%',
-						backgroundColor: 'rgba(0, 0, 0, 0.6)',
-						zIndex: '2147483646',
-						pointerEvents: 'none'
+	SimpleMenu._updateButtonActiveState = function (buttonElement, isActive) {
+		if (!buttonElement)
+			return;
+		const action = buttonElement.dataset.action;
+		if (action && (action.startsWith('contrast-') && action !== 'reset-contrast')) {
+			if (isActive) {
+				const parentGroup = buttonElement.closest('.ar-simple-button-row') || buttonElement.closest('.ar-simple-menu-group');
+				if (parentGroup) {
+					parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
+						if (btn !== buttonElement)
+							btn.classList.remove('ar-simple-menu-btn-active')
 					})
-				});
-				this.readingMaskTopElement.style.top = '0';
-				this.readingMaskBottomElement.style.bottom = '0';
-				document.body.appendChild(this.readingMaskTopElement);
-				document.body.appendChild(this.readingMaskBottomElement)
+				}
 			}
-			this._boundUpdateReadingGuide = this._updateReadingGuidePosition.bind(this);
-			document.addEventListener('mousemove', this._boundUpdateReadingGuide)
+		}
+		buttonElement.classList.toggle('ar-simple-menu-btn-active', isActive)
+	};
+	SimpleMenu._handleTextSizeAction = function (action, button) {
+		let elements = [];
+		if (typeof ar_getElementsForMenuTextStyleAdjustments === 'function') {
+			elements = ar_getElementsForMenuTextStyleAdjustments()
+		}
+		if (!elements || elements.length === 0) {
+			elements = Array.from(document.querySelectorAll('p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '), h1, h2, h3, h4, h5, h6, a, label, td, th, caption'))
+		}
+		let factor = 1;
+		if (action === 'increase-text')
+			factor = FONT_SIZE_MULTIPLIER;
+		else if (action === 'decrease-text')
+			factor = 1 / FONT_SIZE_MULTIPLIER;
+		else if (action === 'reset-font')
+			factor = 0;
+		elements.forEach(el => {
+			if (factor === 0) {
+				el.style.removeProperty('font-size')
+			} else {
+				const currentSize = parseFloat(window.getComputedStyle(el).fontSize);
+				if (!isNaN(currentSize) && currentSize > 0) {
+					el.style.setProperty('font-size', `${ currentSize * factor }px`, 'important')
+				}
+			}
+		});
+		logAction(`Text size ${ action }`, true);
+		if (action === 'reset-font' && button && button.parentElement) {
+			button.parentElement.querySelectorAll('button[data-action="increase-text"], button[data-action="decrease-text"]').forEach(btn => this._updateButtonActiveState(btn, false))
 		}
 	};
-	AR_AccessibilityMenuProto._deactivateReadingGuide = function (type) {
-		if (type === 'line' && this.readingGuideLineElement) {
-			this.readingGuideLineElement.remove();
-			this.readingGuideLineElement = null
-		} else if (type === 'mask' && this.readingMaskTopElement) {
-			this.readingMaskTopElement.remove();
-			this.readingMaskTopElement = null;
-			this.readingMaskBottomElement.remove();
-			this.readingMaskBottomElement = null
-		}
-		if (this._boundUpdateReadingGuide) {
-			document.removeEventListener('mousemove', this._boundUpdateReadingGuide);
-			this._boundUpdateReadingGuide = null
-		}
-	};
-	AR_AccessibilityMenuProto._updateReadingGuidePosition = function (event) {
-		if (ar_activeReadingGuideType === 'line' && this.readingGuideLineElement) {
-			const lineHeight = parseFloat(window.getComputedStyle(this.readingGuideLineElement).height) || 3;
-			this.readingGuideLineElement.style.top = `${ event.clientY - Math.round(lineHeight / 2) }px`
-		} else if (ar_activeReadingGuideType === 'mask' && this.readingMaskTopElement && this.readingMaskBottomElement) {
-			const maskHeight = Math.max(30, Math.round(window.innerHeight * 0.1));
-			this.readingMaskTopElement.style.height = `${ Math.max(0, event.clientY - maskHeight / 2) }px`;
-			this.readingMaskBottomElement.style.height = `${ Math.max(0, window.innerHeight - (event.clientY + maskHeight / 2)) }px`
-		}
-	};
-	AR_AccessibilityMenuProto._handleAnimationAction = function (action, targetButton) {
-		if (action === 'stop-animations')
-			this._toggleAnimations(targetButton)
-	};
-	AR_AccessibilityMenuProto._toggleAnimations = function (buttonElement) {
+	SimpleMenu._handleContrastAction = function (action, button) {
 		const body = document.body;
-		const stoppedClass = AR_CONFIG.ANIMATIONS_STOPPED_CLASS_NAME;
-		const isCurrentlyStoppedGeneral = body.classList.contains(stoppedClass);
-		const areGifsFrozen = document.querySelector('img[data-ar-gif-frozen="true"], canvas[data-ar-frozen-gif-canvas="true"]');
-		const nowStopping = !(isCurrentlyStoppedGeneral && areGifsFrozen);
-		body.classList.toggle(stoppedClass, nowStopping);
-		this._updateButtonActiveState(buttonElement, nowStopping);
-		if (nowStopping) {
+		body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_INVERT_COLORS);
+		if (button && button.parentElement) {
+			button.parentElement.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
+				if (btn !== button)
+					this._updateButtonActiveState(btn, false)
+			})
+		}
+		if (action === 'contrast-high') {
+			if (this.activeContrastMode !== 'high') {
+				body.classList.add(CLASS_HIGH_CONTRAST);
+				this.activeContrastMode = 'high';
+				this._updateButtonActiveState(button, true);
+				logAction('High contrast enabled', true)
+			} else {
+				this.activeContrastMode = 'default';
+				this._updateButtonActiveState(button, false);
+				logAction('High contrast disabled', true)
+			}
+		} else if (action === 'contrast-invert') {
+			if (this.activeContrastMode !== 'inverted') {
+				body.classList.add(CLASS_INVERT_COLORS);
+				this.activeContrastMode = 'inverted';
+				this._updateButtonActiveState(button, true);
+				logAction('Invert colors enabled', true)
+			} else {
+				this.activeContrastMode = 'default';
+				this._updateButtonActiveState(button, false);
+				logAction('Invert colors disabled', true)
+			}
+		} else if (action === 'reset-contrast') {
+			this.activeContrastMode = 'default';
+			const parentGroup = button.closest('.ar-simple-menu-group');
+			if (parentGroup) {
+				parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => this._updateButtonActiveState(btn, false))
+			}
+			logAction('Contrast reset', true)
+		}
+	};
+	SimpleMenu._handleHighlightAction = function (action, button) {
+		const body = document.body;
+		if (action === 'highlight-links') {
+			this.areLinksHighlighted = !this.areLinksHighlighted;
+			body.classList.toggle(CLASS_HIGHLIGHT_LINKS, this.areLinksHighlighted);
+			this._updateButtonActiveState(button, this.areLinksHighlighted);
+			logAction('Highlight links ' + (this.areLinksHighlighted ? 'enabled' : 'disabled'), true)
+		} else if (action === 'enhanced-focus') {
+			this.isFocusEnhanced = !this.isFocusEnhanced;
+			body.classList.toggle(CLASS_ENHANCED_FOCUS, this.isFocusEnhanced);
+			this._updateButtonActiveState(button, this.isFocusEnhanced);
+			logAction('Enhanced focus ' + (this.isFocusEnhanced ? 'enabled' : 'disabled'), true)
+		}
+	};
+	SimpleMenu._handleStopAnimationsAction = function (button) {
+		this.areAnimationsStopped = !this.areAnimationsStopped;
+		document.body.classList.toggle(CLASS_ANIMATIONS_STOPPED, this.areAnimationsStopped);
+		this._updateButtonActiveState(button, this.areAnimationsStopped);
+		if (this.areAnimationsStopped) {
 			const gifsToFreeze = Array.from(document.querySelectorAll('img[src*=".gif"]:not([data-ar-gif-frozen="true"])')).filter(img => {
 				try {
 					return new URL(img.src, window.location.href).pathname.toLowerCase().endsWith('.gif')
@@ -807,8 +695,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				tempImage.crossOrigin = 'Anonymous';
 				tempImage.onload = () => {
 					const canvas = document.createElement('canvas');
-					canvas.width = tempImage.naturalWidth || img.offsetWidth || 50;
-					canvas.height = tempImage.naturalHeight || img.offsetHeight || 50;
+					canvas.width = tempImage.naturalWidth || parseInt(img.dataset.arOriginalWidth) || 50;
+					canvas.height = tempImage.naturalHeight || parseInt(img.dataset.arOriginalHeight) || 50;
 					canvas.className = img.className;
 					canvas.style.cssText = img.style.cssText;
 					canvas.style.width = img.dataset.arOriginalWidth;
@@ -832,7 +720,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 						if (img.parentNode)
 							img.parentNode.insertBefore(canvas, img.nextSibling)
 					} catch (e) {
-						console.error('AR: Canvas drawImage error for GIF:', img.src, e);
 						img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 						img.style.display = img.dataset.arOriginalDisplay || '';
 						img.dataset.arGifFrozen = 'true';
@@ -840,7 +727,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 					}
 				};
 				tempImage.onerror = () => {
-					console.warn('AR: Could not load GIF to freeze:', img.src);
 					img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 					img.dataset.arGifFrozen = 'true';
 					img.dataset.arGifFrozenFallback = 'true'
@@ -882,597 +768,128 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				].forEach(attr => delete img.dataset[attr])
 			})
 		}
-		this._logMenuChange(`Animations ${ nowStopping ? 'stopped/paused.' : 'resumed.' }`, true)
+		logAction('Stop animations ' + (this.areAnimationsStopped ? 'enabled' : 'disabled'), true)
 	};
-	AR_AccessibilityMenuProto._handleVirtualKeyboardAction = function (targetButton) {
-		this.isVirtualKeyboardActive = !this.isVirtualKeyboardActive;
-		this._updateButtonActiveState(targetButton, this.isVirtualKeyboardActive);
-		if (this.isVirtualKeyboardActive) {
-			this._createVirtualKeyboard()
-		} else {
-			this._removeVirtualKeyboard()
-		}
-		this._logMenuChange('Virtual keyboard', this.isVirtualKeyboardActive)
+	SimpleMenu._handleDyslexiaFontAction = function (button) {
+		this.isDyslexiaFontActive = !this.isDyslexiaFontActive;
+		document.body.classList.toggle(CLASS_DYSLEXIA_FONT, this.isDyslexiaFontActive);
+		this._updateButtonActiveState(button, this.isDyslexiaFontActive);
+		logAction('Dyslexia font ' + (this.isDyslexiaFontActive ? 'enabled' : 'disabled'), true)
 	};
-	AR_AccessibilityMenuProto._createVirtualKeyboard = function () {
-		if (this.virtualKeyboardElement && document.body.contains(this.virtualKeyboardElement)) {
-			this.virtualKeyboardElement.classList.remove('hidden');
-			return
-		}
-		if (this.virtualKeyboardElement) {
-			this.virtualKeyboardElement = null
-		}
-		this.virtualKeyboardElement = document.createElement('div');
-		this.virtualKeyboardElement.id = 'ar-virtual-keyboard';
-		this.virtualKeyboardElement.setAttribute('role', 'group');
-		this.virtualKeyboardElement.setAttribute('aria-label', 'Virtual Keyboard');
-		const layout = [
-			[
-				'1',
-				'2',
-				'3',
-				'4',
-				'5',
-				'6',
-				'7',
-				'8',
-				'9',
-				'0',
-				'-',
-				'=',
-				'\u232B'
-			],
-			[
-				'q',
-				'w',
-				'e',
-				'r',
-				't',
-				'y',
-				'u',
-				'i',
-				'o',
-				'p',
-				'[',
-				']',
-				'\\'
-			],
-			[
-				'\u21EA',
-				'a',
-				's',
-				'd',
-				'f',
-				'g',
-				'h',
-				'j',
-				'k',
-				'l',
-				';',
-				"'",
-				'\u23CE'
-			],
-			[
-				'\u21E7',
-				'z',
-				'x',
-				'c',
-				'v',
-				'b',
-				'n',
-				'm',
-				',',
-				'.',
-				'/',
-				'\u21E7'
-			],
-			['Space']
-		];
-		const createVkKey = keySymbol => {
-			const button = document.createElement('button');
-			button.dataset.keySymbol = keySymbol;
-			button.className = 'ar-vk-key';
-			let displayChar = keySymbol;
-			let ariaLabel = keySymbol;
-			switch (keySymbol) {
-			case '\u232B':
-				displayChar = 'Backspace';
-				ariaLabel = 'Backspace';
-				button.classList.add('key-backspace');
-				break;
-			case '\u23CE':
-				displayChar = 'Enter';
-				ariaLabel = 'Enter';
-				button.classList.add('key-enter');
-				break;
-			case '\u21E7':
-				displayChar = 'Shift';
-				ariaLabel = 'Shift';
-				button.classList.add('key-shift');
-				break;
-			case '\u21EA':
-				displayChar = 'Caps Lock';
-				ariaLabel = 'Caps Lock';
-				button.classList.add('key-caps');
-				break;
-			case 'Space':
-				displayChar = 'Space';
-				ariaLabel = 'Spacebar';
-				button.classList.add('key-space');
-				break;
-			default:
-				button.dataset.originalChar = keySymbol.toLowerCase();
-				break
-			}
-			button.textContent = displayChar;
-			button.setAttribute('aria-label', ariaLabel);
-			button.addEventListener('click', () => this._handleKeyPress(keySymbol, button));
-			return button
-		};
-		layout.forEach(row => row.forEach(key => this.virtualKeyboardElement.appendChild(createVkKey(key))));
-		document.body.appendChild(this.virtualKeyboardElement);
-		this.virtualKeyboardElement.classList.remove('hidden');
-		this._toggleKeyboardCase(false)
-	};
-	AR_AccessibilityMenuProto._removeVirtualKeyboard = function () {
-		if (this.virtualKeyboardElement) {
-			const keyboardToRemove = this.virtualKeyboardElement;
-			this.virtualKeyboardElement = null;
-			keyboardToRemove.classList.add('hidden');
-			keyboardToRemove.addEventListener('transitionend', () => {
-				if (keyboardToRemove && keyboardToRemove.parentNode) {
-					keyboardToRemove.remove()
-				}
-			}, { once: true })
-		}
-	};
-	AR_AccessibilityMenuProto._handleKeyPress = function (keySymbol, buttonElement) {
-		const activeElement = document.activeElement;
-		if (!activeElement || activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)
-			return;
-		let currentValue = activeElement.value !== undefined ? activeElement.value : activeElement.isContentEditable ? activeElement.textContent : '';
-		let start = activeElement.selectionStart !== undefined ? activeElement.selectionStart : activeElement.isContentEditable && window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : currentValue.length;
-		let end = activeElement.selectionEnd !== undefined ? activeElement.selectionEnd : activeElement.isContentEditable && window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).endOffset : currentValue.length;
-		const shiftButton = this.virtualKeyboardElement && this.virtualKeyboardElement.querySelector('.key-shift');
-		const capsButton = this.virtualKeyboardElement && this.virtualKeyboardElement.querySelector('.key-caps');
-		const isShiftActive = shiftButton && shiftButton.classList.contains('active');
-		const isCapsActive = capsButton && capsButton.classList.contains('active');
-		let charToInsert = '';
-		switch (keySymbol) {
-		case '\u232B':
-			if (start > 0) {
-				currentValue = currentValue.substring(0, start - 1) + currentValue.substring(end);
-				start--;
-				end = start
-			}
-			break;
-		case '\u23CE':
-			if (activeElement.tagName === 'TEXTAREA')
-				charToInsert = '\n';
-			else if (activeElement.isContentEditable) {
-				document.execCommand('insertLineBreak');
-				return
-			} else {
-				if (activeElement.form)
-					activeElement.form.dispatchEvent(new Event('submit', {
-						bubbles: true,
-						cancelable: true
-					}));
-				activeElement.dispatchEvent(new Event('change', { bubbles: true }));
-				return
-			}
-			break;
-		case '\u21E7':
-			if (shiftButton)
-				shiftButton.classList.toggle('active');
-			this._toggleKeyboardCase(isCapsActive);
-			return;
-		case '\u21EA':
-			if (capsButton)
-				capsButton.classList.toggle('active');
-			this._toggleKeyboardCase(capsButton.classList.contains('active'));
-			return;
-		case 'Space':
-			charToInsert = ' ';
-			break;
-		default:
-			charToInsert = buttonElement.textContent;
-			if (isShiftActive && !isCapsActive && shiftButton && charToInsert.length === 1) {
-				shiftButton.classList.remove('active');
-				this._toggleKeyboardCase(isCapsActive)
-			}
-			break
-		}
-		if (charToInsert) {
-			currentValue = currentValue.substring(0, start) + charToInsert + currentValue.substring(end);
-			start += charToInsert.length;
-			end = start
-		}
-		if (activeElement.value !== undefined)
-			activeElement.value = currentValue;
-		else if (activeElement.isContentEditable)
-			activeElement.textContent = currentValue;
-		if (activeElement.isContentEditable && window.getSelection && document.createRange) {
-			const range = document.createRange();
-			const sel = window.getSelection();
-			let textNode, offset = start;
-			function findTextNodeAndOffsetRecursive(parentNode, targetGlobalOffset) {
-				let currentGlobalOffset = 0;
-				for (let i = 0; i < parentNode.childNodes.length; i++) {
-					const node = parentNode.childNodes[i];
-					if (node.nodeType === Node.TEXT_NODE) {
-						const nodeLength = node.length;
-						if (currentGlobalOffset + nodeLength >= targetGlobalOffset) {
-							return {
-								node: node,
-								offset: targetGlobalOffset - currentGlobalOffset
-							}
-						}
-						currentGlobalOffset += nodeLength
-					} else if (node.nodeType === Node.ELEMENT_NODE) {
-						const result = findTextNodeAndOffsetRecursive(node, targetGlobalOffset - currentGlobalOffset);
-						if (result)
-							return result;
-						currentGlobalOffset += (node.textContent || '').length
-					}
-				}
-				return null
-			}
-			const targetPosition = findTextNodeAndOffsetRecursive(activeElement, start);
-			if (targetPosition && targetPosition.node) {
-				range.setStart(targetPosition.node, Math.min(targetPosition.offset, targetPosition.node.length))
-			} else {
-				let lastChild = activeElement.lastChild;
-				while (lastChild && lastChild.nodeType === Node.ELEMENT_NODE && lastChild.lastChild) {
-					lastChild = lastChild.lastChild
-				}
-				if (lastChild && lastChild.nodeType === Node.TEXT_NODE) {
-					range.setStart(lastChild, lastChild.length)
-				} else {
-					range.selectNodeContents(activeElement);
-					range.collapse(false)
-				}
-			}
-			range.collapse(true);
-			if (sel) {
-				sel.removeAllRanges();
-				sel.addRange(range)
-			}
-		} else if (activeElement.setSelectionRange) {
-			activeElement.setSelectionRange(start, end)
-		}
-		activeElement.dispatchEvent(new Event('input', { bubbles: true }))
-	};
-	AR_AccessibilityMenuProto._toggleKeyboardCase = function (isCapsActiveExplicit) {
-		if (!this.virtualKeyboardElement)
-			return;
-		const keys = this.virtualKeyboardElement.querySelectorAll('.ar-vk-key');
-		const isShiftActive = this.virtualKeyboardElement.querySelector('.key-shift.active');
-		const currentCapsState = typeof isCapsActiveExplicit === 'boolean' ? isCapsActiveExplicit : this.virtualKeyboardElement.querySelector('.key-caps') && this.virtualKeyboardElement.querySelector('.key-caps').classList.contains('active');
-		keys.forEach(keyButton => {
-			const originalChar = keyButton.dataset.originalChar;
-			if (originalChar && originalChar.length === 1) {
-				let charToShow = originalChar;
-				if (currentCapsState) {
-					charToShow = isShiftActive ? originalChar.toLowerCase() : originalChar.toUpperCase()
-				} else {
-					charToShow = isShiftActive ? originalChar.toUpperCase() : originalChar.toLowerCase()
-				}
-				keyButton.textContent = charToShow
-			} else if (keyButton.dataset.keySymbol === '\u21EA') {
-				keyButton.textContent = currentCapsState ? 'CAPS' : 'Caps Lock'
-			} else if (keyButton.dataset.keySymbol === '\u21E7') {
-				keyButton.textContent = isShiftActive ? 'SHIFT' : 'Shift'
-			}
-		})
-	};
-	AR_AccessibilityMenuProto._handleContentSimplifierAction = function (targetButton) {
-		this.isContentSimplified = !this.isContentSimplified;
-		this._updateButtonActiveState(targetButton, this.isContentSimplified);
-		document.body.classList.toggle('ar-content-simplified', this.isContentSimplified);
-		this._logMenuChange('Content simplifier', this.isContentSimplified)
-	};
-	AR_AccessibilityMenuProto._handleTextToSpeechAction = function (targetButton) {
-		this.isTextToSpeechActive = !this.isTextToSpeechActive;
-		this._updateButtonActiveState(targetButton, this.isTextToSpeechActive);
-		if (this.isTextToSpeechActive) {
-			this._boundReadClickedText = this._readClickedText.bind(this);
-			document.body.addEventListener('click', this._boundReadClickedText);
-			this._logMenuChange('Read Aloud enabled. Click on text to hear it.', true)
-		} else {
-			if (this._boundReadClickedText)
-				document.body.removeEventListener('click', this._boundReadClickedText);
-			this._stopReading();
-			this._logMenuChange('Read Aloud disabled.', false)
-		}
-	};
-	AR_AccessibilityMenuProto._readClickedText = function (event) {
-		if (!this.isTextToSpeechActive || event.target.closest(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }, #ar-virtual-keyboard`))
-			return;
-		let textToSpeak = window.getSelection().toString().trim();
-		let targetElementForHighlight = event.target;
-		if (!textToSpeak && event.target.textContent)
-			textToSpeak = event.target.textContent.trim();
-		else if (textToSpeak) {
-			const selection = window.getSelection();
-			if (selection.rangeCount > 0) {
-				const range = selection.getRangeAt(0);
-				targetElementForHighlight = range.commonAncestorContainer;
-				if (targetElementForHighlight.nodeType === Node.TEXT_NODE)
-					targetElementForHighlight = targetElementForHighlight.parentElement
-			}
-		}
-		if (!textToSpeak || textToSpeak.length < 3)
-			return;
-		this._stopReading();
-		this.currentSpeechUtterance = new SpeechSynthesisUtterance(textToSpeak);
-		this.currentSpeechUtterance.lang = document.documentElement.lang || 'en-US';
-		const oldHighlight = document.querySelector('.ar-tts-highlight');
-		if (oldHighlight)
-			oldHighlight.classList.remove('ar-tts-highlight');
-		if (targetElementForHighlight && targetElementForHighlight.classList && typeof targetElementForHighlight.classList.add === 'function') {
-			targetElementForHighlight.classList.add('ar-tts-highlight');
-			this.currentSpeechUtterance.onend = () => {
-				targetElementForHighlight.classList.remove('ar-tts-highlight');
-				this.currentSpeechUtterance = null
-			};
-			this.currentSpeechUtterance.onerror = e => {
-				console.error('AR: TTS error:', e);
-				targetElementForHighlight.classList.remove('ar-tts-highlight');
-				this.currentSpeechUtterance = null
-			}
-		} else {
-			this.currentSpeechUtterance.onend = () => {
-				this.currentSpeechUtterance = null
-			};
-			this.currentSpeechUtterance.onerror = e => {
-				console.error('AR: TTS error:', e);
-				this.currentSpeechUtterance = null
-			}
-		}
-		speechSynthesis.speak(this.currentSpeechUtterance);
-		this._logMenuChange(`Reading: "${ textToSpeak.substring(0, 50) }..."`, true)
-	};
-	AR_AccessibilityMenuProto._stopReading = function (targetButton = null) {
-		if (speechSynthesis.speaking)
-			speechSynthesis.cancel();
-		const oldHighlight = document.querySelector('.ar-tts-highlight');
-		if (oldHighlight)
-			oldHighlight.classList.remove('ar-tts-highlight');
-		this.currentSpeechUtterance = null;
-		if (targetButton) {
-			const toggleButton = document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-text-to-speech"]`);
-			if (toggleButton)
-				this._updateButtonActiveState(toggleButton, false);
-			this.isTextToSpeechActive = false;
-			if (this._boundReadClickedText)
-				document.body.removeEventListener('click', this._boundReadClickedText);
-			this._logMenuChange('Reading stopped.', false)
-		}
-	};
-	AR_AccessibilityMenuProto._handleCustomCursorAction = function (targetButton) {
-		const htmlEl = document.documentElement;
-		const cursorClasses = [
-			'ar-cursor-large',
-			'ar-cursor-xlarge',
-			'ar-cursor-red',
-			'ar-cursor-green'
-		];
-		let currentCursorIndex = cursorClasses.findIndex(cls => htmlEl.classList.contains(cls));
-		htmlEl.classList.remove(...cursorClasses);
-		const nextCursorIndex = (currentCursorIndex + 1) % (cursorClasses.length + 1);
-		if (nextCursorIndex < cursorClasses.length) {
-			this.activeCursorClassName = cursorClasses[nextCursorIndex];
-			htmlEl.classList.add(this.activeCursorClassName);
-			this._updateButtonActiveState(targetButton, true);
-			this._logMenuChange(`Custom cursor: ${ this.activeCursorClassName.replace('ar-cursor-', '') }.`, true)
-		} else {
-			this.activeCursorClassName = 'default';
-			this._updateButtonActiveState(targetButton, false);
-			this._logMenuChange('Custom cursor reset.', false)
-		}
-	};
-	AR_AccessibilityMenuProto._handlePageZoomAction = function (action, targetButton) {
-		const rootElement = document.documentElement;
-		const zoomIncrement = 0.1;
-		if (action === 'zoom-in')
-			this.currentZoomLevel = Math.min(2, this.currentZoomLevel + zoomIncrement);
-		else if (action === 'zoom-out')
-			this.currentZoomLevel = Math.max(0.5, this.currentZoomLevel - zoomIncrement);
-		else if (action === 'reset-zoom')
-			this.currentZoomLevel = 1;
-		this.currentZoomLevel = parseFloat(this.currentZoomLevel.toFixed(2));
-		rootElement.style.transform = `scale(${ this.currentZoomLevel })`;
-		rootElement.classList.toggle('ar-page-zoom-active', this.currentZoomLevel !== 1);
-		this._logMenuChange(`Page zoom: ${ Math.round(this.currentZoomLevel * 100) }%.`, this.currentZoomLevel !== 1)
-	};
-	AR_AccessibilityMenuProto._startDragging = function (event) {
-		const panel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
-		if (!panel)
-			return;
-		const target = event.target;
-		const isButton = target.closest('button');
-		const isLegend = target.closest('legend');
-		const isPanelDirectClick = target === panel;
-		if (isButton) {
-			this.isDragging = false;
-			return
-		}
-		if (!isPanelDirectClick && !isLegend) {
-			this.isDragging = false;
-			return
-		}
-		this.isDragging = true;
-		panel.classList.add('dragging');
-		panel.style.cursor = 'grabbing';
-		panel.style.position = 'fixed';
-		const coords = getClientCoords(event);
-		const panelRect = panel.getBoundingClientRect();
-		panel.style.left = `${ panelRect.left }px`;
-		panel.style.top = `${ panelRect.top }px`;
-		panel.style.right = 'auto';
-		panel.style.bottom = 'auto';
-		this.offsetX = coords.clientX - panelRect.left;
-		this.offsetY = coords.clientY - panelRect.top;
-		if (event.type === 'touchstart')
-			event.preventDefault()
-	};
-	AR_AccessibilityMenuProto._doDragging = function (event) {
-		if (!this.isDragging)
-			return;
-		const panel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
-		if (!panel)
-			return;
-		const coords = getClientCoords(event);
-		let newLeft = coords.clientX - this.offsetX;
-		let newTop = coords.clientY - this.offsetY;
-		const maxX = window.innerWidth - panel.offsetWidth;
-		const maxY = window.innerHeight - panel.offsetHeight;
-		newLeft = Math.max(0, Math.min(newLeft, maxX));
-		newTop = Math.max(0, Math.min(newTop, maxY));
-		panel.style.left = `${ newLeft }px`;
-		panel.style.top = `${ newTop }px`;
-		if (event.type === 'touchmove')
-			event.preventDefault()
-	};
-	AR_AccessibilityMenuProto._stopDragging = function () {
-		if (this.isDragging) {
-			this.isDragging = false;
-			const panel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
-			if (panel) {
-				panel.classList.remove('dragging');
-				panel.style.cursor = 'grab'
-			}
-		}
-	};
-	AR_AccessibilityMenuProto._startButtonDragging = function (event) {
-		const button = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
-		if (!button)
-			return;
-		this.isButtonDragging = true;
-		button.classList.add('dragging');
-		button.style.cursor = 'grabbing';
-		this.isDraggingOccurred = false;
-		const coords = getClientCoords(event);
-		const buttonRect = button.getBoundingClientRect();
-		button.style.position = 'fixed';
-		button.style.left = `${ buttonRect.left }px`;
-		button.style.top = `${ buttonRect.top }px`;
-		button.style.right = 'auto';
-		button.style.bottom = 'auto';
-		button.style.transform = 'none';
-		this.buttonOffsetX = coords.clientX - buttonRect.left;
-		this.buttonOffsetY = coords.clientY - buttonRect.top;
-		if (event.type === 'touchstart')
-			event.preventDefault()
-	};
-	AR_AccessibilityMenuProto._doButtonDragging = function (event) {
-		if (!this.isButtonDragging)
-			return;
-		const button = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
-		if (!button)
-			return;
-		const coords = getClientCoords(event);
-		const currentRect = button.getBoundingClientRect();
-		if (Math.abs(coords.clientX - (currentRect.left + this.buttonOffsetX)) > 3 || Math.abs(coords.clientY - (currentRect.top + this.buttonOffsetY)) > 3) {
-			this.isDraggingOccurred = true
-		}
-		let newLeft = coords.clientX - this.buttonOffsetX;
-		let newTop = coords.clientY - this.buttonOffsetY;
-		const maxX = window.innerWidth - button.offsetWidth;
-		const maxY = window.innerHeight - button.offsetHeight;
-		newLeft = Math.max(0, Math.min(newLeft, maxX));
-		newTop = Math.max(0, Math.min(newTop, maxY));
-		button.style.left = `${ newLeft }px`;
-		button.style.top = `${ newTop }px`;
-		if (event.type === 'touchmove')
-			event.preventDefault()
-	};
-	AR_AccessibilityMenuProto._stopButtonDragging = function () {
-		if (this.isButtonDragging) {
-			this.isButtonDragging = false;
-			const button = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
-			if (button) {
-				button.classList.remove('dragging');
-				button.style.cursor = 'grab'
-			}
-		}
-	};
-	AR_AccessibilityMenuProto._resetAllMenuSettings = function () {
-		this._handleFontAction('reset-font', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="reset-font"]`));
-		this._handleContrastColorAction('reset-contrast', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="reset-contrast"]`));
-		this._handleTextSpacingAction('text-spacing-reset', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="text-spacing-reset"]`));
-		this._handleTextAlignAction('text-align-reset', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="text-align-reset"]`));
-		this._handleHighlightAction('reset-highlights', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="reset-highlights"]`));
-		if (ar_activeReadingGuideType) {
-			this._toggleReadingGuide(ar_activeReadingGuideType, document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-reading-${ ar_activeReadingGuideType }"]`))
+	SimpleMenu._resetAllSettings = function () {
+		this._handleTextSizeAction('reset-font', document.querySelector(`#${ MENU_PANEL_ID } button[data-action="reset-font"]`));
+		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_INVERT_COLORS);
+		this.activeContrastMode = 'default';
+		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action^="contrast-"]`).forEach(btn => this._updateButtonActiveState(btn, false));
+		document.body.classList.remove(CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS);
+		this.areLinksHighlighted = false;
+		this.isFocusEnhanced = false;
+		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action="highlight-links"], #${ MENU_PANEL_ID } button[data-action="enhanced-focus"]`).forEach(btn => this._updateButtonActiveState(btn, false));
+		if (this.areAnimationsStopped) {
+			this._handleStopAnimationsAction(document.querySelector(`#${ MENU_PANEL_ID } button[data-action="stop-animations"]`))
 		}
 		if (this.isDyslexiaFontActive) {
-			this._toggleDyslexiaFont(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-dyslexia-font"]`))
+			this._handleDyslexiaFontAction(document.querySelector(`#${ MENU_PANEL_ID } button[data-action="toggle-dyslexia-font"]`))
 		}
-		if (document.body.classList.contains(AR_CONFIG.ANIMATIONS_STOPPED_CLASS_NAME) || document.querySelector('img[data-ar-gif-frozen="true"], canvas[data-ar-frozen-gif-canvas="true"]')) {
-			this._toggleAnimations(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="stop-animations"]`))
-		}
-		if (this.isVirtualKeyboardActive) {
-			this._handleVirtualKeyboardAction(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-virtual-keyboard"]`))
-		}
-		if (this.isContentSimplified) {
-			this._handleContentSimplifierAction(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-content-simplifier"]`))
-		}
-		if (this.areImagesHidden) {
-			this._handleHideImagesAction(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-hide-images"]`))
-		}
-		this._stopReading();
-		if (this.isTextToSpeechActive) {
-			this._handleTextToSpeechAction(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-text-to-speech"]`))
-		}
-		const htmlEl = document.documentElement;
-		htmlEl.classList.remove(...[
-			'ar-cursor-large',
-			'ar-cursor-xlarge',
-			'ar-cursor-red',
-			'ar-cursor-green',
-			'ar-cursor-active-highlight'
-		]);
-		this.activeCursorClassName = 'default';
-		this._updateButtonActiveState(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-custom-cursor"]`), false);
-		this._handlePageZoomAction('reset-zoom', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="reset-zoom"]`));
-		Array.from(document.querySelectorAll(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button.ar-menu-btn-active:not(.ar-menu-reset-btn)`)).forEach(btn => btn.classList.remove('ar-menu-btn-active'));
-		this._logMenuChange('Reset all menu settings', true);
-		const panel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
-		const menuButton = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
-		const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
-		if (panel) {
-			panel.style.top = 'auto';
-			panel.style.left = 'auto';
-			if (docDir === 'rtl') {
-				panel.style.left = '20px';
-				panel.style.right = 'auto'
-			} else {
-				panel.style.right = '20px';
-				panel.style.left = 'auto'
-			}
-			panel.style.bottom = '90px'
-		}
-		if (menuButton) {
-			menuButton.style.top = '50%';
-			menuButton.style.transform = 'translateY(-50%)';
-			menuButton.style.left = 'auto';
-			menuButton.style.bottom = 'auto';
-			if (docDir === 'rtl') {
-				menuButton.style.left = '20px';
-				menuButton.style.right = 'auto'
-			} else {
-				menuButton.style.right = '20px';
-				menuButton.style.left = 'auto'
-			}
-		}
+		logAction('All settings reset', true)
 	};
-	AR_AccessibilityMenuProto._logMenuChange = function (actionDescription, isActive) {
-		if (typeof ar_logAccessibilityIssue === 'function') {
-			ar_logAccessibilityIssue('Info', `Accessibility Menu: ${ actionDescription }${ typeof isActive === 'boolean' ? isActive ? ' enabled.' : ' disabled.' : '.' }`, null, '', 'Operable', 'User Interface Customization', true, 'User')
+	SimpleMenu._startDragging = function (event, isButtonDrag) {
+		const element = isButtonDrag ? document.getElementById(MENU_BUTTON_ID) : document.getElementById(MENU_PANEL_ID);
+		if (!element)
+			return;
+		if (!isButtonDrag) {
+			const target = event.target;
+			const isButtonClick = target.closest('button');
+			const isLegendClick = target.closest('legend');
+			const isPanelDirectClick = target === element;
+			if (isButtonClick || !isPanelDirectClick && !isLegendClick) {
+				if (isButtonDrag)
+					this.isButtonDragging = false;
+				else
+					this.isPanelDragging = false;
+				return
+			}
+		}
+		if (isButtonDrag)
+			this.isButtonDragging = true;
+		else
+			this.isPanelDragging = true;
+		element.classList.add('dragging');
+		element.style.position = 'fixed';
+		const coords = getClientCoords(event);
+		const rect = element.getBoundingClientRect();
+		element.style.left = `${ rect.left }px`;
+		element.style.top = `${ rect.top }px`;
+		element.style.right = 'auto';
+		element.style.bottom = 'auto';
+		if (isButtonDrag)
+			element.style.transform = 'none';
+		if (isButtonDrag) {
+			this.buttonOffsetX = coords.clientX - rect.left;
+			this.buttonOffsetY = coords.clientY - rect.top;
+			this.buttonDragOccurred = false
 		} else {
-			console.log(`AR_Menu: ${ actionDescription } - ${ isActive === undefined ? '' : isActive }`)
+			this.panelOffsetX = coords.clientX - rect.left;
+			this.panelOffsetY = coords.clientY - rect.top
+		}
+		if (event.type === 'touchstart')
+			event.preventDefault()
+	};
+	SimpleMenu._handleButtonMouseDown = function (event) {
+		this._startDragging(event, true)
+	};
+	SimpleMenu._handlePanelMouseDown = function (event) {
+		this._startDragging(event, false)
+	};
+	SimpleMenu._handleDocumentMouseMove = function (event) {
+		let element, offsetX, offsetY, isDraggingFlag;
+		if (this.isButtonDragging) {
+			element = document.getElementById(MENU_BUTTON_ID);
+			offsetX = this.buttonOffsetX;
+			offsetY = this.buttonOffsetY;
+			isDraggingFlag = 'isButtonDragging';
+			this.buttonDragOccurred = true
+		} else if (this.isPanelDragging) {
+			element = document.getElementById(MENU_PANEL_ID);
+			offsetX = this.panelOffsetX;
+			offsetY = this.panelOffsetY;
+			isDraggingFlag = 'isPanelDragging'
+		} else {
+			return
+		}
+		if (!element)
+			return;
+		const coords = getClientCoords(event);
+		let newLeft = coords.clientX - offsetX;
+		let newTop = coords.clientY - offsetY;
+		newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - element.offsetWidth));
+		newTop = Math.max(0, Math.min(newTop, window.innerHeight - element.offsetHeight));
+		element.style.left = `${ newLeft }px`;
+		element.style.top = `${ newTop }px`;
+		if (event.type === 'touchmove')
+			event.preventDefault()
+	};
+	SimpleMenu._handleDocumentMouseUp = function () {
+		if (this.isButtonDragging) {
+			this.isButtonDragging = false;
+			const button = document.getElementById(MENU_BUTTON_ID);
+			if (button)
+				button.classList.remove('dragging')
+		}
+		if (this.isPanelDragging) {
+			this.isPanelDragging = false;
+			const panel = document.getElementById(MENU_PANEL_ID);
+			if (panel)
+				panel.classList.remove('dragging')
 		}
 	}
-}(AR_AccessibilityMenu))
+}(AR_SimpleAccessibilityMenu));
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+	setTimeout(function () {
+		AR_SimpleAccessibilityMenu.init()
+	}, 100)
+} else {
+	document.addEventListener('DOMContentLoaded', function () {
+		AR_SimpleAccessibilityMenu.init()
+	})
+}
