@@ -22,13 +22,13 @@
 
 * Link Accessibility-Resolver to your website externally:
 ```
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@63db66069161623a8ad0522111c39a931911c39b/config.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@63db66069161623a8ad0522111c39a931911c39b/logging.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@63db66069161623a8ad0522111c39a931911c39b/dom.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@63db66069161623a8ad0522111c39a931911c39b/menu.css">
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@63db66069161623a8ad0522111c39a931911c39b/menu.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@63db66069161623a8ad0522111c39a931911c39b/check.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@63db66069161623a8ad0522111c39a931911c39b/init.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@dab5e81dc1025caf0ed833f66d9d179eb4ce8c27/config.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@dab5e81dc1025caf0ed833f66d9d179eb4ce8c27/logging.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@dab5e81dc1025caf0ed833f66d9d179eb4ce8c27/dom.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@dab5e81dc1025caf0ed833f66d9d179eb4ce8c27/menu.css">
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@dab5e81dc1025caf0ed833f66d9d179eb4ce8c27/menu.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@dab5e81dc1025caf0ed833f66d9d179eb4ce8c27/check.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@dab5e81dc1025caf0ed833f66d9d179eb4ce8c27/init.js"></script>
 ```
 
 - - -
