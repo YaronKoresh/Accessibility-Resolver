@@ -21,12 +21,12 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 
 	Menu.isOpen = false;
 	Menu.isDyslexiaFontActive = false;
-	Menu.activeContrastMode = 'default'; 
+	Menu.activeContrastMode = 'default';
 	Menu.areLinksHighlighted = false;
 	Menu.isFocusEnhanced = false;
 	Menu.areAnimationsStopped = false;
-	Menu.isReadingAloud = false; 
-    Menu.fontScaleLevel = 0; 
+	Menu.isReadingAloud = false;
+    Menu.fontScaleLevel = 0;
     Menu.isReadingModeActive = false;
     Menu.isReadingMaskActive = false;
     Menu.isReadingLineActive = false;
@@ -34,11 +34,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 
 	Menu.isPanelDragging = false;
 	Menu.isButtonDragging = false;
-	Menu.buttonDragOccurred = false; 
-    Menu.buttonWasDragged = false; 
-    Menu.panelWasDragged = false; 
+	Menu.buttonDragOccurred = false;
+    Menu.buttonWasDragged = false;
+    Menu.panelWasDragged = false;
 
-	Menu._originalFontSizes = new Map(); 
+	Menu._originalFontSizes = new Map();
 	Menu._initialButtonX = 0; Menu._initialButtonY = 0;
 	Menu._initialPanelX = 0; Menu._initialPanelY = 0;
 	Menu._initialMouseX = 0; Menu._initialMouseY = 0;
@@ -54,22 +54,22 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
         'motor': {
             settings: { enhancedFocus: true, stopAnimations: true },
             labelKey: 'profileMotor',
-            iconPath: '<path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/>' 
+            iconPath: '<path d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/>'
         },
         'adhd': {
             settings: { stopAnimations: true, readingMode: true, readingLine: true },
             labelKey: 'profileADHD',
-            iconPath: '<path d="M11.5,6C8.46,6 5.83,7.43 4.42,9.59L2.93,8.1L1.87,9.16L3.87,11.16C3.67,11.46 3.5,11.72 3.5,12C3.5,12.28 3.67,12.54 3.87,12.84L1.87,14.84L2.93,15.9L4.42,14.41C5.83,16.57 8.46,18 11.5,18C14.54,18 17.17,16.57 18.58,14.41L20.07,15.9L21.13,14.84L19.13,12.84C19.33,12.54 19.5,12.28 19.5,12C19.5,11.72 19.33,11.46 19.13,11.16L21.13,9.16L20.07,8.1L18.58,9.59C17.17,7.43 14.54,6 11.5,6M11.5,8A4.5,4.5 0 0,1 16,12.5A4.5,4.5 0 0,1 11.5,17A4.5,4.5 0 0,1 7,12.5A4.5,4.5 0 0,1 11.5,8M11.5,10A2.5,2.5 0 0,0 9,12.5A2.5,2.5 0 0,0 11.5,15A2.5,2.5 0 0,0 14,12.5A2.5,2.5 0 0,0 11.5,10Z"/>' 
+            iconPath: '<path d="M11.5,6C8.46,6 5.83,7.43 4.42,9.59L2.93,8.1L1.87,9.16L3.87,11.16C3.67,11.46 3.5,11.72 3.5,12C3.5,12.28 3.67,12.54 3.87,12.84L1.87,14.84L2.93,15.9L4.42,14.41C5.83,16.57 8.46,18 11.5,18C14.54,18 17.17,16.57 18.58,14.41L20.07,15.9L21.13,14.84L19.13,12.84C19.33,12.54 19.5,12.28 19.5,12C19.5,11.72 19.33,11.46 19.13,11.16L21.13,9.16L20.07,8.1L18.58,9.59C17.17,7.43 14.54,6 11.5,6M11.5,8A4.5,4.5 0 0,1 16,12.5A4.5,4.5 0 0,1 11.5,17A4.5,4.5 0 0,1 7,12.5A4.5,4.5 0 0,1 11.5,8M11.5,10A2.5,2.5 0 0,0 9,12.5A2.5,2.5 0 0,0 11.5,15A2.5,2.5 0 0,0 14,12.5A2.5,2.5 0 0,0 11.5,10Z"/>'
         },
         'epileptic': {
             settings: { stopAnimations: true },
             labelKey: 'profileEpileptic',
-            iconPath: '<path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1Z"/>' 
+            iconPath: '<path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1Z"/>'
         },
         'vision': { 
             settings: { fontScaleLevel: 2, highlightLinks: true, activeContrastMode: 'high' },
             labelKey: 'profileVision',
-            iconPath: '<path d="M12,4.5C7,4.5 2.73,7.61 1,12c1.73,4.39 6,7.5 11,7.5s9.27-3.11 11-7.5C21.27,7.61 17,4.5 12,4.5zM12,17a4.5,4.5 0 1,1 0-9 4.5,4.5 0 0,1 0,9zm0-7a2.5,2.5 0 1,0 0,5 2.5,2.5 0 0,0 0-5z"/>' 
+            iconPath: '<path d="M12,4.5C7,4.5 2.73,7.61 1,12c1.73,4.39 6,7.5 11,7.5s9.27-3.11 11-7.5C21.27,7.61 17,4.5 12,4.5zM12,17a4.5,4.5 0 1,1 0-9 4.5,4.5 0 0,1 0,9zm0-7a2.5,2.5 0 1,0 0,5 2.5,2.5 0 0,0 0-5z"/>'
         }
     };
 
@@ -110,7 +110,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 
 	Menu.init = function () {
 		if (document.getElementById(MENU_BUTTON_ID)) { logAction('Already initialized.'); return; }
-		this._injectStyles();
 		this._createMenuButton();
 		this._createMenuPanel();
         this._createReadingAidElements(); 
@@ -119,184 +118,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
         this._loadSettings(); 
 		logAction('Initialized successfully.');
 	};
-
-	Menu._injectStyles = function () { 
-        const styleId = 'aaa-menu-styles';
-		if (document.getElementById(styleId)) return;
-		const css = `
-            @font-face { font-family: 'OpenDyslexic'; font-style: normal; font-display: swap; font-weight: 400; src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff'); }
-            @font-face { font-family: 'OpenDyslexic'; font-style: normal; font-display: swap; font-weight: 700; src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff'); }
-            
-            #${MENU_BUTTON_ID} { 
-                position: fixed !important; z-index: 2147483647 !important; 
-                background-color: #000000 !important; 
-                color: #ffffff !important; 
-                border: 2px solid #ffffff !important; 
-                border-radius: 50% !important; width: 70px !important; height: 70px !important; font-size: 36px !important; 
-                cursor: grab !important; box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important; 
-                display: flex !important; align-items: center !important; justify-content: center !important; 
-                padding: 0 !important;
-                filter: none !important;
-                font-family: 'Inter', Arial, sans-serif !important;
-                transition: none !important;
-            }
-            #${MENU_BUTTON_ID}:hover { 
-                background-color: #000000 !important; 
-            }
-            #${MENU_BUTTON_ID}:focus-visible {
-                 outline: 2px solid #ffffff !important; 
-                 outline-offset: 2px !important;
-            }
-            #${MENU_BUTTON_ID}.dragging { cursor: grabbing !important; }
-            #${MENU_BUTTON_ID} .ar-aaa-menu-icon { display: flex !important; align-items: center !important; justify-content: center !important; width: 60% !important; height: 60% !important; }
-            #${MENU_BUTTON_ID} .ar-aaa-menu-icon svg, #${MENU_BUTTON_ID} .ar-aaa-menu-icon svg * { 
-                fill: #ffffff !important; 
-                stroke: #ffffff !important;
-            }
-
-            #${MENU_PANEL_ID}, #${PAGE_STRUCTURE_PANEL_ID} { 
-                background-color: #ffffff !important; 
-                border: 2px solid #000000 !important; 
-                color: #000000 !important; 
-                filter: none !important;
-                font-family: 'Inter', Arial, sans-serif !important;
-            }
-            #${MENU_PANEL_ID} { display: none; position: fixed; width: 320px; max-height: 45vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 2147483646; padding: 15px; cursor: grab; }
-            #${MENU_PANEL_ID} h3#ar-aaa-menu-title, 
-            #${MENU_PANEL_ID} .ar-aaa-profile-title { 
-                margin-top: 0 !important; margin-bottom: 15px !important; font-size: 1.2em !important; 
-                color: #000000 !important; 
-                text-align: center !important; 
-                background-color: transparent !important;
-                font-family: 'Inter', Arial, sans-serif !important;
-            }
-            #${MENU_PANEL_ID} .ar-aaa-profile-title { text-align: left !important; font-weight: bold !important; }
-            #${MENU_PANEL_ID}.ar-aaa-menu-open { display: block !important; }
-            #${MENU_PANEL_ID} .ar-aaa-menu-group { margin-bottom: 15px !important; padding-bottom: 10px !important; border-bottom: 1px solid #000000 !important; }
-            #${MENU_PANEL_ID} .ar-aaa-menu-group:last-of-type { margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: none !important; }
-            #${MENU_PANEL_ID} .ar-aaa-button-row { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; }
-            #${MENU_PANEL_ID} button { 
-                flex: 1 1 calc(50% - 4px) !important; padding: 10px 12px !important; font-size: 1em !important; 
-                background-color: #ffffff !important; 
-                color: #000000 !important; 
-                border: 1px solid #000000 !important; 
-                border-radius: 4px !important; cursor: pointer !important; 
-                transition: none !important; 
-                display: flex !important; align-items: center !important; justify-content: center !important; gap: 6px !important; min-height: 40px !important;
-                font-family: 'Inter', Arial, sans-serif !important;
-            }
-            #${MENU_PANEL_ID} button:hover, #${MENU_PANEL_ID} button:focus-visible { 
-                background-color: #f0f0f0 !important; 
-                outline: 1px solid #000000 !important;
-            }
-            #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active { 
-                background-color: #000000 !important; 
-                color: #ffffff !important; 
-                border-color: #000000 !important; 
-            }
-            #${MENU_PANEL_ID} button.ar-aaa-fullwidth-btn { flex-basis: 100% !important; }
-            #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #e0e0e0 !important; border-color: #000000 !important; color: #000000 !important; }
-            #${MENU_PANEL_ID} button.ar-aaa-reset-btn:hover { background-color: #d0d0d0 !important; }
-            #${MENU_PANEL_ID} .ar-aaa-menu-icon svg, #${MENU_PANEL_ID} .ar-aaa-menu-icon svg * { fill: currentColor !important; stroke: currentColor !important; }
-
-            #${PAGE_STRUCTURE_PANEL_ID} { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; max-height: 70vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 2147483647; padding: 20px; }
-            #${PAGE_STRUCTURE_PANEL_ID} h3#ar-aaa-structure-title { margin-top: 0 !important; margin-bottom: 15px !important; font-size: 1.3em !important; color: #000000 !important; background-color: transparent !important; }
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4 { font-size: 1.1em !important; margin-bottom: 8px !important; color: #000000 !important; border-bottom: 1px solid #cccccc !important; padding-bottom: 5px !important; background-color: transparent !important;}
-            #${PAGE_STRUCTURE_PANEL_ID} ul { list-style: none !important; padding-left: 0 !important; margin:0 !important; }
-            #${PAGE_STRUCTURE_PANEL_ID} li button { display: block !important; width: 100% !important; text-align: left !important; padding: 8px 10px !important; background-color: #f9f9f9 !important; border: 1px solid #ccc !important; border-radius: 4px !important; margin-bottom: 5px !important; cursor: pointer !important; font-size: 0.9em !important; color: #000000 !important; transition: none !important; font-family: 'Inter', Arial, sans-serif !important;}
-            #${PAGE_STRUCTURE_PANEL_ID} li button:hover { background-color: #efefef !important; }
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn { display: block !important; margin: 15px auto 0 !important; padding: 8px 15px !important; background-color: #333 !important; color: #fff !important; border: 1px solid #000 !important; border-radius: 4px !important; cursor: pointer !important; font-family: 'Inter', Arial, sans-serif !important;}
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn:hover { background-color: #555 !important; }
-            
-            html.${CLASS_INVERT_COLORS} { filter: invert(100%) hue-rotate(180deg) !important; background-color: #fff !important; }
-            html.${CLASS_INVERT_COLORS} img, html.${CLASS_INVERT_COLORS} video, html.${CLASS_INVERT_COLORS} [style*="background-image"] { filter: invert(100%) hue-rotate(180deg) !important; }
-            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; }
-
-            body.${CLASS_HIGH_CONTRAST} { background-color: #fff !important; color: #000 !important; }
-            body.${CLASS_HIGH_CONTRAST} p, body.${CLASS_HIGH_CONTRAST} p[style],
-            body.${CLASS_HIGH_CONTRAST} span, body.${CLASS_HIGH_CONTRAST} span[style],
-            body.${CLASS_HIGH_CONTRAST} div:not(#${MENU_BUTTON_ID}):not(#${MENU_BUTTON_ID} *):not(#${MENU_PANEL_ID}):not(#${MENU_PANEL_ID} *):not(#${PAGE_STRUCTURE_PANEL_ID}):not(#${PAGE_STRUCTURE_PANEL_ID} *):not([class*="icon"]), 
-            body.${CLASS_HIGH_CONTRAST} div[style]:not(#${MENU_BUTTON_ID}):not(#${MENU_BUTTON_ID} *):not(#${MENU_PANEL_ID}):not(#${MENU_PANEL_ID} *):not(#${PAGE_STRUCTURE_PANEL_ID}):not(#${PAGE_STRUCTURE_PANEL_ID} *):not([class*="icon"]),
-            body.${CLASS_HIGH_CONTRAST} li, body.${CLASS_HIGH_CONTRAST} li[style],
-            body.${CLASS_HIGH_CONTRAST} h1, body.${CLASS_HIGH_CONTRAST} h1[style], 
-            body.${CLASS_HIGH_CONTRAST} h2, body.${CLASS_HIGH_CONTRAST} h2[style], 
-            body.${CLASS_HIGH_CONTRAST} h3:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), body.${CLASS_HIGH_CONTRAST} h3[style]:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), 
-            body.${CLASS_HIGH_CONTRAST} h4:not(#${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4), body.${CLASS_HIGH_CONTRAST} h4[style]:not(#${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4), 
-            body.${CLASS_HIGH_CONTRAST} h5, body.${CLASS_HIGH_CONTRAST} h5[style], 
-            body.${CLASS_HIGH_CONTRAST} h6, body.${CLASS_HIGH_CONTRAST} h6[style],
-            body.${CLASS_HIGH_CONTRAST} td, body.${CLASS_HIGH_CONTRAST} td[style], 
-            body.${CLASS_HIGH_CONTRAST} th, body.${CLASS_HIGH_CONTRAST} th[style],
-            body.${CLASS_HIGH_CONTRAST} label, body.${CLASS_HIGH_CONTRAST} label[style],
-            body.${CLASS_HIGH_CONTRAST} strong, body.${CLASS_HIGH_CONTRAST} strong[style], 
-            body.${CLASS_HIGH_CONTRAST} em, body.${CLASS_HIGH_CONTRAST} em[style], 
-            body.${CLASS_HIGH_CONTRAST} b, body.${CLASS_HIGH_CONTRAST} b[style], 
-            body.${CLASS_HIGH_CONTRAST} i, body.${CLASS_HIGH_CONTRAST} i[style],
-            body.${CLASS_HIGH_CONTRAST} small, body.${CLASS_HIGH_CONTRAST} small[style], 
-            body.${CLASS_HIGH_CONTRAST} big, body.${CLASS_HIGH_CONTRAST} big[style], 
-            body.${CLASS_HIGH_CONTRAST} sub, body.${CLASS_HIGH_CONTRAST} sub[style], 
-            body.${CLASS_HIGH_CONTRAST} sup, body.${CLASS_HIGH_CONTRAST} sup[style] {
-                background-color: transparent !important;
-                color: #000 !important;
-            }
-            body.${CLASS_HIGH_CONTRAST} a, body.${CLASS_HIGH_CONTRAST} a[style] { color: #0000EE !important; background-color: transparent !important; text-decoration: underline !important; }
-            body.${CLASS_HIGH_CONTRAST} svg:not(#${MENU_BUTTON_ID} svg):not(#${MENU_PANEL_ID} svg):not(#${PAGE_STRUCTURE_PANEL_ID} svg), 
-            body.${CLASS_HIGH_CONTRAST} svg *:not(#${MENU_BUTTON_ID} svg *):not(#${MENU_PANEL_ID} svg *):not(#${PAGE_STRUCTURE_PANEL_ID} svg *) { 
-                background-color: transparent !important; fill: #000 !important; stroke: #000 !important; 
-            }
-            body.${CLASS_HIGH_CONTRAST} button:not(#${MENU_BUTTON_ID}):not(#${MENU_PANEL_ID} button):not(#${PAGE_STRUCTURE_PANEL_ID} button), 
-            body.${CLASS_HIGH_CONTRAST} input, 
-            body.${CLASS_HIGH_CONTRAST} select, 
-            body.${CLASS_HIGH_CONTRAST} textarea { 
-                background-color: #eee !important; color: #000 !important; border: 1px solid #000 !important; 
-            }
-            
-            body.${CLASS_HIGHLIGHT_LINKS} a[href] { background-color: yellow !important; color: black !important; outline: 2px solid orange !important; border-radius: 2px; }
-            body.${CLASS_ENHANCED_FOCUS} *:focus-visible { outline: 3px solid #0056b3 !important; outline-offset: 2px !important; box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.4) !important; }
-            html.${CLASS_INVERT_COLORS} body.${CLASS_ENHANCED_FOCUS} *:focus-visible { outline-color: #FFFF00 !important; box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.5) !important; }
-            body.${CLASS_HIGH_CONTRAST}.${CLASS_ENHANCED_FOCUS} *:focus-visible { outline-color: #000000 !important; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.5) !important; }
-            
-            body.${CLASS_ANIMATIONS_STOPPED} *, body.${CLASS_ANIMATIONS_STOPPED} *::before, body.${CLASS_ANIMATIONS_STOPPED} *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0ms !important; }
-            body.${CLASS_DYSLEXIA_FONT} { font-family: 'OpenDyslexic', Arial, sans-serif !important; }
-            body.${CLASS_DYSLEXIA_FONT} *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) { font-family: inherit !important; }
-            body.${CLASS_READING_MODE} header, 
-            body.${CLASS_READING_MODE} footer, 
-            body.${CLASS_READING_MODE} nav, 
-            body.${CLASS_READING_MODE} aside,
-            body.${CLASS_READING_MODE} [role="banner"],
-            body.${CLASS_READING_MODE} [role="complementary"],
-            body.${CLASS_READING_MODE} [role="contentinfo"],
-            body.${CLASS_READING_MODE} [role="navigation"],
-            body.${CLASS_READING_MODE} [role="search"]
-            { display: none !important; }
-            body.${CLASS_READING_MODE} { font-size: 1.1em; line-height: 1.7; } 
-            body.${CLASS_READING_MODE} main, body.${CLASS_READING_MODE} article, body.${CLASS_READING_MODE} .content { width: 90% !important; max-width: 800px !important; margin: 20px auto !important; padding: 10px !important; }
-            .${READING_MASK_TOP_ID}, .${READING_MASK_BOTTOM_ID} { position: fixed; left: 0; width: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 2147483640; pointer-events: none; display: none; }
-            .${READING_MASK_TOP_ID} { top: 0; }
-            .${READING_MASK_BOTTOM_ID} { bottom: 0; }
-            .${READING_LINE_ID} { position: fixed; left: 0; width: 100%; height: 2px; background-color: #007bff; z-index: 2147483640; pointer-events: none; display: none; }
-            
-            #${MENU_PANEL_ID}, #${MENU_PANEL_ID} *, #${MENU_BUTTON_ID}, #${MENU_BUTTON_ID} * { font-family: 'Inter', Arial, sans-serif !important; }
-            @media (max-width: 480px) { 
-                #${MENU_PANEL_ID} { 
-                    width: calc(100% - ${2 * EDGE_MARGIN_PX}px); 
-                    left: ${EDGE_MARGIN_PX}px; 
-                    right: ${EDGE_MARGIN_PX}px; 
-                    bottom: ${EDGE_MARGIN_PX}px; 
-                    top: auto; 
-                    max-height: 45vh; 
-                } 
-                #${MENU_BUTTON_ID} { width: 50px; height: 50px; font-size: 24px; } 
-                #${MENU_PANEL_ID} button { flex-basis: 100%; } 
-                #${PAGE_STRUCTURE_PANEL_ID} { width: calc(100% - 20px); max-height: 80vh; }
-            }
-            .${CLASS_TEMP_HIGHLIGHT} { outline: 3px dashed #FFD700 !important; outline-offset: 2px !important; background-color: rgba(255,215,0,0.1) !important; transition: outline 0.2s ease-out, background-color 0.2s ease-out; }
-            .${CLASS_TEXT_SCALED} { font-size: var(--ar-scaled-font-size, inherit) !important; }
-        `;
-		const styleEl = document.createElement('style');
-		styleEl.id = styleId;
-		styleEl.textContent = css;
-		document.head.appendChild(styleEl);
-    };
 
 	Menu._createFilterOverlay = function () { };
 	Menu._createMenuButton = function () { const btn = document.createElement('button'); btn.id = MENU_BUTTON_ID; btn.setAttribute('aria-label', Menu._getLocalizedString('menuTitle')); btn.setAttribute('aria-expanded', 'false'); btn.setAttribute('aria-controls', MENU_PANEL_ID); const accessibilityIconSVG = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/></svg>'; btn.innerHTML = `<span class="ar-aaa-menu-icon" role="img" aria-label="${Menu._getLocalizedString('accessibilityIcon')}">${accessibilityIconSVG}</span>`; btn.style.right = '20px'; btn.style.top = '50%'; btn.style.transform = 'translateY(-50%)'; btn.style.left = 'auto'; btn.style.bottom = 'auto'; document.body.appendChild(btn); btn.addEventListener('mousedown', this._handleButtonMouseDown.bind(this)); btn.addEventListener('touchstart', this._handleButtonMouseDown.bind(this), { passive: false }); };
@@ -688,7 +509,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
     };
 
 	if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () { AR_AccessibilityMenu.init(); });
-    } else { AR_AccessibilityMenu.init(); }
+        document.addEventListener('DOMContentLoaded', function () { 
+            AR_AccessibilityMenu.init();
+        });
+    } else { 
+        AR_AccessibilityMenu.init(); 
+    }
 
 }(AR_AccessibilityMenu));
