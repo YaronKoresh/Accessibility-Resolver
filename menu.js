@@ -4,7 +4,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto.readingGuideLineElement = null;
 	AR_AccessibilityMenuProto.readingMaskTopElement = null;
 	AR_AccessibilityMenuProto.readingMaskBottomElement = null;
-	AR_AccessibilityMenuProto.currentFontSizeMultiplier = 1;
 	AR_AccessibilityMenuProto.activeContrastModeClassName = 'default';
 	AR_AccessibilityMenuProto.isDyslexiaFontActive = false;
 	AR_AccessibilityMenuProto.isVirtualKeyboardActive = false;
@@ -24,7 +23,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto.currentZoomLevel = 1;
 	AR_AccessibilityMenuProto.activeCursorClassName = 'default';
 	AR_AccessibilityMenuProto.filterOverlayElement = null;
-	AR_AccessibilityMenuProto._initialComputedFontSizes = new Map();
 	AR_AccessibilityMenuProto._boundUpdateReadingGuide = null;
 	AR_AccessibilityMenuProto._boundReadClickedText = null;
 	function getClientCoords(event) {
@@ -51,6 +49,22 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (document.getElementById(styleId))
 			return;
 		const css = `
+            /* OpenDyslexic Font Face Rules */
+            @font-face {
+              font-family: 'OpenDyslexic';
+              font-style: normal;
+              font-display: auto;
+              font-weight: 400;
+              src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.ttf) format('truetype');
+            }
+            @font-face {
+              font-family: 'OpenDyslexic';
+              font-style: normal;
+              font-display: auto;
+              font-weight: 700;
+              src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.ttf) format('truetype');
+            }
+
             /* Main Menu Button */
             #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } {
                 position: fixed; bottom: 20px; z-index: 2147483647;
@@ -485,54 +499,47 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			console.warn('AR_Menu: ar_getElementsForMenuTextStyleAdjustments() not found or returned empty. Using fallback selector for font adjustments.');
 			elementsForFontAdjust = Array.from(document.querySelectorAll('p, li, span, div:not(#' + AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID + '):not(#' + AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID + '), h1, h2, h3, h4, h5, h6, a, label, td, th, caption'))
 		}
-		const increment = AR_CONFIG && AR_CONFIG.DEFAULT_FONT_SIZE_ADJUSTMENT_INCREMENT || 0.1;
-		const maxMultiplier = AR_CONFIG && AR_CONFIG.MAX_FONT_SIZE_ADJUSTMENT_MULTIPLIER || 3;
-		const minMultiplier = AR_CONFIG && AR_CONFIG.MIN_FONT_SIZE_ADJUSTMENT_MULTIPLIER || 0.6;
+		const FONT_SIZE_MULTIPLIER = 1.1;
+		let factor = 1;
 		let decreaseButton, increaseButton;
 		if (targetButton && targetButton.parentElement) {
 			decreaseButton = targetButton.parentElement.querySelector('[data-action="decrease-font"]');
 			increaseButton = targetButton.parentElement.querySelector('[data-action="increase-font"]')
 		}
 		if (action === 'increase-font') {
-			this.currentFontSizeMultiplier = Math.min(maxMultiplier, this.currentFontSizeMultiplier + increment);
+			factor = FONT_SIZE_MULTIPLIER;
 			if (decreaseButton)
-				this._updateButtonActiveState(decreaseButton, false)
+				this._updateButtonActiveState(decreaseButton, false);
+			if (targetButton)
+				this._updateButtonActiveState(targetButton, true)
 		} else if (action === 'decrease-font') {
-			this.currentFontSizeMultiplier = Math.max(minMultiplier, this.currentFontSizeMultiplier - increment);
+			factor = 1 / FONT_SIZE_MULTIPLIER;
 			if (increaseButton)
-				this._updateButtonActiveState(increaseButton, false)
+				this._updateButtonActiveState(increaseButton, false);
+			if (targetButton)
+				this._updateButtonActiveState(targetButton, true)
 		} else if (action === 'reset-font') {
-			this.currentFontSizeMultiplier = 1;
 			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
 			if (parentFieldset) {
 				parentFieldset.querySelectorAll('button[data-action="increase-font"], button[data-action="decrease-font"]').forEach(b => this._updateButtonActiveState(b, false))
 			}
+			this._applyFontSize(elementsForFontAdjust, 0);
+			this._logMenuChange('Font size reset.', true);
+			return
 		}
-		this._applyFontSize(elementsForFontAdjust, action === 'reset-font');
-		if (action !== 'reset-font' && targetButton)
-			this._updateButtonActiveState(targetButton, true);
-		this._logMenuChange(`Font size adjusted to ${ this.currentFontSizeMultiplier.toFixed(1) }x.`, action !== 'reset-font')
+		this._applyFontSize(elementsForFontAdjust, factor);
+		this._logMenuChange(`Font size adjusted by ${ factor > 1 ? 'x' + factor.toFixed(1) : '/' + (1 / factor).toFixed(1) }.`, true)
 	};
-	AR_AccessibilityMenuProto._applyFontSize = function (elements, reset) {
+	AR_AccessibilityMenuProto._applyFontSize = function (elements, factor) {
 		elements.forEach(el => {
 			const styleProp = 'font-size';
-			if (reset) {
-				if (typeof ar_restoreOriginalInlineStyle === 'function') {
-					ar_restoreOriginalInlineStyle(el, styleProp)
-				} else if (this._initialComputedFontSizes.has(el)) {
-					el.style.fontSize = ''
-				}
-				this._initialComputedFontSizes.delete(el)
+			if (factor === 0) {
+				el.style.removeProperty(styleProp)
 			} else {
-				if (!this._initialComputedFontSizes.has(el)) {
-					this._initialComputedFontSizes.set(el, parseFloat(window.getComputedStyle(el).fontSize))
-				}
-				const baseSize = this._initialComputedFontSizes.get(el);
-				if (!isNaN(baseSize) && baseSize > 0) {
-					if (typeof ar_storeOriginalInlineStyle === 'function' && (!ar_originalElementStylesMap || !ar_originalElementStylesMap.has(el) || !ar_originalElementStylesMap.get(el).hasOwnProperty(styleProp))) {
-						ar_storeOriginalInlineStyle(el, styleProp)
-					}
-					el.style.setProperty(styleProp, `${ baseSize * this.currentFontSizeMultiplier }px`, 'important')
+				const currentSizeString = window.getComputedStyle(el).fontSize;
+				const currentSize = parseFloat(currentSizeString);
+				if (!isNaN(currentSize) && currentSize > 0) {
+					el.style.setProperty(styleProp, `${ currentSize * factor }px`, 'important')
 				}
 			}
 		})
@@ -585,15 +592,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto._toggleDyslexiaFont = function (buttonElement) {
 		const body = document.body;
 		this.isDyslexiaFontActive = !this.isDyslexiaFontActive;
-		const dyslexiaFontUrl = AR_CONFIG && AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_STYLESHEET_URL || 'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css';
 		if (this.isDyslexiaFontActive) {
-			if (!document.getElementById('ar-dyslexia-font-stylesheet')) {
-				const fontLink = document.createElement('link');
-				fontLink.id = 'ar-dyslexia-font-stylesheet';
-				fontLink.rel = 'stylesheet';
-				fontLink.href = dyslexiaFontUrl;
-				document.head.appendChild(fontLink)
-			}
 			body.classList.add(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
 		} else {
 			body.classList.remove(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
@@ -802,16 +801,23 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				img.dataset.arOriginalSrc = img.src;
 				img.dataset.arOriginalAlt = img.alt || '';
 				img.dataset.arOriginalDisplay = img.style.display || '';
+				img.dataset.arOriginalWidth = img.offsetWidth + 'px';
+				img.dataset.arOriginalHeight = img.offsetHeight + 'px';
 				const tempImage = new Image();
 				tempImage.crossOrigin = 'Anonymous';
 				tempImage.onload = () => {
 					const canvas = document.createElement('canvas');
-					canvas.width = tempImage.naturalWidth || img.width || 50;
-					canvas.height = tempImage.naturalHeight || img.height || 50;
+					canvas.width = tempImage.naturalWidth || img.offsetWidth || 50;
+					canvas.height = tempImage.naturalHeight || img.offsetHeight || 50;
 					canvas.className = img.className;
 					canvas.style.cssText = img.style.cssText;
-					canvas.style.width = `${ canvas.width }px`;
-					canvas.style.height = `${ canvas.height }px`;
+					canvas.style.width = img.dataset.arOriginalWidth;
+					canvas.style.height = img.dataset.arOriginalHeight;
+					if (window.getComputedStyle(img).display === 'inline') {
+						canvas.style.display = 'inline-block'
+					} else {
+						canvas.style.display = img.dataset.arOriginalDisplay || 'block'
+					}
 					canvas.setAttribute('role', 'img');
 					canvas.setAttribute('aria-label', img.dataset.arOriginalAlt || `Frozen animation: ${ img.src.split('/').pop() }`);
 					canvas.dataset.arFrozenGifCanvas = 'true';
@@ -853,6 +859,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 							'arOriginalSrc',
 							'arOriginalAlt',
 							'arOriginalDisplay',
+							'arOriginalWidth',
+							'arOriginalHeight',
 							'arGifFrozenFallback'
 						].forEach(attr => delete originalImg.dataset[attr])
 					}
@@ -868,7 +876,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 					'arGifFrozenFallback',
 					'arOriginalSrc',
 					'arOriginalAlt',
-					'arOriginalDisplay'
+					'arOriginalDisplay',
+					'arOriginalWidth',
+					'arOriginalHeight'
 				].forEach(attr => delete img.dataset[attr])
 			})
 		}
@@ -877,15 +887,21 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto._handleVirtualKeyboardAction = function (targetButton) {
 		this.isVirtualKeyboardActive = !this.isVirtualKeyboardActive;
 		this._updateButtonActiveState(targetButton, this.isVirtualKeyboardActive);
-		if (this.isVirtualKeyboardActive)
-			this._createVirtualKeyboard();
-		else
-			this._removeVirtualKeyboard();
+		if (this.isVirtualKeyboardActive) {
+			this._createVirtualKeyboard()
+		} else {
+			this._removeVirtualKeyboard()
+		}
 		this._logMenuChange('Virtual keyboard', this.isVirtualKeyboardActive)
 	};
 	AR_AccessibilityMenuProto._createVirtualKeyboard = function () {
-		if (this.virtualKeyboardElement)
-			return;
+		if (this.virtualKeyboardElement && document.body.contains(this.virtualKeyboardElement)) {
+			this.virtualKeyboardElement.classList.remove('hidden');
+			return
+		}
+		if (this.virtualKeyboardElement) {
+			this.virtualKeyboardElement = null
+		}
 		this.virtualKeyboardElement = document.createElement('div');
 		this.virtualKeyboardElement.id = 'ar-virtual-keyboard';
 		this.virtualKeyboardElement.setAttribute('role', 'group');
@@ -1000,11 +1016,12 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	};
 	AR_AccessibilityMenuProto._removeVirtualKeyboard = function () {
 		if (this.virtualKeyboardElement) {
-			this.virtualKeyboardElement.classList.add('hidden');
-			this.virtualKeyboardElement.addEventListener('transitionend', () => {
-				if (this.virtualKeyboardElement && this.virtualKeyboardElement.classList.contains('hidden')) {
-					this.virtualKeyboardElement.remove();
-					this.virtualKeyboardElement = null
+			const keyboardToRemove = this.virtualKeyboardElement;
+			this.virtualKeyboardElement = null;
+			keyboardToRemove.classList.add('hidden');
+			keyboardToRemove.addEventListener('transitionend', () => {
+				if (keyboardToRemove && keyboardToRemove.parentNode) {
+					keyboardToRemove.remove()
 				}
 			}, { once: true })
 		}
