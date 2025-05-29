@@ -275,18 +275,26 @@
  body.ar-aaa-dyslexia-font *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) {
 	 font-family: inherit !important;
 }
- body.ar-aaa-reading-mode header, body.ar-aaa-reading-mode footer, body.ar-aaa-reading-mode nav, body.ar-aaa-reading-mode aside, body.ar-aaa-reading-mode [role="banner"], body.ar-aaa-reading-mode [role="complementary"], body.ar-aaa-reading-mode [role="contentinfo"], body.ar-aaa-reading-mode [role="navigation"], body.ar-aaa-reading-mode [role="search"] {
+ body.ar-aaa-reading-mode > *:not(main):not(article):not([role="main"]):not(#aaa-menu-button):not(#aaa-menu-panel):not(#aaa-page-structure-panel):not(.aaa-reading-mask-top):not(.aaa-reading-mask-bottom):not(.aaa-reading-line) {
 	 display: none !important;
 }
  body.ar-aaa-reading-mode {
 	 font-size: 1.1em !important;
 	 line-height: 1.7 !important;
+	 max-width: none !important;
+	 margin: 0 !important;
+	 padding: 0 !important;
 }
- body.ar-aaa-reading-mode main, body.ar-aaa-reading-mode article, body.ar-aaa-reading-mode .content {
+ body.ar-aaa-reading-mode main, body.ar-aaa-reading-mode article, body.ar-aaa-reading-mode .content, body.ar-aaa-reading-mode [role="main"] {
+	 display: block !important;
 	 width: 90% !important;
 	 max-width: 800px !important;
 	 margin: 20px auto !important;
 	 padding: 10px !important;
+	 background-color: #ffffff !important;
+	 color: #000000 !important;
+	 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+	 border-radius: 8px;
 }
  .aaa-reading-mask-top, .aaa-reading-mask-bottom {
 	 position: fixed !important;
@@ -295,7 +303,7 @@
 	 background-color: rgba(0, 0, 0, 0.7) !important;
 	 z-index: 2147483640 !important;
 	 pointer-events: none !important;
-	 display: none !important;
+	 display: none;
 }
  .aaa-reading-mask-top {
 	 top: 0 !important;
@@ -311,7 +319,7 @@
 	 background-color: #007bff !important;
 	 z-index: 2147483640 !important;
 	 pointer-events: none !important;
-	 display: none !important;
+	 display: none;
 }
  #aaa-menu-panel, #aaa-menu-panel *, #aaa-menu-button, #aaa-menu-button * {
 	 font-family: 'Inter', Arial, sans-serif !important;
