@@ -22,10 +22,10 @@
 
 * Link Accessibility-Resolver to your website externally:
 ```
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@3a924f1f5d78dc8462a5ddca9f02521a55386f36/config.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@d7939be613e2bc77cf0e61370864c2ed41aedec7/config.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@3a924f1f5d78dc8462a5ddca9f02521a55386f36/logging.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@3a924f1f5d78dc8462a5ddca9f02521a55386f36/dom.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@3a924f1f5d78dc8462a5ddca9f02521a55386f36/menu.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@d7939be613e2bc77cf0e61370864c2ed41aedec7/menu.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@3a924f1f5d78dc8462a5ddca9f02521a55386f36/check.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@3a924f1f5d78dc8462a5ddca9f02521a55386f36/init.js"></script>
 ```
