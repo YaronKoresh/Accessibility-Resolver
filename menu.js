@@ -188,15 +188,26 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center p, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center li, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center span, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }), .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center a, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center button, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center input, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center textarea, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h1, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h2, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h3, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h4, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h5, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h6 { text-align: center !important; }
 
             /* Dyslexia Font */
-            .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } body *:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *),
-            .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } p, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } li, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } span, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *), .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } a, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } button:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button), .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } input, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } textarea, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } select, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h1, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h2, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h3, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h4, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h5, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h6 { font-family: 'OpenDyslexic', sans-serif !important; }
+            body.${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } {
+                font-family: 'OpenDyslexic', sans-serif !important;
+            }
+            body.${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } *:not(script):not(style):not(link) {
+                font-family: inherit !important;
+            }
+            /* Explicitly set menu font back to its original, overriding dyslexia font */
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }, 
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *,
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID },
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } * {
+                font-family: 'Inter', sans-serif !important; /* Assuming Inter is the menu's base font */
+            }
 
             /* Contrast & Color Filters */
             #ar-filter-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2147483645; transition: filter 0.3s ease-in-out; display: none; }
-            body.${ AR_CONFIG.HIGH_CONTRAST_MODE_CLASS_NAME } ~ #ar-filter-overlay { filter: contrast(200%) brightness(120%) !important; display: block !important; }
-            body.${ AR_CONFIG.INVERTED_CONTRAST_MODE_CLASS_NAME } ~ #ar-filter-overlay { filter: invert(100%) hue-rotate(180deg) !important; display: block !important; }
-            body.${ AR_CONFIG.GRAYSCALE_CONTRAST_MODE_CLASS_NAME } ~ #ar-filter-overlay { filter: grayscale(100%) !important; display: block !important; }
-            body.${ AR_CONFIG.SATURATION_FILTER_CLASS_NAME } ~ #ar-filter-overlay { filter: saturate(30%) !important; display: block !important; }
+            body.${ AR_CONFIG.HIGH_CONTRAST_MODE_CLASS_NAME } #ar-filter-overlay { filter: contrast(200%) brightness(120%) !important; display: block !important; }
+            body.${ AR_CONFIG.INVERTED_CONTRAST_MODE_CLASS_NAME } #ar-filter-overlay { filter: invert(100%) hue-rotate(180deg) !important; display: block !important; }
+            body.${ AR_CONFIG.GRAYSCALE_CONTRAST_MODE_CLASS_NAME } #ar-filter-overlay { filter: grayscale(100%) !important; display: block !important; }
+            body.${ AR_CONFIG.SATURATION_FILTER_CLASS_NAME } #ar-filter-overlay { filter: saturate(30%) !important; display: block !important; }
 
 
             /* Ensure menu UI is not affected by filters */
@@ -265,11 +276,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (!this.filterOverlayElement) {
 			this.filterOverlayElement = document.createElement('div');
 			this.filterOverlayElement.id = 'ar-filter-overlay';
-			if (document.body.firstChild) {
-				document.body.insertBefore(this.filterOverlayElement, document.body.firstChild.nextSibling)
-			} else {
-				document.body.appendChild(this.filterOverlayElement)
-			}
+			document.body.appendChild(this.filterOverlayElement)
 		}
 	};
 	AR_AccessibilityMenuProto._getMenuIconSVG = function (pathData, altText = '') {
@@ -470,10 +477,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 	};
 	AR_AccessibilityMenuProto._handleFontAction = function (action, targetButton) {
-		const elementsForFontAdjust = typeof ar_getElementsForMenuTextStyleAdjustments === 'function' ? ar_getElementsForMenuTextStyleAdjustments() : Array.from(document.querySelectorAll('p, li, span, div, h1, h2, h3, h4, h5, h6, a, button, input, textarea'));
-		const increment = AR_CONFIG.DEFAULT_FONT_SIZE_ADJUSTMENT_INCREMENT || 0.1;
-		const maxMultiplier = AR_CONFIG.MAX_FONT_SIZE_ADJUSTMENT_MULTIPLIER || 3;
-		const minMultiplier = AR_CONFIG.MIN_FONT_SIZE_ADJUSTMENT_MULTIPLIER || 0.6;
+		let elementsForFontAdjust = [];
+		if (typeof ar_getElementsForMenuTextStyleAdjustments === 'function') {
+			elementsForFontAdjust = ar_getElementsForMenuTextStyleAdjustments()
+		}
+		if (!elementsForFontAdjust || elementsForFontAdjust.length === 0) {
+			console.warn('AR_Menu: ar_getElementsForMenuTextStyleAdjustments() not found or returned empty. Using fallback selector for font adjustments.');
+			elementsForFontAdjust = Array.from(document.querySelectorAll('p, li, span, div:not(#' + AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID + '):not(#' + AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID + '), h1, h2, h3, h4, h5, h6, a, label, td, th, caption'))
+		}
+		const increment = AR_CONFIG && AR_CONFIG.DEFAULT_FONT_SIZE_ADJUSTMENT_INCREMENT || 0.1;
+		const maxMultiplier = AR_CONFIG && AR_CONFIG.MAX_FONT_SIZE_ADJUSTMENT_MULTIPLIER || 3;
+		const minMultiplier = AR_CONFIG && AR_CONFIG.MIN_FONT_SIZE_ADJUSTMENT_MULTIPLIER || 0.6;
 		let decreaseButton, increaseButton;
 		if (targetButton && targetButton.parentElement) {
 			decreaseButton = targetButton.parentElement.querySelector('[data-action="decrease-font"]');
@@ -503,10 +517,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		elements.forEach(el => {
 			const styleProp = 'font-size';
 			if (reset) {
-				if (typeof ar_restoreOriginalInlineStyle === 'function')
-					ar_restoreOriginalInlineStyle(el, styleProp);
-				else if (this._initialComputedFontSizes.has(el))
-					el.style.fontSize = '';
+				if (typeof ar_restoreOriginalInlineStyle === 'function') {
+					ar_restoreOriginalInlineStyle(el, styleProp)
+				} else if (this._initialComputedFontSizes.has(el)) {
+					el.style.fontSize = ''
+				}
 				this._initialComputedFontSizes.delete(el)
 			} else {
 				if (!this._initialComputedFontSizes.has(el)) {
@@ -530,7 +545,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			'text-spacing-line': AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME
 		};
 		if (action === 'text-spacing-reset') {
-			bodyEl.classList.remove(...Object.values(spacingClasses));
+			bodyEl.classList.remove(spacingClasses['text-spacing-letter'], spacingClasses['text-spacing-word'], spacingClasses['text-spacing-line']);
 			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
 			if (parentFieldset)
 				parentFieldset.querySelectorAll('button[data-action^="text-spacing-"]:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false));
@@ -570,12 +585,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto._toggleDyslexiaFont = function (buttonElement) {
 		const body = document.body;
 		this.isDyslexiaFontActive = !this.isDyslexiaFontActive;
+		const dyslexiaFontUrl = AR_CONFIG && AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_STYLESHEET_URL || 'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css';
 		if (this.isDyslexiaFontActive) {
 			if (!document.getElementById('ar-dyslexia-font-stylesheet')) {
 				const fontLink = document.createElement('link');
 				fontLink.id = 'ar-dyslexia-font-stylesheet';
 				fontLink.rel = 'stylesheet';
-				fontLink.href = AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_STYLESHEET_URL;
+				fontLink.href = dyslexiaFontUrl;
 				document.head.appendChild(fontLink)
 			}
 			body.classList.add(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
@@ -1257,11 +1273,15 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const panel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
 		if (!panel)
 			return;
-		const isButton = event.target.closest('button');
-		const isInteractiveInsidePanel = event.target.closest('a, input, select, textarea') && panel.contains(event.target);
-		const isLegend = event.target.closest('legend');
-		const isPanelDirect = event.target === panel;
-		if (isButton || isInteractiveInsidePanel && !isLegend || !isPanelDirect && !isLegend) {
+		const target = event.target;
+		const isButton = target.closest('button');
+		const isLegend = target.closest('legend');
+		const isPanelDirectClick = target === panel;
+		if (isButton) {
+			this.isDragging = false;
+			return
+		}
+		if (!isPanelDirectClick && !isLegend) {
 			this.isDragging = false;
 			return
 		}
