@@ -109,177 +109,89 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (document.getElementById(styleId))
 			return;
 		const css = `
-            /* OpenDyslexic Font Rules */
             @font-face {
-                font-family: 'OpenDyslexic';
-                font-style: normal;
-                font-display: swap;
-                font-weight: 400;
+                font-family: 'OpenDyslexic'; font-style: normal; font-display: swap; font-weight: 400;
                 src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'),
                      url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff');
             }
             @font-face {
-                font-family: 'OpenDyslexic';
-                font-style: normal;
-                font-display: swap;
-                font-weight: 700;
+                font-family: 'OpenDyslexic'; font-style: normal; font-display: swap; font-weight: 700;
                 src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'),
                      url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff');
             }
 
-            /* Menu Button */
             #${ MENU_BUTTON_ID } {
-                position: fixed;
-                z-index: 2147483647; /* Highest z-index */
-                background-color: #0056b3; /* Dark blue */
-                color: white !important;
-                border: none;
-                border-radius: 50%;
-                width: 70px; /* Adjusted size */
-                height: 70px; /* Adjusted size */
-                font-size: 36px; /* Icon size within button */
-                cursor: grab;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: background-color 0.2s, box-shadow 0.2s;
-                padding: 0; /* Ensure SVG fits well */
+                position: fixed; z-index: 2147483647; background-color: #0056b3; color: white !important;
+                border: none; border-radius: 50%; width: 70px; height: 70px; font-size: 36px;
+                cursor: grab; box-shadow: 0 2px 10px rgba(0,0,0,0.2); display: flex;
+                align-items: center; justify-content: center; transition: background-color 0.2s, box-shadow 0.2s; padding: 0;
             }
             #${ MENU_BUTTON_ID }:hover, #${ MENU_BUTTON_ID }:focus-visible {
-                background-color: #003d82; /* Darker blue on hover/focus */
-                outline: 2px solid #007bff;
-                outline-offset: 2px;
+                background-color: #003d82; outline: 2px solid #007bff; outline-offset: 2px;
             }
             #${ MENU_BUTTON_ID }.dragging { cursor: grabbing; }
-
             #${ MENU_BUTTON_ID } .ar-aaa-menu-icon {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                width: 60% !important; /* Control icon size relative to button */
-                height: 60% !important;
+                display: flex; align-items: center; justify-content: center;
+                width: 60% !important; height: 60% !important;
             }
-            #${ MENU_BUTTON_ID } .ar-aaa-menu-icon svg {
-                width: 100% !important;
-                height: 100% !important;
-                fill: currentColor !important;
-            }
+            #${ MENU_BUTTON_ID } .ar-aaa-menu-icon svg { width: 100% !important; height: 100% !important; fill: currentColor !important; }
 
-            /* Menu Panel */
             #${ MENU_PANEL_ID } {
-                display: none;
-                position: fixed;
-                width: 320px;
-                max-height: calc(100vh - 100px); /* Leave space around panel */
-                overflow-y: auto;
-                background-color: white;
-                border: 1px solid #0056b3; /* Dark blue border */
-                border-radius: 8px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-                z-index: 2147483646; /* Just below the button */
-                padding: 15px;
-                font-family: 'Inter', Arial, sans-serif; /* Consistent font */
-                font-size: 14px;
-                color: #333; /* Default text color in panel */
-                cursor: grab; /* Panel itself is draggable */
+                display: none; position: fixed; width: 320px; max-height: calc(100vh - 100px);
+                overflow-y: auto; background-color: white; border: 1px solid #0056b3;
+                border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 2147483646;
+                padding: 15px; font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #333; cursor: grab;
             }
             #${ MENU_PANEL_ID } h3 {
-                margin-top: 0;
-                margin-bottom: 15px;
-                font-size: 1.2em;
-                color: #0056b3; /* Dark blue title */
-                text-align: center;
-                cursor: grab; /* Title is also draggable */
+                margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: #0056b3; text-align: center; cursor: grab;
             }
             #${ MENU_PANEL_ID }.ar-aaa-menu-open { display: block; }
-            #${ MENU_PANEL_ID } .ar-aaa-menu-group {
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-                border-bottom: 1px solid #e9ecef; /* Light separator */
-            }
-            #${ MENU_PANEL_ID } .ar-aaa-menu-group:last-of-type {
-                margin-bottom: 0;
-                padding-bottom: 0;
-                border-bottom: none;
-            }
-            #${ MENU_PANEL_ID } .ar-aaa-button-row {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 8px;
-            }
+            #${ MENU_PANEL_ID } .ar-aaa-menu-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e9ecef; }
+            #${ MENU_PANEL_ID } .ar-aaa-menu-group:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+            #${ MENU_PANEL_ID } .ar-aaa-button-row { display: flex; flex-wrap: wrap; gap: 8px; }
             #${ MENU_PANEL_ID } button {
-                flex: 1 1 calc(50% - 4px); /* Two buttons per row with gap */
-                padding: 8px 10px;
-                font-size: 0.95em;
-                background-color: #f8f9fa; /* Light gray background */
-                color: #0056b3 !important; /* Dark blue text */
-                border: 1px solid #0056b3; /* Dark blue border */
-                border-radius: 4px;
-                cursor: pointer;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 6px; /* Space between icon and text */
-                min-height: 38px; /* Ensure consistent button height */
+                flex: 1 1 calc(50% - 4px); padding: 8px 10px; font-size: 0.95em; background-color: #f8f9fa;
+                color: #0056b3 !important; border: 1px solid #0056b3; border-radius: 4px; cursor: pointer;
+                transition: background-color 0.2s, border-color 0.2s, color 0.2s; display: flex;
+                align-items: center; justify-content: center; gap: 6px; min-height: 38px;
             }
             #${ MENU_PANEL_ID } button:hover, #${ MENU_PANEL_ID } button:focus-visible {
-                background-color: #e9ecef; /* Slightly darker gray on hover */
-                border-color: #003d82;
-                outline: 1px solid #0056b3;
+                background-color: #e9ecef; border-color: #003d82; outline: 1px solid #0056b3;
             }
             #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active {
-                background-color: #0056b3 !important; /* Dark blue active */
-                color: white !important;
-                border-color: #003d82 !important;
+                background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important;
             }
-            #${ MENU_PANEL_ID } button.ar-aaa-fullwidth-btn {
-                flex-basis: 100%; /* Full width button */
+            #${ MENU_PANEL_ID } button.ar-aaa-fullwidth-btn { flex-basis: 100%; }
+            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn {
+                background-color: #d1ecf1; border-color: #007bff; color: #004085 !important;
             }
-            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn { /* Specific style for reset button */
-                background-color: #d1ecf1; /* Light cyan */
-                border-color: #007bff;
-                color: #004085 !important; /* Darker cyan text */
-            }
-            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn:hover {
-                background-color: #b8e0e8;
-            }
+            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn:hover { background-color: #b8e0e8; }
             #${ MENU_PANEL_ID } .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor; }
 
-            /* Filter Overlay (not actively used for visual effects now, but structure kept) */
-            #${ FILTER_OVERLAY_ID } {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                pointer-events: none;
-                z-index: -1; /* Behind everything if it were used with mix-blend-mode */
-                display: none; /* Not needed for direct body class filters */
-            }
-
-            /* Invert Colors Mode */
-            body.${ CLASS_INVERT_COLORS } {
+            /* Invert Colors Mode - Applied to HTML element */
+            html.${ CLASS_INVERT_COLORS } {
                 filter: invert(100%) hue-rotate(180deg) !important;
-                background-color: #fff; /* Ensure background is white before invert for consistency if needed */
+                background-color: #fff !important; /* Ensure consistent base for inversion */
             }
-            /* Ensure menu UI is not inverted */
-            body.${ CLASS_INVERT_COLORS } #${ MENU_BUTTON_ID },
-            body.${ CLASS_INVERT_COLORS } #${ MENU_PANEL_ID } {
+            /* Ensure menu UI is not inverted when html is inverted */
+            html.${ CLASS_INVERT_COLORS } #${ MENU_BUTTON_ID },
+            html.${ CLASS_INVERT_COLORS } #${ MENU_PANEL_ID } {
                 filter: invert(100%) hue-rotate(180deg) !important; /* Double invert to appear normal */
             }
-             /* Fix for images/videos in inverted mode */
-            body.${ CLASS_INVERT_COLORS } img,
-            body.${ CLASS_INVERT_COLORS } video,
-            body.${ CLASS_INVERT_COLORS } svg,
-            body.${ CLASS_INVERT_COLORS } [style*="background-image"] {
+            /* Fix for images/videos/svgs in inverted mode when html is inverted */
+            html.${ CLASS_INVERT_COLORS } img,
+            html.${ CLASS_INVERT_COLORS } video,
+            html.${ CLASS_INVERT_COLORS } svg,
+            html.${ CLASS_INVERT_COLORS } [style*="background-image"] { /* Also consider elements with background images */
                 filter: invert(100%) hue-rotate(180deg) !important;
             }
 
-
-            /* High Contrast Mode */
+            /* High Contrast Mode - Applied to BODY element */
             body.${ CLASS_HIGH_CONTRAST } { background-color: #000 !important; color: #fff !important; }
-            body.${ CLASS_HIGH_CONTRAST } a { color: #0ff !important; text-decoration: underline !important; }
+            body.${ CLASS_HIGH_CONTRAST } a { color: #FFFF00 !important; text-decoration: underline !important; } /* Yellow link */
             body.${ CLASS_HIGH_CONTRAST } button, body.${ CLASS_HIGH_CONTRAST } input,
             body.${ CLASS_HIGH_CONTRAST } select, body.${ CLASS_HIGH_CONTRAST } textarea {
-                background-color: #222 !important; color: #fff !important; border: 1px solid #fff !important;
+                background-color: #333333 !important; color: #fff !important; border: 1px solid #FFFFFF !important; /* Adjusted bg */
             }
             /* Exclude menu UI from high contrast body styles */
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } {
@@ -295,17 +207,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-reset-btn {
                  background-color: #d1ecf1 !important; border-color: #007bff !important; color: #004085 !important;
             }
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } {
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } { /* Ensure button itself is not affected by body high contrast */
                 background-color: #0056b3 !important; color: white !important;
             }
 
-
             /* Highlight Links */
             body.${ CLASS_HIGHLIGHT_LINKS } a[href] {
-                background-color: yellow !important;
-                color: black !important;
-                outline: 2px solid orange !important;
-                border-radius: 2px;
+                background-color: yellow !important; color: black !important;
+                outline: 2px solid orange !important; border-radius: 2px;
             }
 
             /* Enhanced Focus */
@@ -319,44 +228,27 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${ CLASS_ANIMATIONS_STOPPED } *,
             body.${ CLASS_ANIMATIONS_STOPPED } *::before,
             body.${ CLASS_ANIMATIONS_STOPPED } *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                transition-delay: 0ms !important;
-                /* animation-play-state: paused !important; /* This can be too aggressive */
+                animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important; transition-delay: 0ms !important;
             }
-             /* Ensure menu panel animation (if any) still works - currently none defined */
-            body.${ CLASS_ANIMATIONS_STOPPED } #${ MENU_PANEL_ID }.ar-aaa-menu-open {
-                /* animation-play-state: running !important; */
-            }
-
-
+            
             /* Dyslexia Font */
-            body.${ CLASS_DYSLEXIA_FONT } {
-                font-family: 'OpenDyslexic', Arial, sans-serif !important;
-            }
+            body.${ CLASS_DYSLEXIA_FONT } { font-family: 'OpenDyslexic', Arial, sans-serif !important; }
             body.${ CLASS_DYSLEXIA_FONT } *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) {
-                font-family: inherit !important; /* Inherit OpenDyslexic */
+                font-family: inherit !important;
             }
-            /* Ensure menu UI uses its own font */
             #${ MENU_PANEL_ID }, #${ MENU_PANEL_ID } *,
             #${ MENU_BUTTON_ID }, #${ MENU_BUTTON_ID } * {
                 font-family: 'Inter', Arial, sans-serif !important;
             }
 
-            /* Responsive Adjustments */
             @media (max-width: 480px) {
                 #${ MENU_PANEL_ID } {
-                    width: calc(100% - 20px); /* Full width with small margin */
-                    left: 10px; right: 10px; bottom: 10px; top: auto; /* Position at bottom */
-                    max-height: calc(100vh - 80px); /* Adjust max height */
+                    width: calc(100% - 20px); left: 10px; right: 10px; bottom: 10px; top: auto;
+                    max-height: calc(100vh - 80px);
                 }
-                #${ MENU_BUTTON_ID } {
-                    width: 50px; height: 50px; font-size: 24px; /* Smaller button */
-                }
-                #${ MENU_PANEL_ID } button {
-                    flex-basis: 100%; /* Stack buttons vertically */
-                }
+                #${ MENU_BUTTON_ID } { width: 50px; height: 50px; font-size: 24px; }
+                #${ MENU_PANEL_ID } button { flex-basis: 100%; }
             }
         `;
 		const styleEl = document.createElement('style');
@@ -365,11 +257,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.head.appendChild(styleEl)
 	};
 	Menu._createFilterOverlay = function () {
-		if (document.getElementById(FILTER_OVERLAY_ID))
-			return;
-		this.filterOverlayElement = document.createElement('div');
-		this.filterOverlayElement.id = FILTER_OVERLAY_ID;
-		document.body.appendChild(this.filterOverlayElement)
 	};
 	Menu._createMenuButton = function () {
 		const btn = document.createElement('button');
@@ -415,41 +302,28 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		};
 		let html = `<h3 id="ar-aaa-menu-title">${ Menu._getLocalizedString('menuTitle') }</h3>`;
 		html += `
-            <div class="ar-aaa-menu-group">
-                <div class="ar-aaa-button-row">
-                    <button data-action="increase-text">${ ICONS.textSize } ${ Menu._getLocalizedString('increaseText') }</button>
-                    <button data-action="decrease-text">${ ICONS.textSize } ${ Menu._getLocalizedString('decreaseText') }</button>
-                </div>
-            </div>
-            <div class="ar-aaa-menu-group">
-                <div class="ar-aaa-button-row">
-                    <button data-action="contrast-high">${ ICONS.contrast } ${ Menu._getLocalizedString('highContrast') }</button>
-                    <button data-action="contrast-invert">${ ICONS.contrast } ${ Menu._getLocalizedString('invertColors') }</button>
-                </div>
-            </div>
-            <div class="ar-aaa-menu-group">
-                <div class="ar-aaa-button-row">
-                    <button data-action="highlight-links">${ ICONS.highlight } ${ Menu._getLocalizedString('highlightLinks') }</button>
-                    <button data-action="enhanced-focus">${ ICONS.highlight } ${ Menu._getLocalizedString('enhancedFocus') }</button>
-                </div>
-            </div>
-            <div class="ar-aaa-menu-group">
-                <div class="ar-aaa-button-row">
-                    <button data-action="stop-animations" class="ar-aaa-fullwidth-btn">${ ICONS.animation } ${ Menu._getLocalizedString('stopAnimations') }</button>
-                </div>
-            </div>
-            <div class="ar-aaa-menu-group">
-                <div class="ar-aaa-button-row">
-                    <button data-action="toggle-dyslexia-font" class="ar-aaa-fullwidth-btn">${ ICONS.fontStyle } ${ Menu._getLocalizedString('dyslexiaFont') }</button>
-                </div>
-            </div>
-            <div class="ar-aaa-menu-group">
-                <div class="ar-aaa-button-row">
-                    <button data-action="reset-all" class="ar-aaa-fullwidth-btn ar-aaa-reset-btn">${ ICONS.reset } ${ Menu._getLocalizedString('resetAll') }</button>
-                    <button data-action="close-menu" class="ar-aaa-fullwidth-btn">${ ICONS.close } ${ Menu._getLocalizedString('closeMenu') }</button>
-                </div>
-            </div>
-        `;
+            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row">
+                <button data-action="increase-text">${ ICONS.textSize } ${ Menu._getLocalizedString('increaseText') }</button>
+                <button data-action="decrease-text">${ ICONS.textSize } ${ Menu._getLocalizedString('decreaseText') }</button>
+            </div></div>
+            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row">
+                <button data-action="contrast-high">${ ICONS.contrast } ${ Menu._getLocalizedString('highContrast') }</button>
+                <button data-action="contrast-invert">${ ICONS.contrast } ${ Menu._getLocalizedString('invertColors') }</button>
+            </div></div>
+            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row">
+                <button data-action="highlight-links">${ ICONS.highlight } ${ Menu._getLocalizedString('highlightLinks') }</button>
+                <button data-action="enhanced-focus">${ ICONS.highlight } ${ Menu._getLocalizedString('enhancedFocus') }</button>
+            </div></div>
+            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row">
+                <button data-action="stop-animations" class="ar-aaa-fullwidth-btn">${ ICONS.animation } ${ Menu._getLocalizedString('stopAnimations') }</button>
+            </div></div>
+            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row">
+                <button data-action="toggle-dyslexia-font" class="ar-aaa-fullwidth-btn">${ ICONS.fontStyle } ${ Menu._getLocalizedString('dyslexiaFont') }</button>
+            </div></div>
+            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row">
+                <button data-action="reset-all" class="ar-aaa-fullwidth-btn ar-aaa-reset-btn">${ ICONS.reset } ${ Menu._getLocalizedString('resetAll') }</button>
+                <button data-action="close-menu" class="ar-aaa-fullwidth-btn">${ ICONS.close } ${ Menu._getLocalizedString('closeMenu') }</button>
+            </div></div>`;
 		return html
 	};
 	Menu._attachEventListeners = function () {
@@ -759,39 +633,32 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (!document.body.contains(el))
 				return;
 			if (!Menu._originalFontSizes.has(el)) {
-				Menu._originalFontSizes.set(el, window.getComputedStyle(el).fontSize)
+				Menu._originalFontSizes.set(el, el.style.fontSize || '')
 			}
-			if (action === 'reset-font') {
-				const originalSize = Menu._originalFontSizes.get(el);
-				if (originalSize) {
-					el.style.setProperty('font-size', originalSize, 'important')
-				} else {
-					el.style.removeProperty('font-size')
-				}
-				Menu._originalFontSizes.delete(el)
-			} else {
-				const currentSize = parseFloat(window.getComputedStyle(el).fontSize);
-				if (!isNaN(currentSize) && currentSize > 0) {
-					let newSize = currentSize * factor;
-					if (factor < 1 && newSize < 8)
-						newSize = 8;
-					if (factor > 1 && newSize > 72)
-						newSize = 72;
-					el.style.setProperty('font-size', `${ newSize }px`, 'important')
-				}
+			const currentSize = parseFloat(window.getComputedStyle(el).fontSize);
+			if (!isNaN(currentSize) && currentSize > 0) {
+				let newSize = currentSize * factor;
+				if (factor < 1 && newSize < 8)
+					newSize = 8;
+				if (factor > 1 && newSize > 72)
+					newSize = 72;
+				el.style.setProperty('font-size', `${ newSize }px`, 'important')
 			}
 		})
 	};
 	Menu._handleContrastAction = function (action, button) {
-		const body = document.body;
-		const isHighContrast = action === 'contrast-high';
-		const isInvertColors = action === 'contrast-invert';
+		const htmlEl = document.documentElement;
+		const bodyEl = document.body;
+		const isHighContrastAction = action === 'contrast-high';
+		const isInvertColorsAction = action === 'contrast-invert';
 		let newMode = 'default';
-		if (isHighContrast && this.activeContrastMode !== 'high')
-			newMode = 'high';
-		else if (isInvertColors && this.activeContrastMode !== 'inverted')
-			newMode = 'inverted';
-		body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_INVERT_COLORS);
+		if (isHighContrastAction) {
+			newMode = this.activeContrastMode === 'high' ? 'default' : 'high'
+		} else if (isInvertColorsAction) {
+			newMode = this.activeContrastMode === 'inverted' ? 'default' : 'inverted'
+		}
+		htmlEl.classList.remove(CLASS_INVERT_COLORS);
+		bodyEl.classList.remove(CLASS_HIGH_CONTRAST);
 		const parentGroup = button.closest('.ar-aaa-button-row') || button.closest('.ar-aaa-menu-group');
 		if (parentGroup) {
 			parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
@@ -799,10 +666,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			})
 		}
 		if (newMode === 'high') {
-			body.classList.add(CLASS_HIGH_CONTRAST);
+			bodyEl.classList.add(CLASS_HIGH_CONTRAST);
 			this._updateButtonActiveState(button, true)
 		} else if (newMode === 'inverted') {
-			body.classList.add(CLASS_INVERT_COLORS);
+			htmlEl.classList.add(CLASS_INVERT_COLORS);
 			this._updateButtonActiveState(button, true)
 		}
 		this.activeContrastMode = newMode;
@@ -813,11 +680,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (action === 'highlight-links') {
 			this.areLinksHighlighted = !this.areLinksHighlighted;
 			body.classList.toggle(CLASS_HIGHLIGHT_LINKS, this.areLinksHighlighted);
-			this._updateButtonActiveState(button, this.areLinksHighlighted)
+			this._updateButtonActiveState(button, this.areLinksHighlighted);
+			logAction(`Highlight links ${ this.areLinksHighlighted ? 'enabled' : 'disabled' }. Class on body: ${ body.classList.contains(CLASS_HIGHLIGHT_LINKS) }`)
 		} else if (action === 'enhanced-focus') {
 			this.isFocusEnhanced = !this.isFocusEnhanced;
 			body.classList.toggle(CLASS_ENHANCED_FOCUS, this.isFocusEnhanced);
-			this._updateButtonActiveState(button, this.isFocusEnhanced)
+			this._updateButtonActiveState(button, this.isFocusEnhanced);
+			logAction(`Enhanced focus ${ this.isFocusEnhanced ? 'enabled' : 'disabled' }. Class on body: ${ body.classList.contains(CLASS_ENHANCED_FOCUS) }`)
 		}
 	};
 	Menu._handleStopAnimationsAction = function (button) {
@@ -930,17 +799,18 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this._updateButtonActiveState(button, this.isDyslexiaFontActive)
 	};
 	Menu._resetAllSettings = function () {
-		Menu._originalFontSizes.forEach((originalSize, el) => {
+		Menu._originalFontSizes.forEach((originalInlineStyleFontSize, el) => {
 			if (document.body.contains(el)) {
-				if (originalSize) {
-					el.style.setProperty('font-size', originalSize, 'important')
-				} else {
+				if (originalInlineStyleFontSize === '' || originalInlineStyleFontSize === null) {
 					el.style.removeProperty('font-size')
+				} else {
+					el.style.setProperty('font-size', originalInlineStyleFontSize, 'important')
 				}
 			}
 		});
 		Menu._originalFontSizes.clear();
-		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_INVERT_COLORS);
+		document.documentElement.classList.remove(CLASS_INVERT_COLORS);
+		document.body.classList.remove(CLASS_HIGH_CONTRAST);
 		this.activeContrastMode = 'default';
 		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action^="contrast-"]`).forEach(btn => {
 			this._updateButtonActiveState(btn, false)
