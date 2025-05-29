@@ -27,7 +27,7 @@ const AR_CONFIG = {
 	READING_MASK_ELEMENT_ID: 'accessibility-resolver-reading-mask',
 	READING_LINE_ELEMENT_ID: 'accessibility-resolver-reading-line',
 	DYSLEXIA_FRIENDLY_FONT_CLASS_NAME: 'accessibility-resolver-dyslexia-font',
-	DYSLEXIA_FRIENDLY_FONT_STYLESHEET_URL: 'https://cdn.jsdelivr.net/gh/OpenDyslexic/opendyslexic@master/compiled/opendyslexic.css',
+	DYSLEXIA_FRIENDLY_FONT_STYLESHEET_URL: 'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css',
 	SATURATION_FILTER_CLASS_NAME: 'accessibility-resolver-saturation-filter',
 	TEXT_ALIGNMENT_CLASS_NAME_PREFIX: 'accessibility-resolver-text-align-',
 	INCREASED_LETTER_SPACING_CLASS_NAME: 'accessibility-resolver-increased-letter-spacing',
