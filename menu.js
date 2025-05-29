@@ -125,30 +125,100 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const css = `
             @font-face { font-family: 'OpenDyslexic'; font-style: normal; font-display: swap; font-weight: 400; src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff'); }
             @font-face { font-family: 'OpenDyslexic'; font-style: normal; font-display: swap; font-weight: 700; src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff'); }
-            #${MENU_BUTTON_ID} { position: fixed; z-index: 2147483647; background-color: #0056b3; color: white !important; border: none; border-radius: 50%; width: 70px; height: 70px; font-size: 36px; cursor: grab; box-shadow: 0 2px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: background-color 0.2s, box-shadow 0.2s; padding: 0; }
-            #${MENU_BUTTON_ID}:hover, #${MENU_BUTTON_ID}:focus-visible { background-color: #003d82; outline: 2px solid #007bff; outline-offset: 2px; }
+            
+            /* Menu Button - Always Black Circle, White Icon */
+            #${MENU_BUTTON_ID} { 
+                position: fixed; 
+                z-index: 2147483647; 
+                background-color: #000000 !important; 
+                color: #ffffff !important; 
+                border: none !important; 
+                border-radius: 50%; 
+                width: 70px; height: 70px; 
+                font-size: 36px; 
+                cursor: grab; 
+                box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+                display: flex; align-items: center; justify-content: center; 
+                padding: 0;
+                filter: none !important;
+                font-family: 'Inter', Arial, sans-serif !important;
+            }
+            #${MENU_BUTTON_ID}:hover, #${MENU_BUTTON_ID}:focus-visible { 
+                background-color: #000000 !important; /* No hover change */
+                outline: none !important; 
+            }
             #${MENU_BUTTON_ID}.dragging { cursor: grabbing; }
             #${MENU_BUTTON_ID} .ar-aaa-menu-icon { display: flex; align-items: center; justify-content: center; width: 60% !important; height: 60% !important; }
             #${MENU_BUTTON_ID} .ar-aaa-menu-icon svg { width: 100% !important; height: 100% !important; fill: currentColor !important; }
-            #${MENU_PANEL_ID} { display: none; position: fixed; width: 320px; max-height: 45vh; overflow-y: auto; background-color: white; border: 1px solid #0056b3; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 2147483646; padding: 15px; font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #333; cursor: grab; }
-            #${MENU_PANEL_ID} h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: #0056b3; text-align: center; cursor: grab; }
-            #${MENU_PANEL_ID} .ar-aaa-profile-title { font-size: 1em; color: #0056b3; margin-bottom: 8px; text-align: left; font-weight: bold;}
+
+            /* Menu Panel - Always Black on White */
+            #${MENU_PANEL_ID} { 
+                display: none; position: fixed; width: 320px; max-height: 45vh; overflow-y: auto; 
+                background-color: #ffffff !important; 
+                border: 2px solid #000000 !important; 
+                border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+                z-index: 2147483646; padding: 15px; 
+                font-family: 'Inter', Arial, sans-serif !important; 
+                color: #000000 !important; 
+                cursor: grab;
+                filter: none !important;
+            }
+            #${MENU_PANEL_ID} h3#ar-aaa-menu-title { margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: #000000 !important; text-align: center; cursor: grab; }
+            #${MENU_PANEL_ID} .ar-aaa-profile-title { font-size: 1em; color: #000000 !important; margin-bottom: 8px; text-align: left; font-weight: bold;}
             #${MENU_PANEL_ID}.ar-aaa-menu-open { display: block; }
-            #${MENU_PANEL_ID} .ar-aaa-menu-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e9ecef; }
+            #${MENU_PANEL_ID} .ar-aaa-menu-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #cccccc !important; } /* Darker separator */
             #${MENU_PANEL_ID} .ar-aaa-menu-group:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
             #${MENU_PANEL_ID} .ar-aaa-button-row { display: flex; flex-wrap: wrap; gap: 8px; }
-            #${MENU_PANEL_ID} button { flex: 1 1 calc(50% - 4px); padding: 8px 10px; font-size: 0.95em; background-color: #f8f9fa; color: #0056b3 !important; border: 1px solid #0056b3; border-radius: 4px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; }
-            #${MENU_PANEL_ID} button:hover, #${MENU_PANEL_ID} button:focus-visible { background-color: #e9ecef; border-color: #003d82; outline: 1px solid #0056b3; }
-            #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active { background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important; }
+            #${MENU_PANEL_ID} button { 
+                flex: 1 1 calc(50% - 4px); padding: 10px 12px; font-size: 1em; 
+                background-color: #ffffff !important; 
+                color: #000000 !important; 
+                border: 1px solid #000000 !important; 
+                border-radius: 4px; cursor: pointer; 
+                transition: none !important; /* No transition */
+                display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px;
+                font-family: 'Inter', Arial, sans-serif !important;
+            }
+            #${MENU_PANEL_ID} button:hover, #${MENU_PANEL_ID} button:focus-visible { 
+                background-color: #ffffff !important; /* No hover change */
+                outline: 2px solid #000000 !important; /* Focus outline */
+                outline-offset: 1px;
+            }
+            #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active { 
+                background-color: #000000 !important; 
+                color: #ffffff !important; 
+                border-color: #000000 !important; 
+            }
             #${MENU_PANEL_ID} button.ar-aaa-fullwidth-btn { flex-basis: 100%; }
-            #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #d1ecf1; border-color: #007bff; color: #004085 !important; }
-            #${MENU_PANEL_ID} button.ar-aaa-reset-btn:hover { background-color: #b8e0e8; }
-            #${MENU_PANEL_ID} .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor; }
+            #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #f0f0f0 !important; border-color: #000000 !important; color: #000000 !important; }
+            #${MENU_PANEL_ID} button.ar-aaa-reset-btn:hover { background-color: #e0e0e0 !important; }
+            #${MENU_PANEL_ID} .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor !important; }
 
+            /* Page Structure Panel - Always Black on White */
+            #${PAGE_STRUCTURE_PANEL_ID} { 
+                display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                width: 90%; max-width: 500px; max-height: 70vh; overflow-y: auto; 
+                background-color: #ffffff !important; 
+                border: 2px solid #000000 !important; 
+                border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+                z-index: 2147483647; padding: 20px;
+                font-family: 'Inter', Arial, sans-serif !important; 
+                color: #000000 !important;
+                filter: none !important;
+            }
+            #${PAGE_STRUCTURE_PANEL_ID} h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.3em; color: #000000 !important; }
+            #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4 { font-size: 1.1em; margin-bottom: 8px; color: #000000 !important; border-bottom: 1px solid #cccccc !important; padding-bottom: 5px;}
+            #${PAGE_STRUCTURE_PANEL_ID} ul { list-style: none; padding-left: 0; margin:0; }
+            #${PAGE_STRUCTURE_PANEL_ID} li button { display: block; width: 100%; text-align: left; padding: 8px 10px; background-color: #f9f9f9 !important; border: 1px solid #ccc !important; border-radius: 4px; margin-bottom: 5px; cursor: pointer; font-size: 0.9em; color: #000000 !important; transition: none !important; font-family: 'Inter', Arial, sans-serif !important;}
+            #${PAGE_STRUCTURE_PANEL_ID} li button:hover { background-color: #efefef !important; }
+            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn { display: block; margin: 15px auto 0; padding: 8px 15px; background-color: #333333 !important; color: white !important; border: none; border-radius: 4px; cursor: pointer; font-family: 'Inter', Arial, sans-serif !important;}
+            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn:hover { background-color: #555555 !important; }
+
+
+            /* Page Content Effects - Menu UI is EXEMPT due to !important overrides above */
             html.${CLASS_INVERT_COLORS} { filter: invert(100%) hue-rotate(180deg) !important; background-color: #fff !important; }
-            html.${CLASS_INVERT_COLORS} #${MENU_BUTTON_ID}, html.${CLASS_INVERT_COLORS} #${MENU_PANEL_ID}, html.${CLASS_INVERT_COLORS} #${PAGE_STRUCTURE_PANEL_ID} { filter: invert(100%) hue-rotate(180deg) !important; }
             html.${CLASS_INVERT_COLORS} img, html.${CLASS_INVERT_COLORS} video, html.${CLASS_INVERT_COLORS} [style*="background-image"] { filter: invert(100%) hue-rotate(180deg) !important; }
-            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; }
+            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; } /* SVGs on page get inverted once */
 
             body.${CLASS_HIGH_CONTRAST} { background-color: #fff !important; color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} p, body.${CLASS_HIGH_CONTRAST} p[style],
@@ -159,7 +229,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${CLASS_HIGH_CONTRAST} h1, body.${CLASS_HIGH_CONTRAST} h1[style], 
             body.${CLASS_HIGH_CONTRAST} h2, body.${CLASS_HIGH_CONTRAST} h2[style], 
             body.${CLASS_HIGH_CONTRAST} h3:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), body.${CLASS_HIGH_CONTRAST} h3[style]:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), 
-            body.${CLASS_HIGH_CONTRAST} h4, body.${CLASS_HIGH_CONTRAST} h4[style], 
+            body.${CLASS_HIGH_CONTRAST} h4:not(.ar-structure-category h4), body.${CLASS_HIGH_CONTRAST} h4[style]:not(.ar-structure-category h4), 
             body.${CLASS_HIGH_CONTRAST} h5, body.${CLASS_HIGH_CONTRAST} h5[style], 
             body.${CLASS_HIGH_CONTRAST} h6, body.${CLASS_HIGH_CONTRAST} h6[style],
             body.${CLASS_HIGH_CONTRAST} td, body.${CLASS_HIGH_CONTRAST} td[style], 
@@ -187,17 +257,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${CLASS_HIGH_CONTRAST} textarea { 
                 background-color: #eee !important; color: #000 !important; border: 1px solid #000 !important; 
             }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID}, body.${CLASS_HIGH_CONTRAST} #${PAGE_STRUCTURE_PANEL_ID} { background-color: #f0f0f0 !important; border-color: #0056b3 !important; color: #000 !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} h3#ar-aaa-menu-title, body.${CLASS_HIGH_CONTRAST} #${PAGE_STRUCTURE_PANEL_ID} h3#ar-aaa-structure-title { color: #0056b3 !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} .ar-aaa-profile-title { color: #0056b3 !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button, body.${CLASS_HIGH_CONTRAST} #${PAGE_STRUCTURE_PANEL_ID} button { background-color: #fff !important; color: #000 !important; border-color: #000 !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active, body.${CLASS_HIGH_CONTRAST} #${PAGE_STRUCTURE_PANEL_ID} button.ar-aaa-menu-btn-active { background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #e0e0e0 !important; border-color: #0056b3 !important; color: #000 !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_BUTTON_ID} { background-color: #0056b3 !important; color: white !important; }
-            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} .ar-aaa-menu-icon svg, body.${CLASS_HIGH_CONTRAST} #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-menu-icon svg { fill: currentColor !important; }
-
-            body.${CLASS_HIGHLIGHT_LINKS} a[href] { background-color: yellow !important; color: black !important; outline: 2px solid orange !important; border-radius: 2px; }
             
+            body.${CLASS_HIGHLIGHT_LINKS} a[href] { background-color: yellow !important; color: black !important; outline: 2px solid orange !important; border-radius: 2px; }
             body.${CLASS_ENHANCED_FOCUS} *:focus-visible { outline: 3px solid #0056b3 !important; outline-offset: 2px !important; box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.4) !important; }
             html.${CLASS_INVERT_COLORS} body.${CLASS_ENHANCED_FOCUS} *:focus-visible { outline-color: #FFFF00 !important; box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.5) !important; }
             body.${CLASS_HIGH_CONTRAST}.${CLASS_ENHANCED_FOCUS} *:focus-visible { outline-color: #000000 !important; box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.5) !important; }
@@ -222,17 +283,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             .${READING_MASK_BOTTOM_ID} { bottom: 0; }
             .${READING_LINE_ID} { position: fixed; left: 0; width: 100%; height: 2px; background-color: #007bff; z-index: 2147483640; pointer-events: none; display: none; }
             
-            #${PAGE_STRUCTURE_PANEL_ID} { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; max-height: 70vh; overflow-y: auto; background-color: #fff; border: 1px solid #ccc; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 2147483647; padding: 20px; }
-            #${PAGE_STRUCTURE_PANEL_ID} h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.3em; color: #333; }
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category { margin-bottom: 20px; }
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4 { font-size: 1.1em; margin-bottom: 8px; color: #555; border-bottom: 1px solid #eee; padding-bottom: 5px;}
-            #${PAGE_STRUCTURE_PANEL_ID} ul { list-style: none; padding-left: 0; margin:0; }
-            #${PAGE_STRUCTURE_PANEL_ID} li button { display: block; width: 100%; text-align: left; padding: 8px 10px; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 5px; cursor: pointer; font-size: 0.9em; color: #333; transition: background-color 0.2s; }
-            #${PAGE_STRUCTURE_PANEL_ID} li button:hover { background-color: #efefef; }
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-aaa-structure-close-btn { display: block; margin: 15px auto 0; padding: 8px 15px; background-color: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer; }
-            .${CLASS_TEMP_HIGHLIGHT} { outline: 3px solid yellow !important; outline-offset: 2px !important; box-shadow: 0 0 10px yellow !important; transition: outline 0.1s ease-out, box-shadow 0.1s ease-out; }
-
-
             #${MENU_PANEL_ID}, #${MENU_PANEL_ID} *, #${MENU_BUTTON_ID}, #${MENU_BUTTON_ID} * { font-family: 'Inter', Arial, sans-serif !important; }
             @media (max-width: 480px) { 
                 #${MENU_PANEL_ID} { 
