@@ -40,9 +40,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		Menu.pageStructurePanel = document.createElement('div');
 		Menu.pageStructurePanel.id = PAGE_STRUCTURE_PANEL_ID;
 		Menu.pageStructurePanel.setAttribute('role', 'dialog');
-		Menu.pageStructurePanel.setAttribute('aria-modal', 'true');
+		Menu.pageStructurePanel.setAttribute('aria-modal', 'false');
 		Menu.pageStructurePanel.setAttribute('aria-labelledby', 'ar-aaa-structure-title');
 		Menu.pageStructurePanel.style.display = 'none';
+		Menu.pageStructurePanel.classList.add('ar-aaa-page-structure-panel');
 		let panelHTML = `<h3 id="ar-aaa-structure-title">${ Menu._getLocalizedString('pageStructureTitle') }</h3>`;
 		panelHTML += `<div class="ar-structure-category" id="ar-aaa-structure-headings"><h4>${ Menu._getLocalizedString('headings') }</h4><ul></ul></div>`;
 		panelHTML += `<div class="ar-structure-category" id="ar-aaa-structure-landmarks"><h4>${ Menu._getLocalizedString('landmarks') }</h4><ul></ul></div>`;
@@ -52,10 +53,24 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.body.appendChild(Menu.pageStructurePanel);
 		Menu.pageStructurePanel.querySelector('.ar-aaa-structure-close-btn').addEventListener('click', () => {
 			Menu._togglePageStructurePanel(false);
+			if (Menu.isReadingModeActive) {
+				document.body.classList.remove('ar-aaa-reading-mode');
+				Menu.isReadingModeActive = false;
+				const rmButton = document.querySelector(`#${ MENU_PANEL_ID } button[data-action="reading-mode"]`);
+				if (rmButton)
+					Menu._updateButtonActiveState(rmButton, false);
+			}
 		});
 		Menu.pageStructurePanel.addEventListener('keydown', event => {
 			if (event.key === 'Escape') {
 				Menu._togglePageStructurePanel(false);
+				if (Menu.isReadingModeActive) {
+					document.body.classList.remove('ar-aaa-reading-mode');
+					Menu.isReadingModeActive = false;
+					const rmButton = document.querySelector(`#${ MENU_PANEL_ID } button[data-action="reading-mode"]`);
+					if (rmButton)
+						Menu._updateButtonActiveState(rmButton, false);
+				}
 			}
 		});
 	};
@@ -86,9 +101,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		html += `</div></div>`;
 		html += `
             <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="increase-text">${ ICONS.textSize } ${ Menu._getLocalizedString('increaseText') }</button> <button data-action="decrease-text">${ ICONS.textSize } ${ Menu._getLocalizedString('decreaseText') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="contrast-high">${ ICONS.contrast } ${ Menu._getLocalizedString('highContrast') }</button> <button data-action="contrast-invert">${ ICONS.contrast } ${ Menu._getLocalizedString('invertColors') }</button> </div></div>
+            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="contrast-high">${ ICONS.contrast } ${ Menu._getLocalizedString('highContrast') }</button> <button data-action="contrast-invert">${ ICONS.contrast } ${ Menu._getLocalizedString('invertColors') }</button> <button data-action="contrast-dark">${ ICONS.contrast } ${ Menu._getLocalizedString('darkContrast') }</button> </div></div>
             <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="highlight-links">${ ICONS.highlight } ${ Menu._getLocalizedString('highlightLinks') }</button> <button data-action="enhanced-focus">${ ICONS.highlight } ${ Menu._getLocalizedString('enhancedFocus') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="page-structure" class="ar-aaa-fullwidth-btn">${ ICONS.pageStructure } ${ Menu._getLocalizedString('pageStructure') }</button> </div></div>
             <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="read-aloud" class="ar-aaa-fullwidth-btn">${ ICONS.readAloud } ${ Menu._getLocalizedString('readAloud') }</button> </div></div>
             <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="reading-mode" class="ar-aaa-fullwidth-btn">${ ICONS.readingMode } ${ Menu._getLocalizedString('readingMode') }</button> </div></div>
             <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="reading-mask">${ ICONS.readingMask } ${ Menu._getLocalizedString('readingMask') }</button> <button data-action="reading-line">${ ICONS.readingLine } ${ Menu._getLocalizedString('readingLine') }</button> </div></div>
@@ -101,6 +115,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (!Menu.pageStructurePanel)
 			return;
 		const listedElements = new Set();
+		const isHiddenOrEmpty = el => {
+			if (!el || el.nodeType !== Node.ELEMENT_NODE)
+				return true;
+			if (window.getComputedStyle(el).display === 'none' || window.getComputedStyle(el).visibility === 'hidden' || el.offsetWidth === 0 || el.offsetHeight === 0) {
+				return true;
+			}
+			if (el.matches('h1,h2,h3,h4,h5,h6,a[href]')) {
+				return !ar_hasAccessibleNameForElement(el);
+			}
+			return false;
+		};
 		const getAccessibleName = el => {
 			if (!el)
 				return '';
@@ -117,7 +142,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				}
 			}
 			if (el.textContent && el.textContent.trim()) {
-				return el.textContent.trim();
+				let text = el.textContent.trim().replace(/\s+/g, ' ');
+				if (text.length > 100) {
+					text = text.substring(0, 97) + '...';
+				}
+				return text;
 			}
 			if (el.tagName === 'A') {
 				const img = el.querySelector('img[alt]');
@@ -133,23 +162,26 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 			return '';
 		};
-		const isElementAlreadyListed = el => {
+		const isElementAlreadyListedOrCovered = el => {
 			if (listedElements.has(el))
 				return true;
 			let current = el.parentElement;
 			while (current) {
 				if (listedElements.has(current)) {
-					const role = current.getAttribute('role') || current.tagName.toLowerCase();
+					const currentRole = current.getAttribute('role') || current.tagName.toLowerCase();
 					if ([
 							'main',
 							'navigation',
-							'header',
-							'footer',
-							'aside',
+							'banner',
+							'contentinfo',
+							'complementary',
 							'form',
-							'section'
-						].includes(role)) {
-						return true;
+							'region',
+							'search'
+						].includes(currentRole)) {
+						if (getAccessibleName(current) && !el.matches('h1, h2, h3, h4, h5, h6, a[href]')) {
+							return true;
+						}
 					}
 				}
 				current = current.parentElement;
@@ -158,10 +190,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		};
 		const addToList = (el, text, type) => {
 			if (isAccessibilityMenuElement(el)) {
-				return;
+				return null;
 			}
-			if (isElementAlreadyListed(el)) {
-				return;
+			if (isHiddenOrEmpty(el)) {
+				return null;
+			}
+			if (isElementAlreadyListedOrCovered(el)) {
+				return null;
 			}
 			const li = document.createElement('li');
 			const button = document.createElement('button');
@@ -183,7 +218,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			listedElements.add(el);
 			return li;
 		};
-		const createList = (selector, containerId, itemType) => {
+		const createListSection = (selector, containerId, itemType) => {
 			const container = Menu.pageStructurePanel.querySelector(`#${ containerId } ul`);
 			if (!container)
 				return;
@@ -210,10 +245,12 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 					'[role="region"][aria-labelledby]'
 				].join(',');
 				elements = Array.from(document.querySelectorAll(landmarkSelectors));
+			} else if (itemType === 'links') {
+				elements = Array.from(document.querySelectorAll('a[href]:not([href=""]):not([href="#"]):not([href^="javascript:"])'));
 			} else {
 				elements = Array.from(document.querySelectorAll(selector));
 			}
-			elements = elements.filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
+			elements = elements.filter(el => !isAccessibilityMenuElement(el));
 			const itemsToAdd = [];
 			elements.forEach(el => {
 				let text = getAccessibleName(el);
@@ -237,9 +274,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 					};
 					const localizedName = landmarkNameMap[role];
 					if (localizedName) {
-						text = localizedName + (text ? `: ${ text }` : '');
+						text = localizedName + (text ? `: ${ text }` : ` (${ Menu._getLocalizedString('unlabeled') })`);
 					} else if (!text) {
-						text = `${ role.charAt(0).toUpperCase() + role.slice(1) } (unlabeled)`;
+						text = `${ role.charAt(0).toUpperCase() + role.slice(1) } (${ Menu._getLocalizedString('unlabeled') })`;
 					}
 				} else if (itemType === 'links') {
 					if (!text || text.length < 2 || text.toLowerCase().includes('read more') || text.toLowerCase().includes('click here')) {
@@ -247,11 +284,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 						if (parentText.length > 10 && parentText.length < 100) {
 							text = `Link: ${ parentText.substring(0, Math.min(parentText.length, 50)) }...`;
 						} else {
-							text = `Link: ${ el.href || 'No descriptive text' }`;
+							text = `Link: ${ el.href || Menu._getLocalizedString('unlabeled') }`;
 						}
 					}
 				} else if (itemType === 'Heading' && !text) {
-					text = `${ el.tagName } (unlabeled)`;
+					text = `${ el.tagName } (${ Menu._getLocalizedString('unlabeled') })`;
 				}
 				if (text && text.trim() !== '') {
 					const listItem = addToList(el, originalText || text, itemType);
@@ -267,8 +304,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 		};
 		listedElements.clear();
-		createList('h1, h2, h3, h4, h5, h6', 'ar-aaa-structure-headings', 'Heading');
-		createList('', 'ar-aaa-structure-landmarks', 'landmarks');
-		createList('a[href]:not([href=""]):not([href="#"]):not([href^="javascript:"])', 'ar-aaa-structure-links', 'links');
+		createListSection('h1, h2, h3, h4, h5, h6', 'ar-aaa-structure-headings', 'Heading');
+		createListSection('', 'ar-aaa-structure-landmarks', 'landmarks');
+		createListSection('a[href]', 'ar-aaa-structure-links', 'links');
 	};
 }(AR_AccessibilityMenu));
