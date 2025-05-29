@@ -14,6 +14,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	const CLASS_DYSLEXIA_FONT = 'ar-aaa-dyslexia-font';
     const CLASS_READING_MODE = 'ar-aaa-reading-mode';
     const STORAGE_KEY = 'AR_AccessibilityMenu_Settings_v1.3';
+    const EDGE_MARGIN_PX = 38;
 
 	Menu.isOpen = false;
 	Menu.isDyslexiaFontActive = false;
@@ -77,13 +78,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this._injectStyles();
 		this._createMenuButton();
 		this._createMenuPanel();
-        this._createReadingAidElements(); 
+        this._createReadingAidElements();
 		this._attachEventListeners();
-        this._loadSettings(); 
+        this._loadSettings();
 		logAction('Initialized successfully.');
 	};
 
-	Menu._injectStyles = function () { 
+	Menu._injectStyles = function () {
         const styleId = 'aaa-menu-styles';
 		if (document.getElementById(styleId)) return;
 		const css = `
@@ -94,13 +95,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             #${MENU_BUTTON_ID}.dragging { cursor: grabbing; }
             #${MENU_BUTTON_ID} .ar-aaa-menu-icon { display: flex; align-items: center; justify-content: center; width: 60% !important; height: 60% !important; }
             #${MENU_BUTTON_ID} .ar-aaa-menu-icon svg { width: 100% !important; height: 100% !important; fill: currentColor !important; }
-            #${MENU_PANEL_ID} { display: none; position: fixed; width: 320px; max-height: calc(100vh - 100px); overflow-y: auto; background-color: white; border: 1px solid #0056b3; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 2147483646; padding: 15px; font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #333; cursor: grab; }
+            #${MENU_PANEL_ID} { display: none; position: fixed; width: 320px; max-height: 45vh; overflow-y: auto; background-color: white; border: 1px solid #0056b3; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 2147483646; padding: 15px; font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #333; cursor: grab; }
             #${MENU_PANEL_ID} h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: #0056b3; text-align: center; cursor: grab; }
             #${MENU_PANEL_ID}.ar-aaa-menu-open { display: block; }
             #${MENU_PANEL_ID} .ar-aaa-menu-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e9ecef; }
             #${MENU_PANEL_ID} .ar-aaa-menu-group:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
             #${MENU_PANEL_ID} .ar-aaa-button-row { display: flex; flex-wrap: wrap; gap: 8px; }
-            #${MENU_PANEL_ID} button { flex: 1 1 calc(50% - 4px); padding: 8px 10px; font-size: 0.95em; background-color: #f8f9fa; color: #0056b3 !important; border: 1px solid #0056b3; border-radius: 4px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; }
+            #${MENU_PANEL_ID} button { flex: 1 1 calc(50% - 4px); padding: 8px 10px; font-size: 0.95em; background-color: #f8f9fa; color: #0056b3; border: 1px solid #0056b3; border-radius: 4px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; }
             #${MENU_PANEL_ID} button:hover, #${MENU_PANEL_ID} button:focus-visible { background-color: #e9ecef; border-color: #003d82; outline: 1px solid #0056b3; }
             #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active { background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important; }
             #${MENU_PANEL_ID} button.ar-aaa-fullwidth-btn { flex-basis: 100%; }
@@ -109,22 +110,35 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             #${MENU_PANEL_ID} .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor; }
             html.${CLASS_INVERT_COLORS} { filter: invert(100%) hue-rotate(180deg) !important; background-color: #fff !important; }
             html.${CLASS_INVERT_COLORS} #${MENU_BUTTON_ID}, html.${CLASS_INVERT_COLORS} #${MENU_PANEL_ID} { filter: invert(100%) hue-rotate(180deg) !important; }
-            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; }
             html.${CLASS_INVERT_COLORS} img, html.${CLASS_INVERT_COLORS} video, html.${CLASS_INVERT_COLORS} [style*="background-image"] { filter: invert(100%) hue-rotate(180deg) !important; }
             body.${CLASS_HIGH_CONTRAST} { background-color: #000 !important; color: #fff !important; }
-            body.${CLASS_HIGH_CONTRAST} p,
-            body.${CLASS_HIGH_CONTRAST} span,
+            body.${CLASS_HIGH_CONTRAST} p, body.${CLASS_HIGH_CONTRAST} p[style],
+            body.${CLASS_HIGH_CONTRAST} span, body.${CLASS_HIGH_CONTRAST} span[style],
             body.${CLASS_HIGH_CONTRAST} div:not(#${MENU_BUTTON_ID}):not(#${MENU_BUTTON_ID} *):not(#${MENU_PANEL_ID}):not(#${MENU_PANEL_ID} *):not([class*="icon"]), 
-            body.${CLASS_HIGH_CONTRAST} li,
-            body.${CLASS_HIGH_CONTRAST} h1, body.${CLASS_HIGH_CONTRAST} h2, body.${CLASS_HIGH_CONTRAST} h3, body.${CLASS_HIGH_CONTRAST} h4, body.${CLASS_HIGH_CONTRAST} h5, body.${CLASS_HIGH_CONTRAST} h6,
-            body.${CLASS_HIGH_CONTRAST} td, body.${CLASS_HIGH_CONTRAST} th,
-            body.${CLASS_HIGH_CONTRAST} label,
-            body.${CLASS_HIGH_CONTRAST} strong, body.${CLASS_HIGH_CONTRAST} em, body.${CLASS_HIGH_CONTRAST} b, body.${CLASS_HIGH_CONTRAST} i,
-            body.${CLASS_HIGH_CONTRAST} small, body.${CLASS_HIGH_CONTRAST} big, body.${CLASS_HIGH_CONTRAST} sub, body.${CLASS_HIGH_CONTRAST} sup {
+            body.${CLASS_HIGH_CONTRAST} div[style]:not(#${MENU_BUTTON_ID}):not(#${MENU_BUTTON_ID} *):not(#${MENU_PANEL_ID}):not(#${MENU_PANEL_ID} *):not([class*="icon"]),
+            body.${CLASS_HIGH_CONTRAST} li, body.${CLASS_HIGH_CONTRAST} li[style],
+            body.${CLASS_HIGH_CONTRAST} h1, body.${CLASS_HIGH_CONTRAST} h1[style], 
+            body.${CLASS_HIGH_CONTRAST} h2, body.${CLASS_HIGH_CONTRAST} h2[style], 
+            body.${CLASS_HIGH_CONTRAST} h3, body.${CLASS_HIGH_CONTRAST} h3[style], 
+            body.${CLASS_HIGH_CONTRAST} h4, body.${CLASS_HIGH_CONTRAST} h4[style], 
+            body.${CLASS_HIGH_CONTRAST} h5, body.${CLASS_HIGH_CONTRAST} h5[style], 
+            body.${CLASS_HIGH_CONTRAST} h6, body.${CLASS_HIGH_CONTRAST} h6[style],
+            body.${CLASS_HIGH_CONTRAST} td, body.${CLASS_HIGH_CONTRAST} td[style], 
+            body.${CLASS_HIGH_CONTRAST} th, body.${CLASS_HIGH_CONTRAST} th[style],
+            body.${CLASS_HIGH_CONTRAST} label, body.${CLASS_HIGH_CONTRAST} label[style],
+            body.${CLASS_HIGH_CONTRAST} strong, body.${CLASS_HIGH_CONTRAST} strong[style], 
+            body.${CLASS_HIGH_CONTRAST} em, body.${CLASS_HIGH_CONTRAST} em[style], 
+            body.${CLASS_HIGH_CONTRAST} b, body.${CLASS_HIGH_CONTRAST} b[style], 
+            body.${CLASS_HIGH_CONTRAST} i, body.${CLASS_HIGH_CONTRAST} i[style],
+            body.${CLASS_HIGH_CONTRAST} small, body.${CLASS_HIGH_CONTRAST} small[style], 
+            body.${CLASS_HIGH_CONTRAST} big, body.${CLASS_HIGH_CONTRAST} big[style], 
+            body.${CLASS_HIGH_CONTRAST} sub, body.${CLASS_HIGH_CONTRAST} sub[style], 
+            body.${CLASS_HIGH_CONTRAST} sup, body.${CLASS_HIGH_CONTRAST} sup[style] {
                 background-color: transparent !important;
                 color: #fff !important;
             }
-            body.${CLASS_HIGH_CONTRAST} a { color: #FFFF00 !important; background-color: #000000 !important; text-decoration: underline !important; }
+            body.${CLASS_HIGH_CONTRAST} a, body.${CLASS_HIGH_CONTRAST} a[style] { color: #FFFF00 !important; background-color: #000000 !important; text-decoration: underline !important; }
+            body.${CLASS_HIGH_CONTRAST} svg { background-color: transparent !important; fill: #fff !important; }
             body.${CLASS_HIGH_CONTRAST} button:not(#${MENU_BUTTON_ID}):not(#${MENU_PANEL_ID} button), 
             body.${CLASS_HIGH_CONTRAST} input, 
             body.${CLASS_HIGH_CONTRAST} select, 
@@ -137,6 +151,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button.ar-aaa-menu-btn-active { background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button.ar-aaa-reset-btn { background-color: #d1ecf1 !important; border-color: #007bff !important; color: #004085 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_BUTTON_ID} { background-color: #0056b3 !important; color: white !important; }
+            body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} .ar-aaa-menu-icon svg { fill: currentColor !important; }
             body.${CLASS_HIGHLIGHT_LINKS} a[href] { background-color: yellow !important; color: black !important; outline: 2px solid orange !important; border-radius: 2px; }
             body.${CLASS_ENHANCED_FOCUS} *:focus-visible { outline: 10px dotted red !important; background-color: yellow !important; border: 5px solid limegreen !important; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important; }
             body.${CLASS_ANIMATIONS_STOPPED} *, body.${CLASS_ANIMATIONS_STOPPED} *::before, body.${CLASS_ANIMATIONS_STOPPED} *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0ms !important; }
@@ -159,7 +174,18 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             .${READING_MASK_BOTTOM_ID} { bottom: 0; }
             .${READING_LINE_ID} { position: fixed; left: 0; width: 100%; height: 2px; background-color: #007bff; z-index: 2147483640; pointer-events: none; display: none; }
             #${MENU_PANEL_ID}, #${MENU_PANEL_ID} *, #${MENU_BUTTON_ID}, #${MENU_BUTTON_ID} * { font-family: 'Inter', Arial, sans-serif !important; }
-            @media (max-width: 480px) { #${MENU_PANEL_ID} { width: calc(100% - 20px); left: 10px; right: 10px; bottom: 10px; top: auto; max-height: calc(100vh - 80px); } #${MENU_BUTTON_ID} { width: 50px; height: 50px; font-size: 24px; } #${MENU_PANEL_ID} button { flex-basis: 100%; } }
+            @media (max-width: 480px) { 
+                #${MENU_PANEL_ID} { 
+                    width: calc(100% - ${2 * EDGE_MARGIN_PX}px); 
+                    left: ${EDGE_MARGIN_PX}px; 
+                    right: ${EDGE_MARGIN_PX}px; 
+                    bottom: ${EDGE_MARGIN_PX}px; 
+                    top: auto; 
+                    max-height: 45vh; 
+                } 
+                #${MENU_BUTTON_ID} { width: 50px; height: 50px; font-size: 24px; } 
+                #${MENU_PANEL_ID} button { flex-basis: 100%; } 
+            }
         `;
 		const styleEl = document.createElement('style');
 		styleEl.id = styleId;
@@ -221,8 +247,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
     };
 
     Menu._handleReadingAidMouseMove = function(event) { if (Menu.isReadingMaskActive && Menu.readingMaskTop && Menu.readingMaskBottom) { const mouseY = event.clientY; const maskHeight = 80; Menu.readingMaskTop.style.height = `${mouseY - maskHeight / 2}px`; Menu.readingMaskBottom.style.height = `${window.innerHeight - (mouseY + maskHeight / 2)}px`; } if (Menu.isReadingLineActive && Menu.readingLine) { Menu.readingLine.style.top = `${event.clientY}px`; } };
-    Menu._handleWindowResize = function() { const button = document.getElementById(MENU_BUTTON_ID); const panel = document.getElementById(MENU_PANEL_ID); if (!button) return; if (Menu.buttonWasDragged) { const buttonWidth = button.offsetWidth; const buttonHeight = button.offsetHeight; let currentLeft = parseFloat(button.style.left); let currentTop = parseFloat(button.style.top); const newButtonX = Math.max(0, Math.min(currentLeft, window.innerWidth - buttonWidth)); const newButtonY = Math.max(0, Math.min(currentTop, window.innerHeight - buttonHeight)); if (parseFloat(button.style.left) !== newButtonX || parseFloat(button.style.top) !== newButtonY) { button.style.left = `${newButtonX}px`; button.style.top = `${newButtonY}px`; } if (this.isOpen && panel && Menu.panelWasDragged) { const panelWidth = panel.offsetWidth; const panelHeight = panel.offsetHeight; let panelNewLeft = newButtonX + Menu._panelRelativeOffsetX; let panelNewTop = newButtonY + Menu._panelRelativeOffsetY; panelNewLeft = Math.max(0, Math.min(panelNewLeft, window.innerWidth - panelWidth)); panelNewTop = Math.max(0, Math.min(panelNewTop, window.innerHeight - panelHeight)); panel.style.left = `${panelNewLeft}px`; panel.style.top = `${panelNewTop}px`; panel.style.right = 'auto'; panel.style.bottom = 'auto'; Menu._panelRelativeOffsetX = panelNewLeft - newButtonX; Menu._panelRelativeOffsetY = panelNewTop - newButtonY; } else if (this.isOpen && panel) { this._positionPanelRelativeToButton(button, panel); } } else if (this.isOpen && panel) { this._positionPanelRelativeToButton(button, panel); } };
-    Menu._positionPanelRelativeToButton = function(button, panel) { if (!button || !panel) return; const buttonRect = button.getBoundingClientRect(); const panelRect = panel.getBoundingClientRect(); let newTop = buttonRect.top - panelRect.height - 10; let newLeft = buttonRect.left; const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction; if (docDir === 'rtl') { newLeft = buttonRect.right - panelRect.width; } if (newTop < 10) { newTop = buttonRect.bottom + 10; } if (newTop + panelRect.height > window.innerHeight - 10) { newTop = Math.max(10, window.innerHeight - panelRect.height - 10); } if (newLeft < 10) newLeft = 10; if (newLeft + panelRect.width > window.innerWidth - 10) { newLeft = Math.max(10, window.innerWidth - panelRect.width - 10); } panel.style.top = `${newTop}px`; panel.style.left = `${newLeft}px`; panel.style.bottom = 'auto'; panel.style.right = 'auto'; Menu._panelRelativeOffsetX = newLeft - buttonRect.left; Menu._panelRelativeOffsetY = newTop - buttonRect.top; };
+    Menu._handleWindowResize = function() { const button = document.getElementById(MENU_BUTTON_ID); const panel = document.getElementById(MENU_PANEL_ID); if (!button) return; if (Menu.buttonWasDragged) { const buttonWidth = button.offsetWidth; const buttonHeight = button.offsetHeight; let currentLeft = parseFloat(button.style.left); let currentTop = parseFloat(button.style.top); const newButtonX = Math.max(EDGE_MARGIN_PX, Math.min(currentLeft, window.innerWidth - buttonWidth - EDGE_MARGIN_PX)); const newButtonY = Math.max(EDGE_MARGIN_PX, Math.min(currentTop, window.innerHeight - buttonHeight - EDGE_MARGIN_PX)); if (parseFloat(button.style.left) !== newButtonX || parseFloat(button.style.top) !== newButtonY) { button.style.left = `${newButtonX}px`; button.style.top = `${newButtonY}px`; } if (this.isOpen && panel && Menu.panelWasDragged) { const panelWidth = panel.offsetWidth; const panelHeight = panel.offsetHeight; let panelNewLeft = newButtonX + Menu._panelRelativeOffsetX; let panelNewTop = newButtonY + Menu._panelRelativeOffsetY; panelNewLeft = Math.max(EDGE_MARGIN_PX, Math.min(panelNewLeft, window.innerWidth - panelWidth - EDGE_MARGIN_PX)); panelNewTop = Math.max(EDGE_MARGIN_PX, Math.min(panelNewTop, window.innerHeight - panelHeight - EDGE_MARGIN_PX)); panel.style.left = `${panelNewLeft}px`; panel.style.top = `${panelNewTop}px`; panel.style.right = 'auto'; panel.style.bottom = 'auto'; Menu._panelRelativeOffsetX = panelNewLeft - newButtonX; Menu._panelRelativeOffsetY = panelNewTop - newButtonY; } else if (this.isOpen && panel) { this._positionPanelRelativeToButton(button, panel); } } else if (this.isOpen && panel) { this._positionPanelRelativeToButton(button, panel); } };
+    Menu._positionPanelRelativeToButton = function(button, panel) { if (!button || !panel) return; const buttonRect = button.getBoundingClientRect(); const panelRect = panel.getBoundingClientRect(); let newTop = buttonRect.top - panelRect.height - 10; let newLeft = buttonRect.left; const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction; if (docDir === 'rtl') { newLeft = buttonRect.right - panelRect.width; } if (newTop < EDGE_MARGIN_PX) { newTop = Math.max(EDGE_MARGIN_PX, buttonRect.bottom + 10); } if (newTop + panelRect.height > window.innerHeight - EDGE_MARGIN_PX) { newTop = Math.max(EDGE_MARGIN_PX, window.innerHeight - panelRect.height - EDGE_MARGIN_PX); } if (newLeft < EDGE_MARGIN_PX) newLeft = EDGE_MARGIN_PX; if (newLeft + panelRect.width > window.innerWidth - EDGE_MARGIN_PX) { newLeft = Math.max(EDGE_MARGIN_PX, window.innerWidth - panelRect.width - EDGE_MARGIN_PX); } panel.style.top = `${newTop}px`; panel.style.left = `${newLeft}px`; panel.style.bottom = 'auto'; panel.style.right = 'auto'; Menu._panelRelativeOffsetX = newLeft - buttonRect.left; Menu._panelRelativeOffsetY = newTop - buttonRect.top; };
 	Menu._handleMenuButtonClick = function (event) { if (Menu.buttonDragOccurred) { Menu.buttonDragOccurred = false; return; } this.toggleMenu(); };
 	Menu._handlePanelActionClick = function (event) { const targetButton = event.target.closest('button'); if (targetButton && targetButton.dataset.action) { this.handleAction(targetButton.dataset.action, targetButton); } };
 	Menu._handlePanelKeydown = function (event) { if (event.key === 'Escape' && this.isOpen) { this.toggleMenu(); } };
@@ -230,7 +256,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
     Menu._startDragging = function (event, isButtonDrag) { const button = document.getElementById(MENU_BUTTON_ID); const panel = document.getElementById(MENU_PANEL_ID); if (!button || !panel) return; let draggedElement = isButtonDrag ? button : panel; if (!isButtonDrag) { const target = event.target; if (target.closest('button')) { this.isPanelDragging = false; return; } const isPanelItself = target === panel; const isPanelTitle = target === panel.querySelector('h3'); if (!isPanelItself && !isPanelTitle) { this.isPanelDragging = false; return; } } this.isButtonDragging = isButtonDrag; this.isPanelDragging = !isButtonDrag; if (isButtonDrag) { Menu.buttonDragOccurred = false; Menu.buttonWasDragged = true; } else { Menu.panelWasDragged = true; } draggedElement.classList.add('dragging'); const coords = getClientCoords(event); const buttonRect = button.getBoundingClientRect(); const panelRect = panel.getBoundingClientRect(); Menu._initialButtonX = buttonRect.left; Menu._initialButtonY = buttonRect.top; Menu._initialPanelX = panelRect.left; Menu._initialPanelY = panelRect.top; Menu._initialMouseX = coords.clientX; Menu._initialMouseY = coords.clientY; if (isButtonDrag && button.style.transform !== 'none') { button.style.transform = 'none'; } if (Menu.isOpen) { Menu._panelRelativeOffsetX = panelRect.left - buttonRect.left; Menu._panelRelativeOffsetY = panelRect.top - buttonRect.top; } else { const estimatedPanelHeight = panel.offsetHeight || 300; const estimatedPanelWidth = panel.offsetWidth || 320; const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction; if (docDir === 'rtl') { Menu._panelRelativeOffsetX = buttonRect.width - estimatedPanelWidth; } else { Menu._panelRelativeOffsetX = 0; } Menu._panelRelativeOffsetY = -estimatedPanelHeight - 10; } if (event.type === 'touchstart') { event.preventDefault(); } };
 	Menu._handleButtonMouseDown = function (event) { Menu.buttonDragOccurred = false; this._startDragging(event, true); };
 	Menu._handlePanelMouseDown = function (event) { this._startDragging(event, false); };
-	Menu._handleDocumentMouseMove = function (event) { if (!this.isButtonDragging && !this.isPanelDragging) return; const button = document.getElementById(MENU_BUTTON_ID); const panel = document.getElementById(MENU_PANEL_ID); if (!button || !panel) return; if (this.isButtonDragging) { Menu.buttonDragOccurred = true; } const coords = getClientCoords(event); const deltaX = coords.clientX - Menu._initialMouseX; const deltaY = coords.clientY - Menu._initialMouseY; let targetButtonX, targetButtonY, targetPanelX, targetPanelY; if (this.isButtonDragging) { targetButtonX = Menu._initialButtonX + deltaX; targetButtonY = Menu._initialButtonY + deltaY; targetPanelX = targetButtonX + Menu._panelRelativeOffsetX; targetPanelY = targetButtonY + Menu._panelRelativeOffsetY; } else if (this.isPanelDragging) { targetPanelX = Menu._initialPanelX + deltaX; targetPanelY = Menu._initialPanelY + deltaY; targetButtonX = targetPanelX - Menu._panelRelativeOffsetX; targetButtonY = targetPanelY - Menu._panelRelativeOffsetY; } const buttonWidth = button.offsetWidth; const buttonHeight = button.offsetHeight; targetButtonX = Math.max(0, Math.min(targetButtonX, window.innerWidth - buttonWidth)); targetButtonY = Math.max(0, Math.min(targetButtonY, window.innerHeight - buttonHeight)); button.style.left = `${targetButtonX}px`; button.style.top = `${targetButtonY}px`; button.style.transform = 'none'; button.style.right = 'auto'; button.style.bottom = 'auto'; if (Menu.isOpen) { const panelWidth = panel.offsetWidth; const panelHeight = panel.offsetHeight; let desiredPanelX = targetButtonX + Menu._panelRelativeOffsetX; let desiredPanelY = targetButtonY + Menu._panelRelativeOffsetY; desiredPanelX = Math.max(0, Math.min(desiredPanelX, window.innerWidth - panelWidth)); desiredPanelY = Math.max(0, Math.min(desiredPanelY, window.innerHeight - panelHeight)); panel.style.left = `${desiredPanelX}px`; panel.style.top = `${desiredPanelY}px`; panel.style.right = 'auto'; panel.style.bottom = 'auto'; if (this.isButtonDragging) { let adjustedButtonX = desiredPanelX - Menu._panelRelativeOffsetX; let adjustedButtonY = desiredPanelY - Menu._panelRelativeOffsetY; adjustedButtonX = Math.max(0, Math.min(adjustedButtonX, window.innerWidth - buttonWidth)); adjustedButtonY = Math.max(0, Math.min(adjustedButtonY, window.innerHeight - buttonHeight)); button.style.left = `${adjustedButtonX}px`; button.style.top = `${adjustedButtonY}px`; Menu._panelRelativeOffsetX = desiredPanelX - adjustedButtonX; Menu._panelRelativeOffsetY = desiredPanelY - adjustedButtonY; } } if (event.type === 'touchmove') { event.preventDefault(); } };
+	Menu._handleDocumentMouseMove = function (event) { if (!this.isButtonDragging && !this.isPanelDragging) return; const button = document.getElementById(MENU_BUTTON_ID); const panel = document.getElementById(MENU_PANEL_ID); if (!button || !panel) return; if (this.isButtonDragging) { Menu.buttonDragOccurred = true; } const coords = getClientCoords(event); const deltaX = coords.clientX - Menu._initialMouseX; const deltaY = coords.clientY - Menu._initialMouseY; let targetButtonX, targetButtonY, targetPanelX, targetPanelY; if (this.isButtonDragging) { targetButtonX = Menu._initialButtonX + deltaX; targetButtonY = Menu._initialButtonY + deltaY; } else if (this.isPanelDragging) { targetPanelX = Menu._initialPanelX + deltaX; targetPanelY = Menu._initialPanelY + deltaY; targetButtonX = targetPanelX - Menu._panelRelativeOffsetX; targetButtonY = targetPanelY - Menu._panelRelativeOffsetY; } const buttonWidth = button.offsetWidth; const buttonHeight = button.offsetHeight; targetButtonX = Math.max(EDGE_MARGIN_PX, Math.min(targetButtonX, window.innerWidth - buttonWidth - EDGE_MARGIN_PX)); targetButtonY = Math.max(EDGE_MARGIN_PX, Math.min(targetButtonY, window.innerHeight - buttonHeight - EDGE_MARGIN_PX)); button.style.left = `${targetButtonX}px`; button.style.top = `${targetButtonY}px`; button.style.transform = 'none'; button.style.right = 'auto'; button.style.bottom = 'auto'; if (Menu.isOpen) { const panelWidth = panel.offsetWidth; const panelHeight = panel.offsetHeight; let desiredPanelX = targetButtonX + Menu._panelRelativeOffsetX; let desiredPanelY = targetButtonY + Menu._panelRelativeOffsetY; desiredPanelX = Math.max(EDGE_MARGIN_PX, Math.min(desiredPanelX, window.innerWidth - panelWidth - EDGE_MARGIN_PX)); desiredPanelY = Math.max(EDGE_MARGIN_PX, Math.min(desiredPanelY, window.innerHeight - panelHeight - EDGE_MARGIN_PX)); panel.style.left = `${desiredPanelX}px`; panel.style.top = `${desiredPanelY}px`; panel.style.right = 'auto'; panel.style.bottom = 'auto'; if (this.isButtonDragging) { let adjustedButtonX = desiredPanelX - Menu._panelRelativeOffsetX; let adjustedButtonY = desiredPanelY - Menu._panelRelativeOffsetY; adjustedButtonX = Math.max(EDGE_MARGIN_PX, Math.min(adjustedButtonX, window.innerWidth - buttonWidth - EDGE_MARGIN_PX)); adjustedButtonY = Math.max(EDGE_MARGIN_PX, Math.min(adjustedButtonY, window.innerHeight - buttonHeight - EDGE_MARGIN_PX)); if(button.style.left !== `${adjustedButtonX}px` || button.style.top !== `${adjustedButtonY}px`){ button.style.left = `${adjustedButtonX}px`; button.style.top = `${adjustedButtonY}px`; } Menu._panelRelativeOffsetX = desiredPanelX - adjustedButtonX; Menu._panelRelativeOffsetY = desiredPanelY - adjustedButtonY; } } if (event.type === 'touchmove') { event.preventDefault(); } };
     Menu._handleDocumentMouseUp = function () { let settingsChanged = false; if (this.isButtonDragging) { this.isButtonDragging = false; const button = document.getElementById(MENU_BUTTON_ID); if (button) button.classList.remove('dragging'); settingsChanged = true; } if (this.isPanelDragging) { this.isPanelDragging = false; const panel = document.getElementById(MENU_PANEL_ID); if (panel) panel.classList.remove('dragging'); settingsChanged = true; } if (settingsChanged) { this._saveSettings(); } };
     Menu.toggleMenu = function () { const panel = document.getElementById(MENU_PANEL_ID); const button = document.getElementById(MENU_BUTTON_ID); if (!panel || !button) return; this.isOpen = !this.isOpen; panel.style.display = this.isOpen ? 'block' : 'none'; panel.classList.toggle('ar-aaa-menu-open', this.isOpen); panel.setAttribute('aria-hidden', String(!this.isOpen)); button.setAttribute('aria-expanded', String(this.isOpen)); if (this.isOpen) { if (!Menu.panelWasDragged || !panel.style.left || !panel.style.top) { this._positionPanelRelativeToButton(button, panel); } const firstFocusableButton = panel.querySelector('button:not([disabled])'); if (firstFocusableButton) { firstFocusableButton.focus(); } } else { button.focus(); } logAction(`Menu ${this.isOpen ? 'opened' : 'closed'}`); this._saveSettings(); };
 
