@@ -23,6 +23,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu.buttonOffsetX = 0;
 	Menu.buttonOffsetY = 0;
 	Menu.buttonDragOccurred = false;
+	Menu._originalFontSizes = new Map();
 	function getClientCoords(event) {
 		if (event.touches && event.touches.length > 0) {
 			return {
@@ -80,19 +81,19 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 color: white !important;
                 border: none;
                 border-radius: 50%;
-                width: 56px;
-                height: 56px;
-                font-size: 24px;
+                width: 64px; /* Increased size for larger icon */
+                height: 64px; /* Increased size for larger icon */
+                font-size: 36px; /* Increased font size for larger SVG icon */
                 cursor: grab;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.2);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+                transition: background-color 0.2s, box-shadow 0.2s; /* Removed transform transition */
             }
             #${ MENU_BUTTON_ID }:hover, #${ MENU_BUTTON_ID }:focus-visible {
                 background-color: #003d82;
-                transform: scale(1.1) !important; /* Ensure scale on hover/focus even if centered */
+                /* Removed transform: scale(1.1) !important; */
                 outline: 2px solid #007bff;
                 outline-offset: 2px;
             }
@@ -114,16 +115,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 font-family: 'Inter', Arial, sans-serif;
                 font-size: 14px;
                 color: #212529;
-                cursor: grab;
+                cursor: grab; /* Make the panel itself draggable */
             }
-            #${ MENU_PANEL_ID }.ar-aaa-menu-open { display: block; }
             #${ MENU_PANEL_ID } h3 {
                 margin-top: 0;
                 margin-bottom: 15px;
                 font-size: 1.2em;
                 color: #0056b3;
                 text-align: center;
+                cursor: grab; /* Make the title draggable */
             }
+            #${ MENU_PANEL_ID }.ar-aaa-menu-open { display: block; }
             #${ MENU_PANEL_ID } .ar-aaa-menu-group {
                 margin-bottom: 15px;
                 padding-bottom: 10px;
@@ -205,7 +207,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             }
             /* Exclude menu from high contrast direct styles */
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID }, body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } *,
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID }, body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } * {
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID }, body.${ MENU_BUTTON_ID } * { /* Fixed selector for button children */
                 background-color: #f8f9fa !important; color: #212529 !important; border-color: #dee2e6 !important;
             }
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active {
@@ -413,7 +415,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			const isButtonClick = target.closest('button');
 			const isLegendClick = target.closest('legend');
 			const isPanelDirectClick = target === element;
-			if (isButtonClick || !isPanelDirectClick && !isLegendClick) {
+			const isPanelTitleClick = target === element.querySelector('h3');
+			if (isButtonClick || !isPanelDirectClick && !isLegendClick && !isPanelTitleClick) {
 				if (isButtonDrag)
 					this.isButtonDragging = false;
 				else
@@ -545,12 +548,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		switch (action) {
 		case 'increase-text':
 		case 'decrease-text':
-		case 'reset-font':
 			this._handleTextSizeAction(action, targetButton);
 			break;
 		case 'contrast-high':
 		case 'contrast-invert':
-		case 'reset-contrast':
 			this._handleContrastAction(action, targetButton);
 			break;
 		case 'highlight-links':
@@ -572,11 +573,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (!buttonElement)
 			return;
 		const action = buttonElement.dataset.action;
-		if (isActive && action && action.startsWith('contrast-') && action !== 'reset-contrast') {
+		if (isActive && action && action.startsWith('contrast-')) {
 			const parentGroup = buttonElement.closest('.ar-aaa-button-row') || buttonElement.closest('.ar-aaa-menu-group');
 			if (parentGroup) {
 				parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
-					if (btn !== buttonElement) {
+					if (btn !== button) {
 						btn.classList.remove('ar-aaa-menu-btn-active')
 					}
 				})
@@ -598,12 +599,19 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			factor = FONT_SIZE_MULTIPLIER
 		} else if (action === 'decrease-text') {
 			factor = 1 / FONT_SIZE_MULTIPLIER
-		} else if (action === 'reset-font') {
-			factor = 0
 		}
 		elements.forEach(el => {
-			if (factor === 0) {
-				el.style.removeProperty('font-size')
+			if (!Menu._originalFontSizes.has(el)) {
+				Menu._originalFontSizes.set(el, el.style.fontSize || window.getComputedStyle(el).fontSize)
+			}
+			if (action === 'reset-font') {
+				const originalSize = Menu._originalFontSizes.get(el);
+				if (originalSize !== null && originalSize !== undefined && originalSize !== '') {
+					el.style.setProperty('font-size', originalSize, 'important')
+				} else {
+					el.style.removeProperty('font-size')
+				}
+				Menu._originalFontSizes.delete(el)
 			} else {
 				const currentSize = parseFloat(window.getComputedStyle(el).fontSize);
 				if (!isNaN(currentSize) && currentSize > 0) {
@@ -784,7 +792,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		logAction('Dyslexia font ' + (this.isDyslexiaFontActive ? 'enabled' : 'disabled'), true)
 	};
 	Menu._resetAllSettings = function () {
-		this._handleTextSizeAction('reset-font', document.querySelector(`#${ MENU_PANEL_ID } button[data-action="reset-font"]`));
+		Menu._originalFontSizes.forEach((originalSize, el) => {
+			if (originalSize !== null && originalSize !== undefined && originalSize !== '') {
+				el.style.setProperty('font-size', originalSize, 'important')
+			} else {
+				el.style.removeProperty('font-size')
+			}
+		});
+		Menu._originalFontSizes.clear();
 		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_INVERT_COLORS);
 		this.activeContrastMode = 'default';
 		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action^="contrast-"]`).forEach(btn => {
