@@ -138,10 +138,12 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 filter: none !important;
                 font-family: 'Inter', Arial, sans-serif !important;
             }
-            #${MENU_BUTTON_ID}:hover, #${MENU_BUTTON_ID}:focus-visible { 
-                background-color: #000000 !important; 
-                outline: 2px solid #ffffff !important; 
-                outline-offset: 2px;
+            #${MENU_BUTTON_ID}:hover { 
+                background-color: #000000 !important; /* No hover change */
+            }
+            #${MENU_BUTTON_ID}:focus-visible {
+                 outline: 2px solid #ffffff !important; 
+                 outline-offset: 2px;
             }
             #${MENU_BUTTON_ID}.dragging { cursor: grabbing; }
             #${MENU_BUTTON_ID} .ar-aaa-menu-icon { display: flex; align-items: center; justify-content: center; width: 60% !important; height: 60% !important; }
@@ -196,7 +198,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 
             #${PAGE_STRUCTURE_PANEL_ID} { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; max-height: 70vh; overflow-y: auto; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 2147483647; padding: 20px; }
             #${PAGE_STRUCTURE_PANEL_ID} h3#ar-aaa-structure-title { margin-top: 0; margin-bottom: 15px; font-size: 1.3em; color: #000000 !important; }
-            #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category { margin-bottom: 20px; }
             #${PAGE_STRUCTURE_PANEL_ID} .ar-structure-category h4 { font-size: 1.1em; margin-bottom: 8px; color: #000000 !important; border-bottom: 1px solid #cccccc !important; padding-bottom: 5px;}
             #${PAGE_STRUCTURE_PANEL_ID} ul { list-style: none; padding-left: 0; margin:0; }
             #${PAGE_STRUCTURE_PANEL_ID} li button { display: block; width: 100%; text-align: left; padding: 8px 10px; background-color: #f9f9f9 !important; border: 1px solid #ccc !important; border-radius: 4px; margin-bottom: 5px; cursor: pointer; font-size: 0.9em; color: #000000 !important; transition: none !important; font-family: 'Inter', Arial, sans-serif !important;}
@@ -206,8 +207,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             
 
             html.${CLASS_INVERT_COLORS} { filter: invert(100%) hue-rotate(180deg) !important; background-color: #fff !important; }
+            /* Menu UI is exempted from invert by its own filter:none and specific styling */
             html.${CLASS_INVERT_COLORS} img, html.${CLASS_INVERT_COLORS} video, html.${CLASS_INVERT_COLORS} [style*="background-image"] { filter: invert(100%) hue-rotate(180deg) !important; }
-            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; }
+            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; } /* SVGs on page get inverted once */
 
             body.${CLASS_HIGH_CONTRAST} { background-color: #fff !important; color: #000 !important; }
             body.${CLASS_HIGH_CONTRAST} p, body.${CLASS_HIGH_CONTRAST} p[style],
