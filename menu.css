@@ -1,0 +1,351 @@
+@font-face {
+	 font-family: 'OpenDyslexic';
+	 font-style: normal;
+	 font-display: swap;
+	 font-weight: 400;
+	 src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff');
+}
+ @font-face {
+	 font-family: 'OpenDyslexic';
+	 font-style: normal;
+	 font-display: swap;
+	 font-weight: 700;
+	 src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff');
+}
+ #aaa-menu-button {
+	 position: fixed !important;
+	 z-index: 2147483647 !important;
+	 background-color: #000000 !important;
+	 color: #ffffff !important;
+	 border: 2px solid #ffffff !important;
+	 border-radius: 50% !important;
+	 width: 70px !important;
+	 height: 70px !important;
+	 font-size: 36px !important;
+	 cursor: grab !important;
+	 box-shadow: 0 2px 10px rgba(0,0,0,0.2) !important;
+	 display: flex !important;
+	 align-items: center !important;
+	 justify-content: center !important;
+	 padding: 0 !important;
+	 filter: none !important;
+	 font-family: 'Inter', Arial, sans-serif !important;
+	 transition: none !important;
+}
+ #aaa-menu-button:hover {
+	 background-color: #000000 !important;
+}
+ #aaa-menu-button:focus-visible {
+	 outline: 2px solid #ffffff !important;
+	 outline-offset: 2px !important;
+}
+ #aaa-menu-button.dragging {
+	 cursor: grabbing !important;
+}
+ #aaa-menu-button .ar-aaa-menu-icon {
+	 display: flex !important;
+	 align-items: center !important;
+	 justify-content: center !important;
+	 width: 60% !important;
+	 height: 60% !important;
+}
+ #aaa-menu-button .ar-aaa-menu-icon svg, #aaa-menu-button .ar-aaa-menu-icon svg * {
+	 fill: #ffffff !important;
+	 stroke: #ffffff !important;
+}
+ #aaa-menu-panel, #aaa-page-structure-panel {
+	 background-color: #ffffff !important;
+	 border: 2px solid #000000 !important;
+	 color: #000000 !important;
+	 filter: none !important;
+	 font-family: 'Inter', Arial, sans-serif !important;
+}
+ #aaa-menu-panel {
+	 display: none;
+	 position: fixed;
+	 width: 320px;
+	 max-height: 45vh;
+	 overflow-y: auto;
+	 border-radius: 8px;
+	 box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+	 z-index: 2147483646;
+	 padding: 15px;
+	 cursor: grab;
+}
+ #aaa-menu-panel h3#ar-aaa-menu-title, #aaa-menu-panel .ar-aaa-profile-title {
+	 margin-top: 0 !important;
+	 margin-bottom: 15px !important;
+	 font-size: 1.2em !important;
+	 color: #000000 !important;
+	 text-align: center !important;
+	 background-color: transparent !important;
+	 font-family: 'Inter', Arial, sans-serif !important;
+}
+ #aaa-menu-panel .ar-aaa-profile-title {
+	 text-align: left !important;
+	 font-weight: bold !important;
+}
+ #aaa-menu-panel.ar-aaa-menu-open {
+	 display: block !important;
+}
+ #aaa-menu-panel .ar-aaa-menu-group {
+	 margin-bottom: 15px !important;
+	 padding-bottom: 10px !important;
+	 border-bottom: 1px solid #000000 !important;
+}
+ #aaa-menu-panel .ar-aaa-menu-group:last-of-type {
+	 margin-bottom: 0 !important;
+	 padding-bottom: 0 !important;
+	 border-bottom: none !important;
+}
+ #aaa-menu-panel .ar-aaa-button-row {
+	 display: flex !important;
+	 flex-wrap: wrap !important;
+	 gap: 8px !important;
+}
+ #aaa-menu-panel button {
+	 flex: 1 1 calc(50% - 4px) !important;
+	 padding: 10px 12px !important;
+	 font-size: 1em !important;
+	 background-color: #ffffff !important;
+	 color: #000000 !important;
+	 border: 1px solid #000000 !important;
+	 border-radius: 4px !important;
+	 cursor: pointer !important;
+	 transition: none !important;
+	 display: flex !important;
+	 align-items: center !important;
+	 justify-content: center !important;
+	 gap: 6px !important;
+	 min-height: 40px !important;
+	 font-family: 'Inter', Arial, sans-serif !important;
+}
+ #aaa-menu-panel button:hover, #aaa-menu-panel button:focus-visible {
+	 background-color: #f0f0f0 !important;
+	 outline: 1px solid #000000 !important;
+}
+ #aaa-menu-panel button.ar-aaa-menu-btn-active {
+	 background-color: #000000 !important;
+	 color: #ffffff !important;
+	 border-color: #000000 !important;
+}
+ #aaa-menu-panel button.ar-aaa-fullwidth-btn {
+	 flex-basis: 100% !important;
+}
+ #aaa-menu-panel button.ar-aaa-reset-btn {
+	 background-color: #e0e0e0 !important;
+	 border-color: #000000 !important;
+	 color: #000000 !important;
+}
+ #aaa-menu-panel button.ar-aaa-reset-btn:hover {
+	 background-color: #d0d0d0 !important;
+}
+ #aaa-menu-panel .ar-aaa-menu-icon svg, #aaa-menu-panel .ar-aaa-menu-icon svg * {
+	 fill: currentColor !important;
+	 stroke: currentColor !important;
+}
+ #aaa-page-structure-panel {
+	 display: none;
+	 position: fixed;
+	 top: 50%;
+	 left: 50%;
+	 transform: translate(-50%, -50%);
+	 width: 90%;
+	 max-width: 500px;
+	 max-height: 70vh;
+	 overflow-y: auto;
+	 border-radius: 8px;
+	 box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+	 z-index: 2147483647;
+	 padding: 20px;
+}
+ #aaa-page-structure-panel h3#ar-aaa-structure-title {
+	 margin-top: 0 !important;
+	 margin-bottom: 15px !important;
+	 font-size: 1.3em !important;
+	 color: #000000 !important;
+	 background-color: transparent !important;
+}
+ #aaa-page-structure-panel .ar-structure-category h4 {
+	 font-size: 1.1em !important;
+	 margin-bottom: 8px !important;
+	 color: #000000 !important;
+	 border-bottom: 1px solid #cccccc !important;
+	 padding-bottom: 5px !important;
+	 background-color: transparent !important;
+}
+ #aaa-page-structure-panel ul {
+	 list-style: none !important;
+	 padding-left: 0 !important;
+	 margin:0 !important;
+}
+ #aaa-page-structure-panel li button {
+	 display: block !important;
+	 width: 100% !important;
+	 text-align: left !important;
+	 padding: 8px 10px !important;
+	 background-color: #f9f9f9 !important;
+	 border: 1px solid #ccc !important;
+	 border-radius: 4px !important;
+	 margin-bottom: 5px !important;
+	 cursor: pointer !important;
+	 font-size: 0.9em !important;
+	 color: #000000 !important;
+	 transition: none !important;
+	 font-family: 'Inter', Arial, sans-serif !important;
+}
+ #aaa-page-structure-panel li button:hover {
+	 background-color: #efefef !important;
+}
+ #aaa-page-structure-panel .ar-aaa-structure-close-btn {
+	 display: block !important;
+	 margin: 15px auto 0 !important;
+	 padding: 8px 15px !important;
+	 background-color: #333 !important;
+	 color: #fff !important;
+	 border: 1px solid #000 !important;
+	 border-radius: 4px !important;
+	 cursor: pointer !important;
+	 font-family: 'Inter', Arial, sans-serif !important;
+}
+ #aaa-page-structure-panel .ar-aaa-structure-close-btn:hover {
+	 background-color: #555 !important;
+}
+ html.ar-aaa-invert-colors {
+	 filter: invert(100%) hue-rotate(180deg) !important;
+	 background-color: #fff !important;
+}
+ html.ar-aaa-invert-colors img, html.ar-aaa-invert-colors video, html.ar-aaa-invert-colors [style*="background-image"] {
+	 filter: invert(100%) hue-rotate(180deg) !important;
+}
+ html.ar-aaa-invert-colors svg {
+	 isolation: isolate !important;
+}
+ body.ar-aaa-high-contrast {
+	 background-color: #fff !important;
+	 color: #000 !important;
+}
+ body.ar-aaa-high-contrast p, body.ar-aaa-high-contrast p[style], body.ar-aaa-high-contrast span, body.ar-aaa-high-contrast span[style], body.ar-aaa-high-contrast div:not(#aaa-menu-button):not(#aaa-menu-button *):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-page-structure-panel):not(#aaa-page-structure-panel *):not([class*="icon"]), body.ar-aaa-high-contrast div[style]:not(#aaa-menu-button):not(#aaa-menu-button *):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-page-structure-panel):not(#aaa-page-structure-panel *):not([class*="icon"]), body.ar-aaa-high-contrast li, body.ar-aaa-high-contrast li[style], body.ar-aaa-high-contrast h1, body.ar-aaa-high-contrast h1[style], body.ar-aaa-high-contrast h2, body.ar-aaa-high-contrast h2[style], body.ar-aaa-high-contrast h3:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), body.ar-aaa-high-contrast h3[style]:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), body.ar-aaa-high-contrast h4:not(#aaa-page-structure-panel .ar-structure-category h4), body.ar-aaa-high-contrast h4[style]:not(#aaa-page-structure-panel .ar-structure-category h4), body.ar-aaa-high-contrast h5, body.ar-aaa-high-contrast h5[style], body.ar-aaa-high-contrast h6, body.ar-aaa-high-contrast h6[style], body.ar-aaa-high-contrast td, body.ar-aaa-high-contrast td[style], body.ar-aaa-high-contrast th, body.ar-aaa-high-contrast th[style], body.ar-aaa-high-contrast label, body.ar-aaa-high-contrast label[style], body.ar-aaa-high-contrast strong, body.ar-aaa-high-contrast strong[style], body.ar-aaa-high-contrast em, body.ar-aaa-high-contrast em[style], body.ar-aaa-high-contrast b, body.ar-aaa-high-contrast b[style], body.ar-aaa-high-contrast i, body.ar-aaa-high-contrast i[style], body.ar-aaa-high-contrast small, body.ar-aaa-high-contrast small[style], body.ar-aaa-high-contrast big, body.ar-aaa-high-contrast big[style], body.ar-aaa-high-contrast sub, body.ar-aaa-high-contrast sub[style], body.ar-aaa-high-contrast sup, body.ar-aaa-high-contrast sup[style] {
+	 background-color: transparent !important;
+	 color: #000 !important;
+}
+ body.ar-aaa-high-contrast a, body.ar-aaa-high-contrast a[style] {
+	 color: #0000EE !important;
+	 background-color: transparent !important;
+	 text-decoration: underline !important;
+}
+ body.ar-aaa-high-contrast svg:not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg), body.ar-aaa-high-contrast svg *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *) {
+	 background-color: transparent !important;
+	 fill: #000 !important;
+	 stroke: #000 !important;
+}
+ body.ar-aaa-high-contrast button:not(#aaa-menu-button):not(#aaa-menu-panel button):not(#aaa-page-structure-panel button), body.ar-aaa-high-contrast input, body.ar-aaa-high-contrast select, body.ar-aaa-high-contrast textarea {
+	 background-color: #eee !important;
+	 color: #000 !important;
+	 border: 1px solid #000 !important;
+}
+ body.ar-aaa-highlight-links a[href] {
+	 background-color: yellow !important;
+	 color: black !important;
+	 outline: 2px solid orange !important;
+	 border-radius: 2px !important;
+}
+ body.ar-aaa-enhanced-focus *:focus-visible {
+	 outline: 3px solid #0056b3 !important;
+	 outline-offset: 2px !important;
+	 box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.4) !important;
+}
+ html.ar-aaa-invert-colors body.ar-aaa-enhanced-focus *:focus-visible {
+	 outline-color: #FFFF00 !important;
+	 box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.5) !important;
+}
+ body.ar-aaa-high-contrast.ar-aaa-enhanced-focus *:focus-visible {
+	 outline-color: #000000 !important;
+	 box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.5) !important;
+}
+ body.ar-aaa-animations-stopped *, body.ar-aaa-animations-stopped *::before, body.ar-aaa-animations-stopped *::after {
+	 animation-duration: 0.01ms !important;
+	 animation-iteration-count: 1 !important;
+	 transition-duration: 0.01ms !important;
+	 transition-delay: 0ms !important;
+}
+ body.ar-aaa-dyslexia-font {
+	 font-family: 'OpenDyslexic', Arial, sans-serif !important;
+}
+ body.ar-aaa-dyslexia-font *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) {
+	 font-family: inherit !important;
+}
+ body.ar-aaa-reading-mode header, body.ar-aaa-reading-mode footer, body.ar-aaa-reading-mode nav, body.ar-aaa-reading-mode aside, body.ar-aaa-reading-mode [role="banner"], body.ar-aaa-reading-mode [role="complementary"], body.ar-aaa-reading-mode [role="contentinfo"], body.ar-aaa-reading-mode [role="navigation"], body.ar-aaa-reading-mode [role="search"] {
+	 display: none !important;
+}
+ body.ar-aaa-reading-mode {
+	 font-size: 1.1em !important;
+	 line-height: 1.7 !important;
+}
+ body.ar-aaa-reading-mode main, body.ar-aaa-reading-mode article, body.ar-aaa-reading-mode .content {
+	 width: 90% !important;
+	 max-width: 800px !important;
+	 margin: 20px auto !important;
+	 padding: 10px !important;
+}
+ .aaa-reading-mask-top, .aaa-reading-mask-bottom {
+	 position: fixed !important;
+	 left: 0 !important;
+	 width: 100% !important;
+	 background-color: rgba(0, 0, 0, 0.7) !important;
+	 z-index: 2147483640 !important;
+	 pointer-events: none !important;
+	 display: none !important;
+}
+ .aaa-reading-mask-top {
+	 top: 0 !important;
+}
+ .aaa-reading-mask-bottom {
+	 bottom: 0 !important;
+}
+ .aaa-reading-line {
+	 position: fixed !important;
+	 left: 0 !important;
+	 width: 100% !important;
+	 height: 2px !important;
+	 background-color: #007bff !important;
+	 z-index: 2147483640 !important;
+	 pointer-events: none !important;
+	 display: none !important;
+}
+ #aaa-menu-panel, #aaa-menu-panel *, #aaa-menu-button, #aaa-menu-button * {
+	 font-family: 'Inter', Arial, sans-serif !important;
+}
+ @media (max-width: 480px) {
+	 #aaa-menu-panel {
+		 width: calc(100% - 76px) !important;
+		/* 2 * EDGE_MARGIN_PX */
+		 left: 38px !important;
+		 right: 38px !important;
+		 bottom: 38px !important;
+		 top: auto !important;
+		 max-height: 45vh !important;
+	}
+	 #aaa-menu-button {
+		 width: 50px !important;
+		 height: 50px !important;
+		 font-size: 24px !important;
+	}
+	 #aaa-menu-panel button {
+		 flex-basis: 100% !important;
+	}
+	 #aaa-page-structure-panel {
+		 width: calc(100% - 20px) !important;
+		 max-height: 80vh !important;
+	}
+}
+ .ar-aaa-temp-highlight {
+	 outline: 3px dashed #FFD700 !important;
+	 outline-offset: 2px !important;
+	 background-color: rgba(255,215,0,0.1) !important;
+	 transition: outline 0.2s ease-out, background-color 0.2s ease-out !important;
+}
+ .ar-text-scaled-by-menu {
+	 font-size: var(--ar-scaled-font-size-px, inherit) !important;
+}
+ 
