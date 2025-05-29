@@ -24,6 +24,44 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu.buttonOffsetY = 0;
 	Menu.buttonDragOccurred = false;
 	Menu._originalFontSizes = new Map();
+	Menu.translations = {
+		'he': {
+			menuTitle: 'כלי נגישות',
+			increaseText: 'הגדל טקסט',
+			decreaseText: 'הקטן טקסט',
+			highContrast: 'ניגודיות גבוהה',
+			invertColors: 'היפוך צבעים',
+			highlightLinks: 'הדגש קישורים',
+			enhancedFocus: 'מיקוד משופר',
+			stopAnimations: 'עצור אנימציות',
+			dyslexiaFont: 'גופן דיסלקטי',
+			resetAll: 'איפוס הכל',
+			closeMenu: 'סגור תפריט',
+			accessibilityIcon: 'אייקון נגישות'
+		},
+		'en': {
+			menuTitle: 'Accessibility Tools',
+			increaseText: 'Increase Text',
+			decreaseText: 'Decrease Text',
+			highContrast: 'High Contrast',
+			invertColors: 'Invert Colors',
+			highlightLinks: 'Highlight Links',
+			enhancedFocus: 'Enhanced Focus',
+			stopAnimations: 'Stop Animations',
+			dyslexiaFont: 'Dyslexia Font',
+			resetAll: 'Reset All',
+			closeMenu: 'Close Menu',
+			accessibilityIcon: 'Accessibility Icon'
+		}
+	};
+	Menu._getLocalizedString = function (key) {
+		let lang = document.documentElement.lang || navigator.language || 'en';
+		lang = lang.split('-')[0];
+		if (Menu.translations[lang] && Menu.translations[lang][key]) {
+			return Menu.translations[lang][key]
+		}
+		return Menu.translations['en'][key] || key
+	};
 	function getClientCoords(event) {
 		if (event.touches && event.touches.length > 0) {
 			return {
@@ -96,6 +134,21 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 outline-offset: 2px;
             }
             #${ MENU_BUTTON_ID }.dragging { cursor: grabbing; }
+
+            /* ודא שהאייקון SVG בתוך הכפתור הראשי גלוי וממורכז */
+            #${ MENU_BUTTON_ID } .ar-aaa-menu-icon {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 100%; /* ודא שהספאן ממלא את הכפתור */
+                height: 100%; /* ודא שהספאן ממלא את הכפתור */
+            }
+            #${ MENU_BUTTON_ID } .ar-aaa-menu-icon svg {
+                width: 100%; /* ודא שה-SVG ממלא את הספאן */
+                height: 100%; /* ודא שה-SVG ממלא את הספאן */
+                fill: currentColor; /* ודא שהצבע יורש מהכפתור */
+            }
+
 
             /* פאנל תפריט */
             #${ MENU_PANEL_ID } {
@@ -308,10 +361,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu._createMenuButton = function () {
 		const btn = document.createElement('button');
 		btn.id = MENU_BUTTON_ID;
-		btn.setAttribute('aria-label', 'תפריט נגישות');
+		btn.setAttribute('aria-label', Menu._getLocalizedString('menuTitle'));
 		btn.setAttribute('aria-expanded', 'false');
 		btn.setAttribute('aria-controls', MENU_PANEL_ID);
-		btn.innerHTML = `<span class="ar-aaa-menu-icon" role="img" aria-label="אייקון נגישות"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A2,2 0 0,1 14,4A2,2 0 0,1 12,6A2,2 0 0,1 10,4A2,2 0 0,1 12,2M21,9H15V22H13V16H11V22H9V16H3V9A2,2 0 0,1 5,7H19A2,2 0 0,1 21,9Z" /></svg></span>`;
+		btn.innerHTML = `<span class="ar-aaa-menu-icon" role="img" aria-label="${ Menu._getLocalizedString('accessibilityIcon') }"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A2,2 0 0,1 14,4A2,2 0 0,1 12,6A2,2 0 0,1 10,4A2,2 0 0,1 12,2M21,9H15V22H13V16H11V22H9V16H3V9A2,2 0 0,1 5,7H19A2,2 0 0,1 21,9Z" /></svg></span>`;
 		btn.style.right = '20px';
 		btn.style.top = '50%';
 		btn.style.transform = 'translateY(-50%)';
@@ -334,52 +387,52 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		panel.addEventListener('touchstart', this._handlePanelMouseDown.bind(this), { passive: false })
 	};
 	Menu._getIconSVG = function (pathData, label = '') {
-		return `<span class="ar-aaa-menu-icon" role="img" aria-label="${ label }"><svg viewBox="0 0 24 24">${ pathData }</svg></span>`
+		return `<span class="ar-aaa-menu-icon" role="img" aria-label="${ label }"><svg viewBox="0 0 24 24" width="100%" height="100%">${ pathData }</svg></span>`
 	};
 	Menu._getMenuPanelHTML = function () {
 		const ICONS = {
-			textSize: this._getIconSVG('<path d="M2.5,4V7H7.5V19H10.5V7H15.5V4M10.5,10.5H13.5V13.5H10.5"/>', 'גודל טקסט'),
-			contrast: this._getIconSVG('<path d="M12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6V18M20,15L19.3,14C19.5,13.4 19.6,12.7 19.6,12C19.6,11.3 19.5,10.6 19.3,10L20,9L17.3,4L16.7,5C15.9,4.3 14.9,3.8 13.8,3.5L13.5,2H10.5L10.2,3.5C9.1,3.8 8.1,4.3 7.3,5L6.7,4L4,9L4.7,10C4.5,10.6 4.4,11.3 4.4,12C4.4,12.7 4.5,13.4 4.7,14L4,15L6.7,20L7.3,19C8.1,19.7 9.1,20.2 10.2,20.5L10.5,22H13.5L13.8,20.5C14.9,20.2 15.9,19.7 16.7,19L17.3,20L20,15Z"/>', 'ניגודיות'),
-			highlight: this._getIconSVG('<path d="M16.2,12L12,16.2L7.8,12L12,7.8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"/>', 'הדגשה'),
-			animation: this._getIconSVG('<path d="M8,5V19L19,12"/>', 'אנימציה'),
-			fontStyle: this._getIconSVG('<path d="M9.25,4V5.5H6.75V4H5.25V5.5H2.75V4H1.25V14.5H2.75V16H5.25V14.5H7.75V16H10.25V14.5H11.75V4H9.25M17.75,4V14.5H19.25V16H21.75V14.5H24.25V4H21.75V5.5H19.25V4H17.75M10.25,7H7.75V13H10.25V7M16.25,7H13.75V13H16.25V7Z"/>', 'סגנון גופן'),
-			reset: this._getIconSVG('<path d="M12,5V1L7,6L12,11V7A6,6 0 0,1 18,13A6,6 0 0,1 12,19A6,6 0 0,1 6,13H4A8,8 0 0,0 12,21A8,8 0 0,0 20,13A8,8 0 0,0 12,5Z"/>', 'איפוס'),
-			close: this._getIconSVG('<path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>', 'סגור')
+			textSize: this._getIconSVG('<path d="M2.5,4V7H7.5V19H10.5V7H15.5V4M10.5,10.5H13.5V13.5H10.5"/>', Menu._getLocalizedString('textSize')),
+			contrast: this._getIconSVG('<path d="M12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6V18M20,15L19.3,14C19.5,13.4 19.6,12.7 19.6,12C19.6,11.3 19.5,10.6 19.3,10L20,9L17.3,4L16.7,5C15.9,4.3 14.9,3.8 13.8,3.5L13.5,2H10.5L10.2,3.5C9.1,3.8 8.1,4.3 7.3,5L6.7,4L4,9L4.7,10C4.5,10.6 4.4,11.3 4.4,12C4.4,12.7 4.5,13.4 4.7,14L4,15L6.7,20L7.3,19C8.1,19.7 9.1,20.2 10.2,20.5L10.5,22H13.5L13.8,20.5C14.9,20.2 15.9,19.7 16.7,19L17.3,20L20,15Z"/>', Menu._getLocalizedString('contrast')),
+			highlight: this._getIconSVG('<path d="M16.2,12L12,16.2L7.8,12L12,7.8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"/>', Menu._getLocalizedString('highlight')),
+			animation: this._getIconSVG('<path d="M8,5V19L19,12"/>', Menu._getLocalizedString('animation')),
+			fontStyle: this._getIconSVG('<path d="M9.25,4V5.5H6.75V4H5.25V5.5H2.75V4H1.25V14.5H2.75V16H5.25V14.5H7.75V16H10.25V14.5H11.75V4H9.25M17.75,4V14.5H19.25V16H21.75V14.5H24.25V4H21.75V5.5H19.25V4H17.75M10.25,7H7.75V13H10.25V7M16.25,7H13.75V13H16.25V7Z"/>', Menu._getLocalizedString('fontStyle')),
+			reset: this._getIconSVG('<path d="M12,5V1L7,6L12,11V7A6,6 0 0,1 18,13A6,6 0 0,1 12,19A6,6 0 0,1 6,13H4A8,8 0 0,0 12,21A8,8 0 0,0 20,13A8,8 0 0,0 12,5Z"/>', Menu._getLocalizedString('reset')),
+			close: this._getIconSVG('<path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>', Menu._getLocalizedString('closeMenu'))
 		};
-		let html = `<h3 id="ar-aaa-menu-title">כלי נגישות</h3>`;
+		let html = `<h3 id="ar-aaa-menu-title">${ Menu._getLocalizedString('menuTitle') }</h3>`;
 		html += `
             <div class="ar-aaa-menu-group">
                 <div class="ar-aaa-button-row">
-                    <button data-action="increase-text">${ ICONS.textSize } הגדל טקסט</button>
-                    <button data-action="decrease-text">${ ICONS.textSize } הקטן טקסט</button>
+                    <button data-action="increase-text">${ ICONS.textSize } ${ Menu._getLocalizedString('increaseText') }</button>
+                    <button data-action="decrease-text">${ ICONS.textSize } ${ Menu._getLocalizedString('decreaseText') }</button>
                 </div>
             </div>
             <div class="ar-aaa-menu-group">
                 <div class="ar-aaa-button-row">
-                    <button data-action="contrast-high">${ ICONS.contrast } ניגודיות גבוהה</button>
-                    <button data-action="contrast-invert">${ ICONS.contrast } היפוך צבעים</button>
+                    <button data-action="contrast-high">${ ICONS.contrast } ${ Menu._getLocalizedString('highContrast') }</button>
+                    <button data-action="contrast-invert">${ ICONS.contrast } ${ Menu._getLocalizedString('invertColors') }</button>
                 </div>
             </div>
             <div class="ar-aaa-menu-group">
                 <div class="ar-aaa-button-row">
-                    <button data-action="highlight-links">${ ICONS.highlight } הדגש קישורים</button>
-                    <button data-action="enhanced-focus">${ ICONS.highlight } מיקוד משופר</button>
+                    <button data-action="highlight-links">${ ICONS.highlight } ${ Menu._getLocalizedString('highlightLinks') }</button>
+                    <button data-action="enhanced-focus">${ ICONS.highlight } ${ Menu._getLocalizedString('enhancedFocus') }</button>
                 </div>
             </div>
             <div class="ar-aaa-menu-group">
                 <div class="ar-aaa-button-row">
-                    <button data-action="stop-animations" class="ar-aaa-fullwidth-btn">${ ICONS.animation } עצור אנימציות</button>
+                    <button data-action="stop-animations" class="ar-aaa-fullwidth-btn">${ ICONS.animation } ${ Menu._getLocalizedString('stopAnimations') }</button>
                 </div>
             </div>
             <div class="ar-aaa-menu-group">
                 <div class="ar-aaa-button-row">
-                    <button data-action="toggle-dyslexia-font" class="ar-aaa-fullwidth-btn">${ ICONS.fontStyle } גופן דיסלקטי</button>
+                    <button data-action="toggle-dyslexia-font" class="ar-aaa-fullwidth-btn">${ ICONS.fontStyle } ${ Menu._getLocalizedString('dyslexiaFont') }</button>
                 </div>
             </div>
             <div class="ar-aaa-menu-group">
                 <div class="ar-aaa-button-row">
-                    <button data-action="reset-all" class="ar-aaa-fullwidth-btn ar-aaa-reset-btn">${ ICONS.reset } איפוס הכל</button>
-                    <button data-action="close-menu" class="ar-aaa-fullwidth-btn">${ ICONS.close } סגור תפריט</button>
+                    <button data-action="reset-all" class="ar-aaa-fullwidth-btn ar-aaa-reset-btn">${ ICONS.reset } ${ Menu._getLocalizedString('resetAll') }</button>
+                    <button data-action="close-menu" class="ar-aaa-fullwidth-btn">${ ICONS.close } ${ Menu._getLocalizedString('closeMenu') }</button>
                 </div>
             </div>
         `;
@@ -440,20 +493,33 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				if (document.activeElement === lastFocusableEl) {
 					firstFocusableEl.focus();
 					event.preventDefault()
+				} else if (!focusableElements.includes(document.activeElement)) {
+					firstFocusableEl.focus();
+					event.preventDefault()
 				}
 			}
 		}
 	};
+	Menu._initialButtonX = 0;
+	Menu._initialButtonY = 0;
+	Menu._initialPanelX = 0;
+	Menu._initialPanelY = 0;
+	Menu._initialMouseX = 0;
+	Menu._initialMouseY = 0;
+	Menu._panelRelativeOffsetX = 0;
+	Menu._panelRelativeOffsetY = 0;
 	Menu._startDragging = function (event, isButtonDrag) {
-		const element = isButtonDrag ? document.getElementById(MENU_BUTTON_ID) : document.getElementById(MENU_PANEL_ID);
-		if (!element)
+		const button = document.getElementById(MENU_BUTTON_ID);
+		const panel = document.getElementById(MENU_PANEL_ID);
+		if (!button || !panel)
 			return;
+		let draggedElement = isButtonDrag ? button : panel;
 		if (!isButtonDrag) {
 			const target = event.target;
 			const isButtonClick = target.closest('button');
 			const isLegendClick = target.closest('legend');
-			const isPanelDirectClick = target === element;
-			const isPanelTitleClick = target === element.querySelector('h3');
+			const isPanelDirectClick = target === panel;
+			const isPanelTitleClick = target === panel.querySelector('h3');
 			if (isButtonClick || isLegendClick || isPanelDirectClick && !isPanelTitleClick) {
 				if (isButtonDrag)
 					this.isButtonDragging = false;
@@ -462,28 +528,27 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				return
 			}
 		}
-		if (isButtonDrag)
-			this.isButtonDragging = true;
-		else
-			this.isPanelDragging = true;
-		element.classList.add('dragging');
-		element.style.position = 'fixed';
+		this.isButtonDragging = isButtonDrag;
+		this.isPanelDragging = !isButtonDrag;
+		draggedElement.classList.add('dragging');
+		button.style.position = 'fixed';
+		panel.style.position = 'fixed';
 		const coords = getClientCoords(event);
-		const rect = element.getBoundingClientRect();
-		element.style.left = `${ rect.left }px`;
-		element.style.top = `${ rect.top }px`;
-		element.style.right = 'auto';
-		element.style.bottom = 'auto';
-		if (isButtonDrag) {
-			element.style.transform = 'none'
-		}
-		if (isButtonDrag) {
-			this.buttonOffsetX = coords.clientX - rect.left;
-			this.buttonOffsetY = coords.clientY - rect.top;
-			this.buttonDragOccurred = false
+		const buttonRect = button.getBoundingClientRect();
+		const panelRect = panel.getBoundingClientRect();
+		Menu._initialButtonX = buttonRect.left;
+		Menu._initialButtonY = buttonRect.top;
+		Menu._initialPanelX = panelRect.left;
+		Menu._initialPanelY = panelRect.top;
+		Menu._initialMouseX = coords.clientX;
+		Menu._initialMouseY = coords.clientY;
+		button.style.transform = 'none';
+		if (Menu.isOpen) {
+			Menu._panelRelativeOffsetX = panelRect.left - buttonRect.left;
+			Menu._panelRelativeOffsetY = panelRect.top - buttonRect.top
 		} else {
-			this.panelOffsetX = coords.clientX - rect.left;
-			this.panelOffsetY = coords.clientY - rect.top
+			Menu._panelRelativeOffsetX = 0;
+			Menu._panelRelativeOffsetY = -panelRect.height - 10
 		}
 		if (event.type === 'touchstart') {
 			event.preventDefault()
@@ -496,53 +561,52 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this._startDragging(event, false)
 	};
 	Menu._handleDocumentMouseMove = function (event) {
-		let element, offsetX, offsetY;
-		if (this.isButtonDragging) {
-			element = document.getElementById(MENU_BUTTON_ID);
-			offsetX = this.buttonOffsetX;
-			offsetY = this.buttonOffsetY;
-			this.buttonDragOccurred = true;
-			if (Menu.isOpen) {
-				const panel = document.getElementById(MENU_PANEL_ID);
-				if (panel) {
-					const buttonRect = element.getBoundingClientRect();
-					const panelRect = panel.getBoundingClientRect();
-					let newTop = buttonRect.top - panelRect.height - 10;
-					let newLeft = buttonRect.left;
-					const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
-					if (docDir === 'rtl') {
-						newLeft = buttonRect.right - panelRect.width
-					}
-					if (newTop < 10)
-						newTop = buttonRect.bottom + 10;
-					if (newTop + panelRect.height > window.innerHeight - 10) {
-						newTop = Math.max(10, window.innerHeight - panelRect.height - 10)
-					}
-					if (newLeft < 10)
-						newLeft = 10;
-					if (newLeft + panelRect.width > window.innerWidth - 10) {
-						newLeft = window.innerWidth - panelRect.width - 10
-					}
-					panel.style.top = `${ newTop }px`;
-					panel.style.left = `${ newLeft }px`
-				}
-			}
-		} else if (this.isPanelDragging) {
-			element = document.getElementById(MENU_PANEL_ID);
-			offsetX = this.panelOffsetX;
-			offsetY = this.panelOffsetY
-		} else {
-			return
-		}
-		if (!element)
+		if (!this.isButtonDragging && !this.isPanelDragging)
+			return;
+		const button = document.getElementById(MENU_BUTTON_ID);
+		const panel = document.getElementById(MENU_PANEL_ID);
+		if (!button || !panel)
 			return;
 		const coords = getClientCoords(event);
-		let newLeft = coords.clientX - offsetX;
-		let newTop = coords.clientY - offsetY;
-		newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - element.offsetWidth));
-		newTop = Math.max(0, Math.min(newTop, window.innerHeight - element.offsetHeight));
-		element.style.left = `${ newLeft }px`;
-		element.style.top = `${ newTop }px`;
+		const deltaX = coords.clientX - Menu._initialMouseX;
+		const deltaY = coords.clientY - Menu._initialMouseY;
+		let targetButtonX, targetButtonY, targetPanelX, targetPanelY;
+		if (this.isButtonDragging) {
+			targetButtonX = Menu._initialButtonX + deltaX;
+			targetButtonY = Menu._initialButtonY + deltaY;
+			targetPanelX = targetButtonX + Menu._panelRelativeOffsetX;
+			targetPanelY = targetButtonY + Menu._panelRelativeOffsetY
+		} else if (this.isPanelDragging) {
+			targetPanelX = Menu._initialPanelX + deltaX;
+			targetPanelY = Menu._initialPanelY + deltaY;
+			targetButtonX = targetPanelX - Menu._panelRelativeOffsetX;
+			targetButtonY = targetPanelY - Menu._panelRelativeOffsetY
+		}
+		const buttonWidth = button.offsetWidth;
+		const buttonHeight = button.offsetHeight;
+		const panelWidth = panel.offsetWidth;
+		const panelHeight = panel.offsetHeight;
+		targetButtonX = Math.max(0, Math.min(targetButtonX, window.innerWidth - buttonWidth));
+		targetButtonY = Math.max(0, Math.min(targetButtonY, window.innerHeight - buttonHeight));
+		let clampedPanelX = targetButtonX + Menu._panelRelativeOffsetX;
+		let clampedPanelY = targetButtonY + Menu._panelRelativeOffsetY;
+		clampedPanelX = Math.max(0, Math.min(clampedPanelX, window.innerWidth - panelWidth));
+		clampedPanelY = Math.max(0, Math.min(clampedPanelY, window.innerHeight - panelHeight));
+		if (clampedPanelX !== targetButtonX + Menu._panelRelativeOffsetX) {
+			targetButtonX = clampedPanelX - Menu._panelRelativeOffsetX
+		}
+		if (clampedPanelY !== targetButtonY + Menu._panelRelativeOffsetY) {
+			targetButtonY = clampedPanelY - Menu._panelRelativeOffsetY
+		}
+		targetButtonX = Math.max(0, Math.min(targetButtonX, window.innerWidth - buttonWidth));
+		targetButtonY = Math.max(0, Math.min(targetButtonY, window.innerHeight - buttonHeight));
+		button.style.left = `${ targetButtonX }px`;
+		button.style.top = `${ targetButtonY }px`;
+		button.style.transform = 'none';
+		if (Menu.isOpen) {
+			panel.style.left = `${ targetButtonX + Menu._panelRelativeOffsetX }px`;
+			panel.style.top = `${ targetButtonY + Menu._panelRelativeOffsetY }px`
+		}
 		if (event.type === 'touchmove') {
 			event.preventDefault()
 		}
@@ -595,6 +659,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			panel.style.left = `${ newLeft }px`;
 			panel.style.bottom = 'auto';
 			panel.style.right = 'auto';
+			Menu._panelRelativeOffsetX = newLeft - buttonRect.left;
+			Menu._panelRelativeOffsetY = newTop - buttonRect.top;
 			const firstFocusableButton = panel.querySelector('button:not([disabled])');
 			if (firstFocusableButton) {
 				firstFocusableButton.focus()
@@ -655,7 +721,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 		if (!elements || elements.length === 0) {
 			console.warn('ARMenu: ar_getElementsForMenuTextStyleAdjustments() not available or returned empty. Using fallback selector.');
-			elements = Array.from(document.querySelectorAll('p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '), h1, h2, h3, h4, h5, h6, a, label, td, th, caption'))
+			elements = Array.from(document.querySelectorAll('p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '), h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup'))
 		}
 		let factor = 1;
 		if (action === 'increase-text') {
