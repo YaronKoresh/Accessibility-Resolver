@@ -25,6 +25,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto.activeCursorClassName = 'default';
 	AR_AccessibilityMenuProto.filterOverlayElement = null;
 	AR_AccessibilityMenuProto._initialComputedFontSizes = new Map();
+	AR_AccessibilityMenuProto._boundUpdateReadingGuide = null;
+	AR_AccessibilityMenuProto._boundReadClickedText = null;
 	function getClientCoords(event) {
 		if (event.touches && event.touches.length > 0) {
 			return {
@@ -51,405 +53,163 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const css = `
             /* Main Menu Button */
             #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } {
-                position: fixed; bottom: 20px; z-index: 2147483647; /* Ensure highest z-index */
+                position: fixed; bottom: 20px; z-index: 2147483647;
                 background-color: #0056b3; color: ${ AR_CONFIG.MENU_ICON_ACTIVE_COLOR }!important;
                 border: none; border-radius: 50%; width: 60px; height: 60px;
-                font-size: 28px; cursor: grab; /* Make button draggable */
+                font-size: 28px; cursor: grab;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.25);
-                display: flex !important; /* Ensure it's always displayed */
-                align-items: center; justify-content: center;
+                display: flex !important; align-items: center; justify-content: center;
                 transition: background-color .3s, transform .2s, box-shadow .2s;
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } .ar-menu-icon svg { fill: ${ AR_CONFIG.MENU_ICON_ACTIVE_COLOR }!important; display: block !important; } /* Ensure SVG is always displayed */
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } .ar-menu-icon svg { fill: ${ AR_CONFIG.MENU_ICON_ACTIVE_COLOR }!important; display: block !important; }
             #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }:hover, #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }:focus-visible {
                 background-color: #003d82; color: ${ AR_CONFIG.MENU_ICON_ACTIVE_COLOR }!important;
                 outline: 3px solid #70a1ff; outline-offset: 2px;
                 transform: scale(1.08); box-shadow: 0 6px 20px rgba(0,0,0,0.3);
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }.dragging {
-                cursor: grabbing;
-                box-shadow: 0 8px 25px rgba(0,0,0,0.4); /* Enhanced shadow when dragging */
-            }
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }.dragging { cursor: grabbing; box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
 
             /* Main Menu Panel */
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } {
-                display: none; position: fixed; bottom: 90px;
-                width: 400px; /* Increased width */
-                max-height: calc(100vh - 120px); overflow-y: auto;
+                display: none; position: fixed; /* bottom/right/left set dynamically */
+                width: 400px; max-height: calc(100vh - 120px); overflow-y: auto;
                 background-color: #fff; border: 1px solid #bdbdbd; border-radius: 12px;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 2147483647; /* Ensure highest z-index */
-                padding: 20px; font-family: 'Inter', sans-serif; /* Changed font to Inter */
-                font-size: 15px; color: #212121;
-                cursor: grab;
-                transition: box-shadow 0.2s ease-in-out; /* Smooth shadow on drag */
+                box-shadow: 0 8px 30px rgba(0,0,0,0.15); z-index: 2147483647;
+                padding: 20px; font-family: 'Inter', sans-serif;
+                font-size: 15px; color: #212121; cursor: grab;
+                transition: box-shadow 0.2s ease-in-out;
             }
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }.ar-menu-open { display: block; animation: ar-slide-up .3s ease-out; }
             @keyframes ar-slide-up { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }.dragging {
-                cursor: grabbing;
-                box-shadow: 0 12px 40px rgba(0,0,0,0.25); /* Enhanced shadow when dragging */
-            }
-
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }.dragging { cursor: grabbing; box-shadow: 0 12px 40px rgba(0,0,0,0.25); }
 
             /* Fieldset Groups */
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } fieldset.ar-menu-group {
                 border: 1px solid #e0e0e0; padding: 12px 18px 18px; margin-bottom: 18px; border-radius: 8px;
-                background-color: #fcfcfc; /* Slightly off-white for depth */
+                background-color: #fcfcfc;
             }
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } legend {
                 font-size: 1.15em; font-weight: 600; color: #004a99; padding: 0 8px; margin-left: 8px;
-                display: flex; align-items: center; gap: 6px;
-                cursor: grab;
+                display: flex; align-items: center; gap: 6px; cursor: grab;
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-button-row {
-                display: flex; flex-wrap: wrap; margin: 0 -3px;
-                gap: 6px; /* Spacing between buttons */
-            }
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-button-row { display: flex; flex-wrap: wrap; margin: 0 -3px; gap: 6px; }
 
             /* Menu Buttons */
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button {
                 display: flex; align-items: center; justify-content: center; gap: 8px;
                 flex: 1 1 calc(50% - 6px); min-width: calc(50% - 6px);
-                padding: 10px 8px; border: 1px solid #ccc; border-radius: 8px; /* More rounded */
-                background-color: #f0f0f0; /* Lighter background */
-                cursor: pointer; 
+                padding: 10px 8px; border: 1px solid #ccc; border-radius: 8px;
+                background-color: #f0f0f0; cursor: pointer; 
                 transition: background-color .2s, transform .1s, box-shadow .2s, color .2s, border-color .2s;
-                color: #333!important; /* Darker text for better contrast */
-                line-height: 1.2; text-align: center;
-                box-shadow: 0 1px 2px rgba(0,0,0,0.05); /* Subtle shadow */
+                color: #333!important; line-height: 1.2; text-align: center;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button .ar-menu-icon {
-                display: inline-block; width: 18px; height: 18px; fill: currentColor; vertical-align: middle; transition: fill .2s;
-            }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button .ar-menu-text { 
-                vertical-align: middle; flex-grow:1; text-align:center;
-                font-size: 16px; /* Increased font size for button text */
-                line-height: 1.4; /* Adjusted line height for readability */
-            }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button:hover {
-                background-color: #e0e0e0; border-color: #0056b3;
-                transform: translateY(-1px); /* Slight lift */
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button:focus-visible {
-                outline: 2px solid #0056b3; outline-offset: 2px; /* Increased offset */
-                box-shadow: 0 0 0 3px rgba(0,86,179,0.3); /* Focus ring effect */
-            }
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button .ar-menu-icon { display: inline-block; width: 18px; height: 18px; fill: currentColor; vertical-align: middle; transition: fill .2s; }
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button .ar-menu-text { vertical-align: middle; flex-grow:1; text-align:center; font-size: 16px; line-height: 1.4; }
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button:hover { background-color: #e0e0e0; border-color: #0056b3; transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button:focus-visible { outline: 2px solid #0056b3; outline-offset: 2px; box-shadow: 0 0 0 3px rgba(0,86,179,0.3); }
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-fullwidth-btn { width: calc(100% - 6px); flex-basis: calc(100% - 6px); }
 
             /* Reset Button Specifics */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn {
-                background-color: #e6ffed; border-color: #a3d4b7; font-weight: 500; color: #1e4620!important;
-            }
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn { background-color: #e6ffed; border-color: #a3d4b7; font-weight: 500; color: #1e4620!important; }
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn .ar-menu-icon { fill: #1e4620!important; }
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn:hover, #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn:focus-visible {
-                background-color: #c8f0d3; border-color: #4caf50;
-            }
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn:hover, #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-reset-btn:focus-visible { background-color: #c8f0d3; border-color: #4caf50; }
 
             /* Active Button State */
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-btn-active {
                 background-color: #0056b3!important; color: ${ AR_CONFIG.MENU_TEXT_ACTIVE_COLOR }!important;
-                border-color: #003d82!important; font-weight: bold;
-                box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); /* Inset shadow for active */
+                border-color: #003d82!important; font-weight: bold; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
             }
             #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-menu-btn-active .ar-menu-icon { fill: ${ AR_CONFIG.MENU_ICON_ACTIVE_COLOR }!important; }
 
             /* Close Button */
             #ar-menu-close-button { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24!important; margin-top:10px; }
-            #ar-menu-close-button:hover, #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } #ar-menu-close-button:focus-visible {
-                background-color: #f1b0b7; border-color: #e08890;
-            }
+            #ar-menu-close-button:hover, #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } #ar-menu-close-button:focus-visible { background-color: #f1b0b7; border-color: #e08890; }
             #ar-menu-close-button .ar-menu-icon { fill: #721c24!important; }
 
-            /* New Feature Styles */
             /* Virtual Keyboard */
             #ar-virtual-keyboard {
                 position: fixed; bottom: 0; left: 0; width: 100%;
-                background-color: #333; padding: 10px; z-index: 2147483647; /* Ensure highest z-index */
+                background-color: #333; padding: 10px; z-index: 2147483647;
                 display: flex; flex-wrap: wrap; justify-content: center;
                 box-shadow: 0 -4px 15px rgba(0,0,0,0.3);
                 border-top-left-radius: 8px; border-top-right-radius: 8px;
-                transition: transform 0.3s ease-out; /* Smooth slide in/out */
+                transition: transform 0.3s ease-out;
             }
-            #ar-virtual-keyboard.hidden {
-                transform: translateY(100%);
-            }
+            #ar-virtual-keyboard.hidden { transform: translateY(100%); }
             #ar-virtual-keyboard button {
                 background-color: #555; color: white; border: 1px solid #666;
-                border-radius: 4px; padding: 8px 12px; margin: 4px;
-                font-size: 16px; cursor: pointer;
-                transition: background-color 0.2s, transform 0.1s;
-                min-width: 40px; text-align: center;
+                border-radius: 4px; padding: 8px 12px; margin: 4px; font-size: 16px; cursor: pointer;
+                transition: background-color 0.2s, transform 0.1s; min-width: 40px; text-align: center;
             }
-            #ar-virtual-keyboard button:hover, #ar-virtual-keyboard button:focus-visible {
-                background-color: #777; transform: translateY(-1px);
-                outline: 2px solid #0056b3; outline-offset: 1px;
-            }
+            #ar-virtual-keyboard button:hover, #ar-virtual-keyboard button:focus-visible { background-color: #777; transform: translateY(-1px); outline: 2px solid #0056b3; outline-offset: 1px; }
             #ar-virtual-keyboard .key-space { flex-grow: 2; }
-            #ar-virtual-keyboard .key-backspace, #ar-virtual-keyboard .key-enter {
-                flex-basis: auto; min-width: 80px;
-            }
-            #ar-virtual-keyboard .key-shift, #ar-virtual-keyboard .key-caps {
-                background-color: #0056b3;
-            }
-            #ar-virtual-keyboard .key-shift.active, #ar-virtual-keyboard .key-caps.active {
-                background-color: #003d82;
-            }
+            #ar-virtual-keyboard .key-backspace, #ar-virtual-keyboard .key-enter { flex-basis: auto; min-width: 80px; }
+            #ar-virtual-keyboard .key-shift, #ar-virtual-keyboard .key-caps { background-color: #0056b3; }
+            #ar-virtual-keyboard .key-shift.active, #ar-virtual-keyboard .key-caps.active { background-color: #003d82; }
 
             /* Content Simplifier */
-            .ar-content-simplified body {
-                max-width: 800px; margin: 20px auto; padding: 0 20px;
-                background-color: #f9f9f9;
-            }
-            .ar-content-simplified header,
-            .ar-content-simplified footer,
-            .ar-content-simplified nav,
-            .ar-content-simplified aside,
-            .ar-content-simplified .sidebar,
-            .ar-content-simplified .ad,
-            .ar-content-simplified #comments,
-            .ar-content-simplified .related-posts,
-            .ar-content-simplified [role="complementary"],
-            .ar-content-simplified [role="navigation"],
-            .ar-content-simplified [role="banner"],
-            .ar-content-simplified [role="contentinfo"] {
-                display: none !important;
-            }
-            .ar-content-simplified img {
-                max-width: 100%; height: auto; display: block; margin: 15px auto;
-            }
-            .ar-content-simplified p,
-            .ar-content-simplified li {
-                line-height: 1.8 !important;
-                font-size: 1.1em !important;
-                max-width: 65ch; /* Optimal reading width */
-            }
+            .ar-content-simplified body { max-width: 800px; margin: 20px auto; padding: 0 20px; background-color: #f9f9f9; }
+            .ar-content-simplified header, .ar-content-simplified footer, .ar-content-simplified nav, .ar-content-simplified aside,
+            .ar-content-simplified .sidebar, .ar-content-simplified .ad, .ar-content-simplified #comments, .ar-content-simplified .related-posts,
+            .ar-content-simplified [role="complementary"], .ar-content-simplified [role="navigation"],
+            .ar-content-simplified [role="banner"], .ar-content-simplified [role="contentinfo"] { display: none !important; }
+            .ar-content-simplified img { max-width: 100%; height: auto; display: block; margin: 15px auto; }
+            .ar-content-simplified p, .ar-content-simplified li { line-height: 1.8 !important; font-size: 1.1em !important; max-width: 65ch; }
 
             /* Hide Images */
-            .ar-hide-images img,
-            .ar-hide-images picture,
-            .ar-hide-images figure { /* Target figure elements too */
-                display: none !important;
-                width: 0 !important;
-                height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                line-height: 0 !important;
-                font-size: 0 !important;
-            }
-            .ar-hide-images [style*="background-image"] {
-                background-image: none !important;
-            }
+            .ar-hide-images img, .ar-hide-images picture, .ar-hide-images figure { display: none !important; width: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; line-height: 0 !important; font-size: 0 !important; }
+            .ar-hide-images [style*="background-image"] { background-image: none !important; }
 
             /* Focus Highlight */
-            .ar-focus-highlight *:focus-visible {
-                outline: 4px solid #ffcc00 !important;
-                outline-offset: 3px !important;
-                box-shadow: 0 0 0 5px rgba(255, 204, 0, 0.5) !important;
-                transition: outline-color 0.2s, box-shadow 0.2s;
-            }
+            .ar-focus-highlight *:focus-visible { outline: 4px solid #ffcc00 !important; outline-offset: 3px !important; box-shadow: 0 0 0 5px rgba(255, 204, 0, 0.5) !important; transition: outline-color 0.2s, box-shadow 0.2s; }
 
-            /* Custom Cursor */
-            /* Larger, high-contrast arrow cursors */
-            .ar-cursor-large { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="black" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
-            .ar-cursor-xlarge { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24"><path fill="black" stroke="white" stroke-width="1" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 16 16, auto !important; }
-            .ar-cursor-red { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="red" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
-            .ar-cursor-green { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="green" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
+            /* Custom Cursor - Applied to HTML element for better persistence */
+            html.ar-cursor-large, html.ar-cursor-large body, html.ar-cursor-large a, html.ar-cursor-large button, html.ar-cursor-large input, html.ar-cursor-large textarea, html.ar-cursor-large [role="button"], html.ar-cursor-large [role="link"], html.ar-cursor-large [tabindex]:not([tabindex="-1"]) { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="black" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
+            html.ar-cursor-xlarge, html.ar-cursor-xlarge body, html.ar-cursor-xlarge a, html.ar-cursor-xlarge button, html.ar-cursor-xlarge input, html.ar-cursor-xlarge textarea, html.ar-cursor-xlarge [role="button"], html.ar-cursor-xlarge [role="link"], html.ar-cursor-xlarge [tabindex]:not([tabindex="-1"]) { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24"><path fill="black" stroke="white" stroke-width="1" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 16 16, auto !important; }
+            html.ar-cursor-red, html.ar-cursor-red body, html.ar-cursor-red a, html.ar-cursor-red button, html.ar-cursor-red input, html.ar-cursor-red textarea, html.ar-cursor-red [role="button"], html.ar-cursor-red [role="link"], html.ar-cursor-red [tabindex]:not([tabindex="-1"]) { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="red" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
+            html.ar-cursor-green, html.ar-cursor-green body, html.ar-cursor-green a, html.ar-cursor-green button, html.ar-cursor-green input, html.ar-cursor-green textarea, html.ar-cursor-green [role="button"], html.ar-cursor-green [role="link"], html.ar-cursor-green [tabindex]:not([tabindex="-1"]) { cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24"><path fill="green" stroke="white" stroke-width="0.75" d="M10 16.5l6-4.5-6-4.5v9z"/></svg>') 12 12, auto !important; }
             
-            /* Highlight around custom cursor */
-            html.ar-cursor-active-highlight {
-                box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.5) inset !important; /* Blue glow around the viewport */
-                transition: box-shadow 0.2s ease-in-out;
-            }
-
-
             /* Text-to-Speech Highlight */
-            .ar-tts-highlight {
-                background-color: yellow;
-                box-shadow: 0 0 5px yellow;
-                transition: background-color 0.1s ease-in-out;
-            }
+            .ar-tts-highlight { background-color: yellow !important; color: black !important; box-shadow: 0 0 5px yellow; transition: background-color 0.1s ease-in-out; }
 
             /* Page Zoom */
-            html.ar-page-zoom-active {
-                transform-origin: top left; /* Zoom from top-left corner */
-                width: 100vw; /* Ensure content doesn't overflow */
-                height: 100vh;
-                overflow: auto;
-            }
+            html.ar-page-zoom-active { transform-origin: top left; overflow: auto; }
 
             /* Text Spacing */
-            .accessibility-resolver-increased-letter-spacing p,
-            .accessibility-resolver-increased-letter-spacing li,
-            .accessibility-resolver-increased-letter-spacing span,
-            .accessibility-resolver-increased-letter-spacing div,
-            .accessibility-resolver-increased-letter-spacing a,
-            .accessibility-resolver-increased-letter-spacing button,
-            .accessibility-resolver-increased-letter-spacing input,
-            .accessibility-resolver-increased-letter-spacing textarea,
-            .accessibility-resolver-increased-letter-spacing h1,
-            .accessibility-resolver-increased-letter-spacing h2,
-            .accessibility-resolver-increased-letter-spacing h3,
-            .accessibility-resolver-increased-letter-spacing h4,
-            .accessibility-resolver-increased-letter-spacing h5,
-            .accessibility-resolver-increased-letter-spacing h6 {
-                letter-spacing: 0.12em !important; /* WCAG 2.1 AAA requires 0.12em for letter spacing */
-            }
-            .accessibility-resolver-increased-word-spacing p,
-            .accessibility-resolver-increased-word-spacing li,
-            .accessibility-resolver-increased-word-spacing span,
-            .accessibility-resolver-increased-word-spacing div,
-            .accessibility-resolver-increased-word-spacing a,
-            .accessibility-resolver-increased-word-spacing button,
-            .accessibility-resolver-increased-word-spacing input,
-            .accessibility-resolver-increased-word-spacing textarea,
-            .accessibility-resolver-increased-word-spacing h1,
-            .accessibility-resolver-increased-word-spacing h2,
-            .accessibility-resolver-increased-word-spacing h3,
-            .accessibility-resolver-increased-word-spacing h4,
-            .accessibility-resolver-increased-word-spacing h5,
-            .accessibility-resolver-increased-word-spacing h6 {
-                word-spacing: 0.16em !important; /* WCAG 2.1 AAA requires 0.16em for word spacing */
-            }
-            .accessibility-resolver-increased-line-height p,
-            .accessibility-resolver-increased-line-height li,
-            .accessibility-resolver-increased-line-height span,
-            .accessibility-resolver-increased-line-height div,
-            .accessibility-resolver-increased-line-height a,
-            .accessibility-resolver-increased-line-height button,
-            .accessibility-resolver-increased-line-height input,
-            .accessibility-resolver-increased-line-height textarea,
-            .accessibility-resolver-increased-line-height h1,
-            .accessibility-resolver-increased-line-height h2,
-            .accessibility-resolver-increased-line-height h3,
-            .accessibility-resolver-increased-line-height h4,
-            .accessibility-resolver-increased-line-height h5,
-            .accessibility-resolver-increased-line-height h6 {
-                line-height: 1.8 !important; /* WCAG 2.1 AAA requires 1.5 line height, 1.8 is a good increase */
-            }
+            .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } p, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } li, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } span, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } div, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } a, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } button, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } input, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } textarea, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h1, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h2, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h3, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h4, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h5, .${ AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME } h6 { letter-spacing: 0.12em !important; }
+            .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } p, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } li, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } span, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } div, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } a, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } button, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } input, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } textarea, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h1, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h2, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h3, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h4, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h5, .${ AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME } h6 { word-spacing: 0.16em !important; }
+            .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } p, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } li, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } span, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } div, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } a, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } button, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } input, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } textarea, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h1, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h2, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h3, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h4, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h5, .${ AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME } h6 { line-height: 1.8 !important; }
 
             /* Text Alignment */
-            .accessibility-resolver-text-align-left body *,
-            .accessibility-resolver-text-align-left p,
-            .accessibility-resolver-text-align-left li,
-            .accessibility-resolver-text-align-left span,
-            .accessibility-resolver-text-align-left div,
-            .accessibility-resolver-text-align-left a,
-            .accessibility-resolver-text-align-left button,
-            .accessibility-resolver-text-align-left input,
-            .accessibility-resolver-text-align-left textarea,
-            .accessibility-resolver-text-align-left h1,
-            .accessibility-resolver-text-align-left h2,
-            .accessibility-resolver-text-align-left h3,
-            .accessibility-resolver-text-align-left h4,
-            .accessibility-resolver-text-align-left h5,
-            .accessibility-resolver-text-align-left h6 {
-                text-align: left !important;
-            }
-            .accessibility-resolver-text-align-center body *,
-            .accessibility-resolver-text-align-center p,
-            .accessibility-resolver-text-align-center li,
-            .accessibility-resolver-text-align-center span,
-            .accessibility-resolver-text-align-center div,
-            .accessibility-resolver-text-align-center a,
-            .accessibility-resolver-text-align-center button,
-            .accessibility-resolver-text-align-center input,
-            .accessibility-resolver-text-align-center textarea,
-            .accessibility-resolver-text-align-center h1,
-            .accessibility-resolver-text-align-center h2,
-            .accessibility-resolver-text-align-center h3,
-            .accessibility-resolver-text-align-center h4,
-            .accessibility-resolver-text-align-center h5,
-            .accessibility-resolver-text-align-center h6 {
-                text-align: center !important;
-            }
+            .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left body *:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *),
+            .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left p, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left li, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left span, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }), .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left a, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left button, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left input, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left textarea, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h1, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h2, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h3, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h4, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h5, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left h6 { text-align: left !important; }
+            .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center body *:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *),
+            .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center p, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center li, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center span, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }), .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center a, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center button, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center input, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center textarea, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h1, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h2, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h3, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h4, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h5, .${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center h6 { text-align: center !important; }
 
             /* Dyslexia Font */
-            /* Assuming OpenDyslexic font is loaded via the URL in config.js */
-            .accessibility-resolver-dyslexia-font body *,
-            .accessibility-resolver-dyslexia-font p,
-            .accessibility-resolver-dyslexia-font li,
-            .accessibility-resolver-dyslexia-font span,
-            .accessibility-resolver-dyslexia-font div,
-            .accessibility-resolver-dyslexia-font a,
-            .accessibility-resolver-dyslexia-font button,
-            .accessibility-resolver-dyslexia-font input,
-            .accessibility-resolver-dyslexia-font textarea,
-            .accessibility-resolver-dyslexia-font select,
-            .accessibility-resolver-dyslexia-font h1, .accessibility-resolver-dyslexia-font h2,
-            .accessibility-resolver-dyslexia-font h3, .accessibility-resolver-dyslexia-font h4,
-            .accessibility-resolver-dyslexia-font h5, .accessibility-resolver-dyslexia-font h6 {
-                font-family: 'OpenDyslexic', sans-serif !important;
-            }
+            .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } body *:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *),
+            .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } p, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } li, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } span, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *), .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } a, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } button:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button), .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } input, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } textarea, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } select, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h1, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h2, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h3, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h4, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h5, .${ AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME } h6 { font-family: 'OpenDyslexic', sans-serif !important; }
 
-            /* Contrast & Color */
-            /* Filter overlay to apply filters without breaking fixed positioning */
-            #ar-filter-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none; /* Allow clicks to pass through */
-                z-index: 2147483645; /* Below menu and button, above content */
-                transition: filter 0.3s ease-in-out;
-            }
-
-            .accessibility-resolver-contrast-high #ar-filter-overlay {
-                filter: contrast(200%) brightness(120%) !important;
-            }
-            .accessibility-resolver-contrast-inverted #ar-filter-overlay {
-                filter: invert(100%) hue-rotate(180deg) !important;
-            }
-            .accessibility-resolver-contrast-grayscale #ar-filter-overlay {
-                filter: grayscale(100%) !important;
-            }
-            .accessibility-resolver-saturation-filter #ar-filter-overlay {
-                filter: saturate(30%) !important;
-            }
-
-            /* Ensure accessibility menu itself is NOT affected by filters */
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID },
-            #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID },
-            #ar-virtual-keyboard {
-                filter: none !important;
-            }
+            /* Contrast & Color Filters */
+            #ar-filter-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2147483645; transition: filter 0.3s ease-in-out; display: none; }
+            body.${ AR_CONFIG.HIGH_CONTRAST_MODE_CLASS_NAME } ~ #ar-filter-overlay { filter: contrast(200%) brightness(120%) !important; display: block !important; }
+            body.${ AR_CONFIG.INVERTED_CONTRAST_MODE_CLASS_NAME } ~ #ar-filter-overlay { filter: invert(100%) hue-rotate(180deg) !important; display: block !important; }
+            body.${ AR_CONFIG.GRAYSCALE_CONTRAST_MODE_CLASS_NAME } ~ #ar-filter-overlay { filter: grayscale(100%) !important; display: block !important; }
+            body.${ AR_CONFIG.SATURATION_FILTER_CLASS_NAME } ~ #ar-filter-overlay { filter: saturate(30%) !important; display: block !important; }
 
 
-            /* Highlight Links */
-            body.accessibility-resolver-highlight-links a[href] {
-                outline: 2px solid #FFD700 !important; /* Gold color */
-                background-color: rgba(255, 215, 0, 0.2) !important;
-                border-radius: 3px !important;
-            }
+            /* Ensure menu UI is not affected by filters */
+            #${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }, #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }, #ar-virtual-keyboard { filter: none !important; }
 
-            /* Highlight Headings */
-            body.accessibility-resolver-highlight-headings h1,
-            body.accessibility-resolver-highlight-headings h2,
-            body.accessibility-resolver-highlight-headings h3,
-            body.accessibility-resolver-highlight-headings h4,
-            body.accessibility-resolver-highlight-headings h5,
-            body.accessibility-resolver-highlight-headings h6 {
-                outline: 2px dashed #008000 !important; /* Green dashed outline */
-                background-color: rgba(0, 128, 0, 0.1) !important;
-                border-radius: 3px !important;
-            }
+            /* Highlight Links & Headings */
+            body.${ AR_CONFIG.HIGHLIGHTED_LINKS_CLASS_NAME } a[href] { outline: 2px solid #FFD700 !important; background-color: rgba(255, 215, 0, 0.2) !important; border-radius: 3px !important; }
+            body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h1, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h2, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h3, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h4, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h5, body.${ AR_CONFIG.HIGHLIGHTED_HEADINGS_CLASS_NAME } h6 { outline: 2px dashed #008000 !important; background-color: rgba(0, 128, 0, 0.1) !important; border-radius: 3px !important; }
 
-
-            /* Responsive adjustments for menu panel */
+            /* Responsive adjustments */
             @media (max-width: 768px) {
-                #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } {
-                    width: calc(100% - 40px);
-                    left: 20px;
-                    right: 20px;
-                    bottom: 20px;
-                    max-height: calc(100vh - 40px);
-                    padding: 15px;
-                }
-                #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-button-row button {
-                    flex: 1 1 calc(100% - 6px);
-                    min-width: calc(100% - 6px);
-                }
+                #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } { width: calc(100% - 40px); left: 20px; right: 20px; bottom: 20px; max-height: calc(100vh - 40px); padding: 15px; }
+                #${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } .ar-button-row button { flex: 1 1 calc(100% - 6px); min-width: calc(100% - 6px); }
             }
         `;
 		const styleEl = document.createElement('style');
@@ -478,7 +238,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		btn.style.transform = 'translateY(-50%)';
 		document.body.appendChild(btn);
 		btn.addEventListener('mousedown', this._startButtonDragging.bind(this));
-		btn.addEventListener('touchstart', this._startButtonDragging.bind(this))
+		btn.addEventListener('touchstart', this._startButtonDragging.bind(this), { passive: false })
 	};
 	AR_AccessibilityMenuProto._createMenuPanel = function () {
 		if (document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID))
@@ -501,13 +261,16 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		panel.innerHTML = this._getMenuPanelHTML();
 		document.body.appendChild(panel);
 		panel.addEventListener('mousedown', this._startDragging.bind(this));
-		const legend = panel.querySelector('legend');
-		if (legend) {
-			legend.addEventListener('mousedown', this._startDragging.bind(this))
+		panel.addEventListener('touchstart', this._startDragging.bind(this), { passive: false });
+		if (!this.filterOverlayElement) {
+			this.filterOverlayElement = document.createElement('div');
+			this.filterOverlayElement.id = 'ar-filter-overlay';
+			if (document.body.firstChild) {
+				document.body.insertBefore(this.filterOverlayElement, document.body.firstChild.nextSibling)
+			} else {
+				document.body.appendChild(this.filterOverlayElement)
+			}
 		}
-		this.filterOverlayElement = document.createElement('div');
-		this.filterOverlayElement.id = 'ar-filter-overlay';
-		document.body.appendChild(this.filterOverlayElement)
 	};
 	AR_AccessibilityMenuProto._getMenuIconSVG = function (pathData, altText = '') {
 		return `<span class="ar-menu-icon" role="img" aria-label="${ altText }"><svg viewBox="0 0 24 24">${ pathData }</svg></span>`
@@ -565,9 +328,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                     </div>
                  </fieldset>`;
 		return html
-	}
-}(AR_AccessibilityMenu));
-(function (AR_AccessibilityMenuProto) {
+	};
 	AR_AccessibilityMenuProto._attachEventListeners = function () {
 		const menuButton = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
 		const menuPanel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
@@ -588,9 +349,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				}
 			});
 			menuPanel.addEventListener('keydown', event => {
-				if (event.key === 'Escape' && this.isOpen) {
+				if (event.key === 'Escape' && this.isOpen)
 					this.toggleMenu()
-				}
 			});
 			document.addEventListener('mousemove', this._doDragging.bind(this));
 			document.addEventListener('mouseup', this._stopDragging.bind(this));
@@ -613,6 +373,30 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		panel.setAttribute('aria-hidden', String(!this.isOpen));
 		button.setAttribute('aria-expanded', String(this.isOpen));
 		if (this.isOpen) {
+			const panelRect = panel.getBoundingClientRect();
+			const buttonRect = button.getBoundingClientRect();
+			let newTop = buttonRect.top - panelRect.height - 10;
+			let newLeft = buttonRect.left;
+			const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
+			if (docDir === 'rtl') {
+				newLeft = buttonRect.right - panelRect.width
+			}
+			if (newTop < 10) {
+				newTop = buttonRect.bottom + 10;
+				if (newTop + panelRect.height > window.innerHeight - 10) {
+					newTop = Math.max(10, window.innerHeight - panelRect.height - 10)
+				}
+			}
+			if (newLeft < 10)
+				newLeft = 10;
+			if (newLeft + panelRect.width > window.innerWidth - 10) {
+				newLeft = window.innerWidth - panelRect.width - 10
+			}
+			panel.style.position = 'fixed';
+			panel.style.top = `${ newTop }px`;
+			panel.style.left = `${ newLeft }px`;
+			panel.style.bottom = 'auto';
+			panel.style.right = 'auto';
 			const firstFocusableButton = panel.querySelector('button:not([disabled])');
 			if (firstFocusableButton)
 				firstFocusableButton.focus()
@@ -632,7 +416,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this.toggleMenu();
 			return
 		}
-		if (action.includes('font') || action.includes('spacing') || action.includes('align') || action === 'toggle-dyslexia-font') {
+		if (action.startsWith('font') || action.startsWith('text-spacing') || action.startsWith('text-align') || action === 'toggle-dyslexia-font') {
 			if (action.includes('font'))
 				this._handleFontAction(action, targetButton);
 			else if (action.includes('spacing'))
@@ -641,13 +425,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				this._handleTextAlignAction(action, targetButton);
 			else if (action === 'toggle-dyslexia-font')
 				this._handleFontStyleAction(action, targetButton)
-		} else if (action.includes('contrast') || action.includes('saturation') || action === 'toggle-hide-images') {
+		} else if (action.startsWith('contrast') || action.startsWith('saturation') || action === 'toggle-hide-images') {
 			if (action.includes('contrast') || action.includes('saturation'))
 				this._handleContrastColorAction(action, targetButton);
 			else if (action === 'toggle-hide-images')
 				this._handleHideImagesAction(targetButton)
-		} else if (action.includes('highlight') || action.includes('reading')) {
-			if (action.includes('highlight'))
+		} else if (action.startsWith('highlight') || action.startsWith('reading') || action === 'focus-highlight') {
+			if (action.includes('highlight') || action === 'focus-highlight')
 				this._handleHighlightAction(action, targetButton);
 			else if (action.includes('reading'))
 				this._handleReadingAidAction(action, targetButton)
@@ -657,10 +441,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this._handleVirtualKeyboardAction(targetButton)
 		} else if (action === 'toggle-content-simplifier') {
 			this._handleContentSimplifierAction(targetButton)
-		} else if (action === 'toggle-text-to-speech') {
-			this._handleTextToSpeechAction(targetButton)
-		} else if (action === 'stop-text-to-speech') {
-			this._stopReading(targetButton)
+		} else if (action === 'toggle-text-to-speech' || action === 'stop-text-to-speech') {
+			if (action === 'toggle-text-to-speech')
+				this._handleTextToSpeechAction(targetButton);
+			else
+				this._stopReading(targetButton)
 		} else if (action === 'toggle-custom-cursor') {
 			this._handleCustomCursorAction(targetButton)
 		} else if (action.startsWith('zoom-') || action === 'reset-zoom') {
@@ -678,66 +463,127 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (parentFieldset && !buttonElement.classList.contains('ar-menu-reset-btn')) {
 				Array.from(parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)')).forEach(btn => {
 					if (btn !== buttonElement) {
-						const multiSelectActions = [
-							'text-spacing-letter',
-							'text-spacing-word',
-							'text-spacing-line',
-							'highlight-links',
-							'highlight-headings'
-						];
-						if (!multiSelectActions.includes(buttonElement.dataset.action)) {
-							btn.classList.remove('ar-menu-btn-active')
-						}
+						btn.classList.remove('ar-menu-btn-active')
 					}
 				})
 			}
 		}
 	};
 	AR_AccessibilityMenuProto._handleFontAction = function (action, targetButton) {
-		const elementsForFontAdjust = ar_getElementsForMenuTextStyleAdjustments();
+		const elementsForFontAdjust = typeof ar_getElementsForMenuTextStyleAdjustments === 'function' ? ar_getElementsForMenuTextStyleAdjustments() : Array.from(document.querySelectorAll('p, li, span, div, h1, h2, h3, h4, h5, h6, a, button, input, textarea'));
+		const increment = AR_CONFIG.DEFAULT_FONT_SIZE_ADJUSTMENT_INCREMENT || 0.1;
+		const maxMultiplier = AR_CONFIG.MAX_FONT_SIZE_ADJUSTMENT_MULTIPLIER || 3;
+		const minMultiplier = AR_CONFIG.MIN_FONT_SIZE_ADJUSTMENT_MULTIPLIER || 0.6;
+		let decreaseButton, increaseButton;
+		if (targetButton && targetButton.parentElement) {
+			decreaseButton = targetButton.parentElement.querySelector('[data-action="decrease-font"]');
+			increaseButton = targetButton.parentElement.querySelector('[data-action="increase-font"]')
+		}
 		if (action === 'increase-font') {
-			this.currentFontSizeMultiplier = Math.min(AR_CONFIG.MAX_FONT_SIZE_ADJUSTMENT_MULTIPLIER, this.currentFontSizeMultiplier + AR_CONFIG.DEFAULT_FONT_SIZE_ADJUSTMENT_INCREMENT);
-			this._applyFontSize(elementsForFontAdjust, false);
-			this._updateButtonActiveState(targetButton, true);
-			const decreaseButton = targetButton.parentElement.querySelector('[data-action="decrease-font"]');
+			this.currentFontSizeMultiplier = Math.min(maxMultiplier, this.currentFontSizeMultiplier + increment);
 			if (decreaseButton)
 				this._updateButtonActiveState(decreaseButton, false)
 		} else if (action === 'decrease-font') {
-			this.currentFontSizeMultiplier = Math.max(AR_CONFIG.MIN_FONT_SIZE_ADJUSTMENT_MULTIPLIER, this.currentFontSizeMultiplier - AR_CONFIG.DEFAULT_FONT_SIZE_ADJUSTMENT_INCREMENT);
-			this._applyFontSize(elementsForFontAdjust, false);
-			this._updateButtonActiveState(targetButton, true);
-			const increaseButton = targetButton.parentElement.querySelector('[data-action="increase-font"]');
+			this.currentFontSizeMultiplier = Math.max(minMultiplier, this.currentFontSizeMultiplier - increment);
 			if (increaseButton)
 				this._updateButtonActiveState(increaseButton, false)
 		} else if (action === 'reset-font') {
 			this.currentFontSizeMultiplier = 1;
-			this._applyFontSize(elementsForFontAdjust, true);
 			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
 			if (parentFieldset) {
-				parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false))
+				parentFieldset.querySelectorAll('button[data-action="increase-font"], button[data-action="decrease-font"]').forEach(b => this._updateButtonActiveState(b, false))
 			}
 		}
+		this._applyFontSize(elementsForFontAdjust, action === 'reset-font');
+		if (action !== 'reset-font' && targetButton)
+			this._updateButtonActiveState(targetButton, true);
 		this._logMenuChange(`Font size adjusted to ${ this.currentFontSizeMultiplier.toFixed(1) }x.`, action !== 'reset-font')
 	};
 	AR_AccessibilityMenuProto._applyFontSize = function (elements, reset) {
 		elements.forEach(el => {
 			const styleProp = 'font-size';
 			if (reset) {
-				ar_restoreOriginalInlineStyle(el, styleProp);
+				if (typeof ar_restoreOriginalInlineStyle === 'function')
+					ar_restoreOriginalInlineStyle(el, styleProp);
+				else if (this._initialComputedFontSizes.has(el))
+					el.style.fontSize = '';
 				this._initialComputedFontSizes.delete(el)
 			} else {
 				if (!this._initialComputedFontSizes.has(el)) {
 					this._initialComputedFontSizes.set(el, parseFloat(window.getComputedStyle(el).fontSize))
 				}
 				const baseSize = this._initialComputedFontSizes.get(el);
-				if (!isNaN(baseSize)) {
-					if (!ar_originalElementStylesMap.has(el) || !ar_originalElementStylesMap.get(el).hasOwnProperty(styleProp)) {
+				if (!isNaN(baseSize) && baseSize > 0) {
+					if (typeof ar_storeOriginalInlineStyle === 'function' && (!ar_originalElementStylesMap || !ar_originalElementStylesMap.has(el) || !ar_originalElementStylesMap.get(el).hasOwnProperty(styleProp))) {
 						ar_storeOriginalInlineStyle(el, styleProp)
 					}
 					el.style.setProperty(styleProp, `${ baseSize * this.currentFontSizeMultiplier }px`, 'important')
 				}
 			}
 		})
+	};
+	AR_AccessibilityMenuProto._handleTextSpacingAction = function (action, targetButton) {
+		const bodyEl = document.body;
+		const spacingClasses = {
+			'text-spacing-letter': AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME,
+			'text-spacing-word': AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME,
+			'text-spacing-line': AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME
+		};
+		if (action === 'text-spacing-reset') {
+			bodyEl.classList.remove(...Object.values(spacingClasses));
+			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
+			if (parentFieldset)
+				parentFieldset.querySelectorAll('button[data-action^="text-spacing-"]:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false));
+			this._logMenuChange('Text spacing reset', true)
+		} else if (spacingClasses[action]) {
+			const targetClass = spacingClasses[action];
+			bodyEl.classList.toggle(targetClass);
+			const isActive = bodyEl.classList.contains(targetClass);
+			this._updateButtonActiveState(targetButton, isActive, true);
+			this._logMenuChange(`${ targetButton.textContent.trim() } spacing`, isActive)
+		}
+	};
+	AR_AccessibilityMenuProto._handleTextAlignAction = function (action, targetButton) {
+		const bodyEl = document.body;
+		const alignPrefix = AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX;
+		const alignClasses = {
+			'text-align-left': `${ alignPrefix }left`,
+			'text-align-center': `${ alignPrefix }center`
+		};
+		bodyEl.classList.remove(`${ alignPrefix }left`, `${ alignPrefix }center`);
+		if (action === 'text-align-reset') {
+			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
+			if (parentFieldset)
+				parentFieldset.querySelectorAll('button[data-action^="text-align-"]:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false));
+			this._logMenuChange('Text alignment reset', true)
+		} else if (alignClasses[action]) {
+			const targetClass = alignClasses[action];
+			bodyEl.classList.add(targetClass);
+			this._updateButtonActiveState(targetButton, true);
+			this._logMenuChange(`Text align to ${ action.split('-')[2] }`, true)
+		}
+	};
+	AR_AccessibilityMenuProto._handleFontStyleAction = function (action, targetButton) {
+		if (action === 'toggle-dyslexia-font')
+			this._toggleDyslexiaFont(targetButton)
+	};
+	AR_AccessibilityMenuProto._toggleDyslexiaFont = function (buttonElement) {
+		const body = document.body;
+		this.isDyslexiaFontActive = !this.isDyslexiaFontActive;
+		if (this.isDyslexiaFontActive) {
+			if (!document.getElementById('ar-dyslexia-font-stylesheet')) {
+				const fontLink = document.createElement('link');
+				fontLink.id = 'ar-dyslexia-font-stylesheet';
+				fontLink.rel = 'stylesheet';
+				fontLink.href = AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_STYLESHEET_URL;
+				document.head.appendChild(fontLink)
+			}
+			body.classList.add(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
+		} else {
+			body.classList.remove(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
+		}
+		this._updateButtonActiveState(buttonElement, this.isDyslexiaFontActive);
+		this._logMenuChange(`Dyslexia font ${ this.isDyslexiaFontActive ? 'enabled' : 'disabled' }.`, this.isDyslexiaFontActive)
 	};
 	AR_AccessibilityMenuProto._handleContrastColorAction = function (action, targetButton) {
 		const bodyEl = document.body;
@@ -750,103 +596,47 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (action === 'reset-contrast') {
 			bodyEl.classList.remove(...contrastClasses, saturationClass);
 			this.activeContrastModeClassName = 'default';
-			if (this.filterOverlayElement) {
-				this.filterOverlayElement.style.filter = 'none';
-				this.filterOverlayElement.style.display = 'none'
-			}
 			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
-			if (parentFieldset) {
-				parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false))
-			}
+			if (parentFieldset)
+				parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false));
 			this._logMenuChange('Contrast and saturation reset', true);
 			return
 		}
 		let targetClass = '', logMsg = '';
-		let filterValue = 'none';
 		switch (action) {
 		case 'contrast-high':
 			targetClass = AR_CONFIG.HIGH_CONTRAST_MODE_CLASS_NAME;
-			filterValue = 'contrast(200%) brightness(120%)';
 			logMsg = 'High contrast';
 			break;
 		case 'contrast-inverted':
 			targetClass = AR_CONFIG.INVERTED_CONTRAST_MODE_CLASS_NAME;
-			filterValue = 'invert(100%) hue-rotate(180deg)';
 			logMsg = 'Inverted colors';
 			break;
 		case 'contrast-grayscale':
 			targetClass = AR_CONFIG.GRAYSCALE_CONTRAST_MODE_CLASS_NAME;
-			filterValue = 'grayscale(100%)';
 			logMsg = 'Grayscale mode';
 			break;
 		case 'saturation-low':
 			targetClass = saturationClass;
-			filterValue = 'saturate(30%)';
 			logMsg = 'Low saturation';
 			break
 		}
-		if (this.filterOverlayElement) {
-			this.filterOverlayElement.style.display = 'block'
-		} else {
-			this.filterOverlayElement = document.createElement('div');
-			this.filterOverlayElement.id = 'ar-filter-overlay';
-			document.body.appendChild(this.filterOverlayElement);
-			this.filterOverlayElement.style.display = 'block'
-		}
+		const isActiveNow = !bodyEl.classList.contains(targetClass);
 		bodyEl.classList.remove(...contrastClasses, saturationClass);
-		bodyEl.classList.toggle(targetClass);
-		const isActive = bodyEl.classList.contains(targetClass);
-		if (this.filterOverlayElement) {
-			this.filterOverlayElement.style.filter = isActive ? `${ filterValue } !important` : 'none'
-		}
-		this._updateButtonActiveState(targetButton, isActive);
-		if (isActive)
-			this.activeContrastModeClassName = targetClass;
-		else if (!isActive && this.activeContrastModeClassName === targetClass)
-			this.activeContrastModeClassName = 'default';
-		this._logMenuChange(logMsg, isActive)
-	};
-	AR_AccessibilityMenuProto._handleTextSpacingAction = function (action, targetButton) {
-		const bodyEl = document.body;
-		const spacingClasses = {
-			'text-spacing-letter': AR_CONFIG.INCREASED_LETTER_SPACING_CLASS_NAME,
-			'text-spacing-word': AR_CONFIG.INCREASED_WORD_SPACING_CLASS_NAME,
-			'text-spacing-line': AR_CONFIG.INCREASED_LINE_HEIGHT_CLASS_NAME
-		};
-		if (action === 'text-spacing-reset') {
-			bodyEl.classList.remove(...Object.values(spacingClasses));
-			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
-			if (parentFieldset) {
-				parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false))
-			}
-			this._logMenuChange('Text spacing reset', true)
-		} else if (spacingClasses[action]) {
-			const targetClass = spacingClasses[action];
-			bodyEl.classList.toggle(targetClass);
-			const isActive = bodyEl.classList.contains(targetClass);
-			this._updateButtonActiveState(targetButton, isActive, true);
-			this._logMenuChange(`${ targetButton.textContent.trim() } spacing`, isActive)
-		}
-	};
-	AR_AccessibilityMenuProto._handleTextAlignAction = function (action, targetButton) {
-		const bodyEl = document.body;
-		const alignClasses = {
-			'text-align-left': `${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }left`,
-			'text-align-center': `${ AR_CONFIG.TEXT_ALIGNMENT_CLASS_NAME_PREFIX }center`
-		};
-		bodyEl.classList.remove(...Object.values(alignClasses));
-		if (action === 'text-align-reset') {
-			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
-			if (parentFieldset) {
-				parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false))
-			}
-			this._logMenuChange('Text alignment reset', true)
-		} else if (alignClasses[action]) {
-			const targetClass = alignClasses[action];
+		if (isActiveNow) {
 			bodyEl.classList.add(targetClass);
-			this._updateButtonActiveState(targetButton, true);
-			this._logMenuChange(`Text align to ${ action.split('-')[2] }`, true)
+			this.activeContrastModeClassName = targetClass
+		} else {
+			this.activeContrastModeClassName = 'default'
 		}
+		this._updateButtonActiveState(targetButton, isActiveNow);
+		this._logMenuChange(logMsg, isActiveNow)
+	};
+	AR_AccessibilityMenuProto._handleHideImagesAction = function (targetButton) {
+		this.areImagesHidden = !this.areImagesHidden;
+		this._updateButtonActiveState(targetButton, this.areImagesHidden);
+		document.body.classList.toggle('ar-hide-images', this.areImagesHidden);
+		this._logMenuChange('Hide images', this.areImagesHidden)
 	};
 	AR_AccessibilityMenuProto._handleHighlightAction = function (action, targetButton) {
 		const bodyEl = document.body;
@@ -858,9 +648,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			bodyEl.classList.remove(...Object.values(highlightClasses), 'ar-focus-highlight');
 			this.isFocusHighlightActive = false;
 			const parentFieldset = targetButton.closest('fieldset.ar-menu-group');
-			if (parentFieldset) {
-				parentFieldset.querySelectorAll('button:not(.ar-menu-reset-btn)').forEach(b => this._updateButtonActiveState(b, false))
-			}
+			if (parentFieldset)
+				parentFieldset.querySelectorAll('button[data-action^="highlight-"], button[data-action="focus-highlight"]').forEach(b => this._updateButtonActiveState(b, false));
 			this._logMenuChange('Highlights reset', true)
 		} else if (highlightClasses[action]) {
 			const targetClass = highlightClasses[action];
@@ -871,7 +660,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		} else if (action === 'focus-highlight') {
 			this.isFocusHighlightActive = !this.isFocusHighlightActive;
 			bodyEl.classList.toggle('ar-focus-highlight', this.isFocusHighlightActive);
-			document.documentElement.classList.toggle('ar-cursor-active-highlight', this.isFocusHighlightActive);
 			this._updateButtonActiveState(targetButton, this.isFocusHighlightActive);
 			this._logMenuChange('Focus highlight', this.isFocusHighlightActive)
 		}
@@ -902,43 +690,48 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this._logMenuChange(`Reading guide (${ type })`, ar_activeReadingGuideType === type)
 	};
 	AR_AccessibilityMenuProto._activateReadingGuide = function (type) {
+		this._deactivateReadingGuide(type === 'line' ? 'mask' : 'line');
 		if (type === 'line') {
-			this.readingGuideLineElement = document.createElement('div');
-			this.readingGuideLineElement.id = AR_CONFIG.READING_LINE_ELEMENT_ID;
-			Object.assign(this.readingGuideLineElement.style, {
-				position: 'fixed',
-				left: '0',
-				width: '100%',
-				height: '3px',
-				backgroundColor: 'rgba(0, 0, 255, 0.7)',
-				zIndex: '2147483647',
-				pointerEvents: 'none'
-			});
-			document.body.appendChild(this.readingGuideLineElement);
-			this._boundUpdateReadingGuide = this._updateReadingGuidePosition.bind(this);
-			document.addEventListener('mousemove', this._boundUpdateReadingGuide)
-		} else if (type === 'mask') {
-			this.readingMaskTopElement = document.createElement('div');
-			this.readingMaskBottomElement = document.createElement('div');
-			[
-				this.readingMaskTopElement,
-				this.readingMaskBottomElement
-			].forEach((el, index) => {
-				el.id = `ar-reading-mask-${ index === 0 ? 'top' : 'bottom' }`;
-				el.className = AR_CONFIG.READING_MASK_ELEMENT_ID;
-				Object.assign(el.style, {
+			if (!this.readingGuideLineElement) {
+				this.readingGuideLineElement = document.createElement('div');
+				this.readingGuideLineElement.id = AR_CONFIG.READING_LINE_ELEMENT_ID;
+				Object.assign(this.readingGuideLineElement.style, {
 					position: 'fixed',
 					left: '0',
 					width: '100%',
-					backgroundColor: 'rgba(0, 0, 0, 0.6)',
-					zIndex: '2147483646',
+					height: '3px',
+					backgroundColor: 'rgba(0, 0, 255, 0.7)',
+					zIndex: '2147483647',
 					pointerEvents: 'none'
-				})
-			});
-			this.readingMaskTopElement.style.top = '0';
-			this.readingMaskBottomElement.style.bottom = '0';
-			document.body.appendChild(this.readingMaskTopElement);
-			document.body.appendChild(this.readingMaskBottomElement);
+				});
+				document.body.appendChild(this.readingGuideLineElement)
+			}
+			this._boundUpdateReadingGuide = this._updateReadingGuidePosition.bind(this);
+			document.addEventListener('mousemove', this._boundUpdateReadingGuide)
+		} else if (type === 'mask') {
+			if (!this.readingMaskTopElement) {
+				this.readingMaskTopElement = document.createElement('div');
+				this.readingMaskBottomElement = document.createElement('div');
+				[
+					this.readingMaskTopElement,
+					this.readingMaskBottomElement
+				].forEach((el, index) => {
+					el.id = `ar-reading-mask-${ index === 0 ? 'top' : 'bottom' }`;
+					Object.assign(el.style, {
+						position: 'fixed',
+						left: '0',
+						width: '100%',
+						backgroundColor: 'rgba(0, 0, 0, 0.6)',
+						zIndex: '2147483646',
+						pointerEvents: 'none'
+					})
+				});
+				this.readingMaskTopElement.style.top = '0';
+				this.readingMaskBottomElement.style.bottom = '0';
+				document.body.appendChild(this.readingMaskTopElement);
+				document.body.appendChild(this.readingMaskBottomElement)
+			}
+			this._boundUpdateReadingGuide = this._updateReadingGuidePosition.bind(this);
 			document.addEventListener('mousemove', this._boundUpdateReadingGuide)
 		}
 	};
@@ -948,8 +741,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this.readingGuideLineElement = null
 		} else if (type === 'mask' && this.readingMaskTopElement) {
 			this.readingMaskTopElement.remove();
-			this.readingMaskBottomElement.remove();
 			this.readingMaskTopElement = null;
+			this.readingMaskBottomElement.remove();
 			this.readingMaskBottomElement = null
 		}
 		if (this._boundUpdateReadingGuide) {
@@ -959,42 +752,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	};
 	AR_AccessibilityMenuProto._updateReadingGuidePosition = function (event) {
 		if (ar_activeReadingGuideType === 'line' && this.readingGuideLineElement) {
-			this.readingGuideLineElement.style.top = `${ event.clientY - Math.round(parseFloat(window.getComputedStyle(this.readingGuideLineElement).height) / 2) }px`
+			const lineHeight = parseFloat(window.getComputedStyle(this.readingGuideLineElement).height) || 3;
+			this.readingGuideLineElement.style.top = `${ event.clientY - Math.round(lineHeight / 2) }px`
 		} else if (ar_activeReadingGuideType === 'mask' && this.readingMaskTopElement && this.readingMaskBottomElement) {
 			const maskHeight = Math.max(30, Math.round(window.innerHeight * 0.1));
-			this.readingMaskTopElement.style.height = `${ event.clientY - maskHeight / 2 }px`;
-			this.readingMaskBottomElement.style.height = `${ window.innerHeight - (event.clientY + maskHeight / 2) }px`
+			this.readingMaskTopElement.style.height = `${ Math.max(0, event.clientY - maskHeight / 2) }px`;
+			this.readingMaskBottomElement.style.height = `${ Math.max(0, window.innerHeight - (event.clientY + maskHeight / 2)) }px`
 		}
-	};
-	AR_AccessibilityMenuProto._handleFontStyleAction = function (action, targetButton) {
-		if (action === 'toggle-dyslexia-font')
-			this._toggleDyslexiaFont(targetButton)
-	};
-	AR_AccessibilityMenuProto._toggleDyslexiaFont = function (buttonElement) {
-		const body = document.body;
-		this.isDyslexiaFontActive = !this.isDyslexiaFontActive;
-		if (this.isDyslexiaFontActive) {
-			if (!document.getElementById('ar-dyslexia-font-stylesheet')) {
-				const fontLink = document.createElement('link');
-				fontLink.id = 'ar-dyslexia-font-stylesheet';
-				fontLink.rel = 'stylesheet';
-				fontLink.href = AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_STYLESHEET_URL;
-				document.head.appendChild(fontLink)
-			}
-			const elementsToAffect = document.querySelectorAll('body, p, li, span, div, a, button, input, textarea, select, h1, h2, h3, h4, h5, h6, strong, em, b, i');
-			elementsToAffect.forEach(el => {
-				el.style.setProperty('font-family', `'OpenDyslexic', sans-serif`, 'important')
-			});
-			body.classList.add(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
-		} else {
-			const elementsToAffect = document.querySelectorAll('body, p, li, span, div, a, button, input, textarea, select, h1, h2, h3, h4, h5, h6, strong, em, b, i');
-			elementsToAffect.forEach(el => {
-				el.style.removeProperty('font-family')
-			});
-			body.classList.remove(AR_CONFIG.DYSLEXIA_FRIENDLY_FONT_CLASS_NAME)
-		}
-		this._updateButtonActiveState(buttonElement, this.isDyslexiaFontActive);
-		this._logMenuChange(`Dyslexia font ${ this.isDyslexiaFontActive ? 'enabled' : 'disabled' }.`, this.isDyslexiaFontActive)
 	};
 	AR_AccessibilityMenuProto._handleAnimationAction = function (action, targetButton) {
 		if (action === 'stop-animations')
@@ -1003,33 +767,104 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto._toggleAnimations = function (buttonElement) {
 		const body = document.body;
 		const stoppedClass = AR_CONFIG.ANIMATIONS_STOPPED_CLASS_NAME;
-		const currentlyStopped = body.classList.contains(stoppedClass);
-		body.classList.toggle(stoppedClass, !currentlyStopped);
-		this._updateButtonActiveState(buttonElement, !currentlyStopped);
-		const gifs = document.querySelectorAll('img[src$=".gif"]');
-		gifs.forEach(gif => {
-			if (!currentlyStopped) {
-				if (!gif.dataset.originalSrc) {
-					gif.dataset.originalSrc = gif.src
+		const isCurrentlyStoppedGeneral = body.classList.contains(stoppedClass);
+		const areGifsFrozen = document.querySelector('img[data-ar-gif-frozen="true"], canvas[data-ar-frozen-gif-canvas="true"]');
+		const nowStopping = !(isCurrentlyStoppedGeneral && areGifsFrozen);
+		body.classList.toggle(stoppedClass, nowStopping);
+		this._updateButtonActiveState(buttonElement, nowStopping);
+		if (nowStopping) {
+			const gifsToFreeze = Array.from(document.querySelectorAll('img[src*=".gif"]:not([data-ar-gif-frozen="true"])')).filter(img => {
+				try {
+					return new URL(img.src, window.location.href).pathname.toLowerCase().endsWith('.gif')
+				} catch (e) {
+					return (img.src || '').toLowerCase().includes('.gif')
 				}
-				gif.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
-			} else {
-				if (gif.dataset.originalSrc) {
-					gif.src = gif.dataset.originalSrc;
-					delete gif.dataset.originalSrc
+			});
+			gifsToFreeze.forEach(img => {
+				if (typeof ar_isVisuallyHidden === 'function' && ar_isVisuallyHidden(img))
+					return;
+				img.dataset.arOriginalSrc = img.src;
+				img.dataset.arOriginalAlt = img.alt || '';
+				img.dataset.arOriginalDisplay = img.style.display || '';
+				const tempImage = new Image();
+				tempImage.crossOrigin = 'Anonymous';
+				tempImage.onload = () => {
+					const canvas = document.createElement('canvas');
+					canvas.width = tempImage.naturalWidth || img.width || 50;
+					canvas.height = tempImage.naturalHeight || img.height || 50;
+					canvas.className = img.className;
+					canvas.style.cssText = img.style.cssText;
+					canvas.style.width = `${ canvas.width }px`;
+					canvas.style.height = `${ canvas.height }px`;
+					canvas.setAttribute('role', 'img');
+					canvas.setAttribute('aria-label', img.dataset.arOriginalAlt || `Frozen animation: ${ img.src.split('/').pop() }`);
+					canvas.dataset.arFrozenGifCanvas = 'true';
+					if (!img.id)
+						img.id = typeof ar_generateUniqueElementId === 'function' ? ar_generateUniqueElementId('ar-original-gif-') : `ar-gif-${ Date.now() }-${ Math.random() }`;
+					canvas.dataset.arOriginalImgId = img.id;
+					const ctx = canvas.getContext('2d');
+					try {
+						ctx.drawImage(tempImage, 0, 0, canvas.width, canvas.height);
+						img.style.display = 'none';
+						img.dataset.arGifFrozen = 'true';
+						if (img.parentNode)
+							img.parentNode.insertBefore(canvas, img.nextSibling)
+					} catch (e) {
+						console.error('AR: Canvas drawImage error for GIF:', img.src, e);
+						img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+						img.style.display = img.dataset.arOriginalDisplay || '';
+						img.dataset.arGifFrozen = 'true';
+						img.dataset.arGifFrozenFallback = 'true'
+					}
+				};
+				tempImage.onerror = () => {
+					console.warn('AR: Could not load GIF to freeze:', img.src);
+					img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+					img.dataset.arGifFrozen = 'true';
+					img.dataset.arGifFrozenFallback = 'true'
+				};
+				tempImage.src = img.dataset.arOriginalSrc
+			})
+		} else {
+			document.querySelectorAll('canvas[data-ar-frozen-gif-canvas="true"]').forEach(canvas => {
+				const originalImgId = canvas.dataset.arOriginalImgId;
+				if (originalImgId) {
+					const originalImg = document.getElementById(originalImgId);
+					if (originalImg) {
+						originalImg.style.display = originalImg.dataset.arOriginalDisplay || '';
+						[
+							'arGifFrozen',
+							'arOriginalSrc',
+							'arOriginalAlt',
+							'arOriginalDisplay',
+							'arGifFrozenFallback'
+						].forEach(attr => delete originalImg.dataset[attr])
+					}
 				}
-			}
-		});
-		this._logMenuChange(`Animations ${ body.classList.contains(stoppedClass) ? 'stopped/paused.' : 'resumed.' }`, true)
+				if (canvas.parentNode)
+					canvas.parentNode.removeChild(canvas)
+			});
+			document.querySelectorAll('img[data-ar-gif-frozen-fallback="true"]').forEach(img => {
+				if (img.dataset.arOriginalSrc)
+					img.src = img.dataset.arOriginalSrc;
+				[
+					'arGifFrozen',
+					'arGifFrozenFallback',
+					'arOriginalSrc',
+					'arOriginalAlt',
+					'arOriginalDisplay'
+				].forEach(attr => delete img.dataset[attr])
+			})
+		}
+		this._logMenuChange(`Animations ${ nowStopping ? 'stopped/paused.' : 'resumed.' }`, true)
 	};
 	AR_AccessibilityMenuProto._handleVirtualKeyboardAction = function (targetButton) {
 		this.isVirtualKeyboardActive = !this.isVirtualKeyboardActive;
 		this._updateButtonActiveState(targetButton, this.isVirtualKeyboardActive);
-		if (this.isVirtualKeyboardActive) {
-			this._createVirtualKeyboard()
-		} else {
-			this._removeVirtualKeyboard()
-		}
+		if (this.isVirtualKeyboardActive)
+			this._createVirtualKeyboard();
+		else
+			this._removeVirtualKeyboard();
 		this._logMenuChange('Virtual keyboard', this.isVirtualKeyboardActive)
 	};
 	AR_AccessibilityMenuProto._createVirtualKeyboard = function () {
@@ -1039,7 +874,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this.virtualKeyboardElement.id = 'ar-virtual-keyboard';
 		this.virtualKeyboardElement.setAttribute('role', 'group');
 		this.virtualKeyboardElement.setAttribute('aria-label', 'Virtual Keyboard');
-		const keyboardLayout = [
+		const layout = [
 			[
 				'1',
 				'2',
@@ -1053,7 +888,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				'0',
 				'-',
 				'=',
-				'Backspace'
+				'\u232B'
 			],
 			[
 				'q',
@@ -1071,6 +906,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				'\\'
 			],
 			[
+				'\u21EA',
 				'a',
 				's',
 				'd',
@@ -1081,10 +917,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				'k',
 				'l',
 				';',
-				"'"
+				"'",
+				'\u23CE'
 			],
 			[
-				'Shift',
+				'\u21E7',
 				'z',
 				'x',
 				'c',
@@ -1095,43 +932,55 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				',',
 				'.',
 				'/',
-				'Enter'
+				'\u21E7'
 			],
-			[
-				'Caps',
-				'Space'
-			]
+			['Space']
 		];
-		const createKey = (char, className = '') => {
+		const createVkKey = keySymbol => {
 			const button = document.createElement('button');
-			button.textContent = char;
-			button.dataset.originalChar = char.toLowerCase();
-			button.setAttribute('aria-label', char === 'Space' ? 'Spacebar' : char === 'Backspace' ? 'Backspace' : char === 'Enter' ? 'Enter' : char === 'Shift' ? 'Shift' : char === 'Caps' ? 'Caps Lock' : char);
-			if (className)
-				button.classList.add(className);
-			button.addEventListener('click', () => this._handleKeyPress(char, button));
+			button.dataset.keySymbol = keySymbol;
+			button.className = 'ar-vk-key';
+			let displayChar = keySymbol;
+			let ariaLabel = keySymbol;
+			switch (keySymbol) {
+			case '\u232B':
+				displayChar = 'Backspace';
+				ariaLabel = 'Backspace';
+				button.classList.add('key-backspace');
+				break;
+			case '\u23CE':
+				displayChar = 'Enter';
+				ariaLabel = 'Enter';
+				button.classList.add('key-enter');
+				break;
+			case '\u21E7':
+				displayChar = 'Shift';
+				ariaLabel = 'Shift';
+				button.classList.add('key-shift');
+				break;
+			case '\u21EA':
+				displayChar = 'Caps Lock';
+				ariaLabel = 'Caps Lock';
+				button.classList.add('key-caps');
+				break;
+			case 'Space':
+				displayChar = 'Space';
+				ariaLabel = 'Spacebar';
+				button.classList.add('key-space');
+				break;
+			default:
+				button.dataset.originalChar = keySymbol.toLowerCase();
+				break
+			}
+			button.textContent = displayChar;
+			button.setAttribute('aria-label', ariaLabel);
+			button.addEventListener('click', () => this._handleKeyPress(keySymbol, button));
 			return button
 		};
-		keyboardLayout.forEach(row => {
-			row.forEach(key => {
-				let keyElement;
-				if (key === 'Space') {
-					keyElement = createKey(' ', 'key-space')
-				} else if (key === 'Backspace') {
-					keyElement = createKey('\u232B', 'key-backspace')
-				} else if (key === 'Enter') {
-					keyElement = createKey('\u23CE', 'key-enter')
-				} else if (key === 'Shift') {
-					keyElement = createKey('\u21E7', 'key-shift')
-				} else if (key === 'Caps') {
-					keyElement = createKey('\u21EA', 'key-caps')
-				} else {
-					keyElement = createKey(key)
-				}
-				this.virtualKeyboardElement.appendChild(keyElement)
-			})
-		});
-		document.body.appendChild(this.virtualKeyboardElement)
+		layout.forEach(row => row.forEach(key => this.virtualKeyboardElement.appendChild(createVkKey(key))));
+		document.body.appendChild(this.virtualKeyboardElement);
+		this.virtualKeyboardElement.classList.remove('hidden');
+		this._toggleKeyboardCase(false)
 	};
 	AR_AccessibilityMenuProto._removeVirtualKeyboard = function () {
 		if (this.virtualKeyboardElement) {
@@ -1144,84 +993,143 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}, { once: true })
 		}
 	};
-	AR_AccessibilityMenuProto._handleKeyPress = function (key, button) {
+	AR_AccessibilityMenuProto._handleKeyPress = function (keySymbol, buttonElement) {
 		const activeElement = document.activeElement;
-		if (!activeElement || !activeElement.tagName === 'INPUT' && !activeElement.tagName === 'TEXTAREA') {
-			console.warn('No active input field for virtual keyboard.');
-			return
-		}
-		const isInput = activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA';
-		if (!isInput)
+		if (!activeElement || activeElement.tagName !== 'INPUT' && activeElement.tagName !== 'TEXTAREA' && !activeElement.isContentEditable)
 			return;
-		let currentValue = activeElement.value || '';
-		let start = activeElement.selectionStart;
-		let end = activeElement.selectionEnd;
-		const shiftButton = this.virtualKeyboardElement.querySelector('.key-shift');
-		const capsButton = this.virtualKeyboardElement.querySelector('.key-caps');
+		let currentValue = activeElement.value !== undefined ? activeElement.value : activeElement.isContentEditable ? activeElement.textContent : '';
+		let start = activeElement.selectionStart !== undefined ? activeElement.selectionStart : activeElement.isContentEditable && window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).startOffset : currentValue.length;
+		let end = activeElement.selectionEnd !== undefined ? activeElement.selectionEnd : activeElement.isContentEditable && window.getSelection().rangeCount > 0 ? window.getSelection().getRangeAt(0).endOffset : currentValue.length;
+		const shiftButton = this.virtualKeyboardElement && this.virtualKeyboardElement.querySelector('.key-shift');
+		const capsButton = this.virtualKeyboardElement && this.virtualKeyboardElement.querySelector('.key-caps');
 		const isShiftActive = shiftButton && shiftButton.classList.contains('active');
 		const isCapsActive = capsButton && capsButton.classList.contains('active');
-		switch (key) {
-		case 'Backspace':
+		let charToInsert = '';
+		switch (keySymbol) {
+		case '\u232B':
 			if (start > 0) {
 				currentValue = currentValue.substring(0, start - 1) + currentValue.substring(end);
-				activeElement.value = currentValue;
-				activeElement.setSelectionRange(start - 1, start - 1)
+				start--;
+				end = start
 			}
 			break;
-		case 'Enter':
-			if (activeElement.tagName === 'TEXTAREA') {
-				currentValue = currentValue.substring(0, start) + '\n' + currentValue.substring(end);
-				activeElement.value = currentValue;
-				activeElement.setSelectionRange(start + 1, start + 1)
+		case '\u23CE':
+			if (activeElement.tagName === 'TEXTAREA')
+				charToInsert = '\n';
+			else if (activeElement.isContentEditable) {
+				document.execCommand('insertLineBreak');
+				return
 			} else {
-				const event = new Event('change', { bubbles: true });
-				activeElement.dispatchEvent(event)
+				if (activeElement.form)
+					activeElement.form.dispatchEvent(new Event('submit', {
+						bubbles: true,
+						cancelable: true
+					}));
+				activeElement.dispatchEvent(new Event('change', { bubbles: true }));
+				return
 			}
 			break;
-		case 'Shift':
-			if (shiftButton) {
+		case '\u21E7':
+			if (shiftButton)
 				shiftButton.classList.toggle('active');
-				this._toggleKeyboardCase(isCapsActive)
-			}
-			break;
-		case 'Caps':
-			if (capsButton) {
+			this._toggleKeyboardCase(isCapsActive);
+			return;
+		case '\u21EA':
+			if (capsButton)
 				capsButton.classList.toggle('active');
-				this._toggleKeyboardCase(capsButton.classList.contains('active'))
-			}
-			break;
-		case ' ':
-			currentValue = currentValue.substring(0, start) + ' ' + currentValue.substring(end);
-			activeElement.value = currentValue;
-			activeElement.setSelectionRange(start + 1, start + 1);
+			this._toggleKeyboardCase(capsButton.classList.contains('active'));
+			return;
+		case 'Space':
+			charToInsert = ' ';
 			break;
 		default:
-			let charToInsert = key;
-			if (isShiftActive || isCapsActive) {
-				charToInsert = key.toUpperCase()
-			} else {
-				charToInsert = key.toLowerCase()
-			}
-			currentValue = currentValue.substring(0, start) + charToInsert + currentValue.substring(end);
-			activeElement.value = currentValue;
-			activeElement.setSelectionRange(start + charToInsert.length, start + charToInsert.length);
-			if (isShiftActive && shiftButton) {
+			charToInsert = buttonElement.textContent;
+			if (isShiftActive && !isCapsActive && shiftButton && charToInsert.length === 1) {
 				shiftButton.classList.remove('active');
 				this._toggleKeyboardCase(isCapsActive)
 			}
 			break
 		}
-		const inputEvent = new Event('input', { bubbles: true });
-		activeElement.dispatchEvent(inputEvent)
+		if (charToInsert) {
+			currentValue = currentValue.substring(0, start) + charToInsert + currentValue.substring(end);
+			start += charToInsert.length;
+			end = start
+		}
+		if (activeElement.value !== undefined)
+			activeElement.value = currentValue;
+		else if (activeElement.isContentEditable)
+			activeElement.textContent = currentValue;
+		if (activeElement.isContentEditable && window.getSelection && document.createRange) {
+			const range = document.createRange();
+			const sel = window.getSelection();
+			let textNode, offset = start;
+			function findTextNodeAndOffsetRecursive(parentNode, targetGlobalOffset) {
+				let currentGlobalOffset = 0;
+				for (let i = 0; i < parentNode.childNodes.length; i++) {
+					const node = parentNode.childNodes[i];
+					if (node.nodeType === Node.TEXT_NODE) {
+						const nodeLength = node.length;
+						if (currentGlobalOffset + nodeLength >= targetGlobalOffset) {
+							return {
+								node: node,
+								offset: targetGlobalOffset - currentGlobalOffset
+							}
+						}
+						currentGlobalOffset += nodeLength
+					} else if (node.nodeType === Node.ELEMENT_NODE) {
+						const result = findTextNodeAndOffsetRecursive(node, targetGlobalOffset - currentGlobalOffset);
+						if (result)
+							return result;
+						currentGlobalOffset += (node.textContent || '').length
+					}
+				}
+				return null
+			}
+			const targetPosition = findTextNodeAndOffsetRecursive(activeElement, start);
+			if (targetPosition && targetPosition.node) {
+				range.setStart(targetPosition.node, Math.min(targetPosition.offset, targetPosition.node.length))
+			} else {
+				let lastChild = activeElement.lastChild;
+				while (lastChild && lastChild.nodeType === Node.ELEMENT_NODE && lastChild.lastChild) {
+					lastChild = lastChild.lastChild
+				}
+				if (lastChild && lastChild.nodeType === Node.TEXT_NODE) {
+					range.setStart(lastChild, lastChild.length)
+				} else {
+					range.selectNodeContents(activeElement);
+					range.collapse(false)
+				}
+			}
+			range.collapse(true);
+			if (sel) {
+				sel.removeAllRanges();
+				sel.addRange(range)
+			}
+		} else if (activeElement.setSelectionRange) {
+			activeElement.setSelectionRange(start, end)
+		}
+		activeElement.dispatchEvent(new Event('input', { bubbles: true }))
 	};
-	AR_AccessibilityMenuProto._toggleKeyboardCase = function (isCapsActive) {
-		const keys = this.virtualKeyboardElement.querySelectorAll('button:not(.key-space):not(.key-backspace):not(.key-enter):not(.key-shift):not(.key-caps)');
+	AR_AccessibilityMenuProto._toggleKeyboardCase = function (isCapsActiveExplicit) {
+		if (!this.virtualKeyboardElement)
+			return;
+		const keys = this.virtualKeyboardElement.querySelectorAll('.ar-vk-key');
+		const isShiftActive = this.virtualKeyboardElement.querySelector('.key-shift.active');
+		const currentCapsState = typeof isCapsActiveExplicit === 'boolean' ? isCapsActiveExplicit : this.virtualKeyboardElement.querySelector('.key-caps') && this.virtualKeyboardElement.querySelector('.key-caps').classList.contains('active');
 		keys.forEach(keyButton => {
 			const originalChar = keyButton.dataset.originalChar;
-			if (isCapsActive || this.virtualKeyboardElement.querySelector('.key-shift.active')) {
-				keyButton.textContent = originalChar.toUpperCase()
-			} else {
-				keyButton.textContent = originalChar.toLowerCase()
+			if (originalChar && originalChar.length === 1) {
+				let charToShow = originalChar;
+				if (currentCapsState) {
+					charToShow = isShiftActive ? originalChar.toLowerCase() : originalChar.toUpperCase()
+				} else {
+					charToShow = isShiftActive ? originalChar.toUpperCase() : originalChar.toLowerCase()
+				}
+				keyButton.textContent = charToShow
+			} else if (keyButton.dataset.keySymbol === '\u21EA') {
+				keyButton.textContent = currentCapsState ? 'CAPS' : 'Caps Lock'
+			} else if (keyButton.dataset.keySymbol === '\u21E7') {
+				keyButton.textContent = isShiftActive ? 'SHIFT' : 'Shift'
 			}
 		})
 	};
@@ -1231,84 +1139,85 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.body.classList.toggle('ar-content-simplified', this.isContentSimplified);
 		this._logMenuChange('Content simplifier', this.isContentSimplified)
 	};
-	AR_AccessibilityMenuProto._handleHideImagesAction = function (targetButton) {
-		this.areImagesHidden = !this.areImagesHidden;
-		this._updateButtonActiveState(targetButton, this.areImagesHidden);
-		document.body.classList.toggle('ar-hide-images', this.areImagesHidden);
-		this._logMenuChange('Hide images', this.areImagesHidden)
-	};
 	AR_AccessibilityMenuProto._handleTextToSpeechAction = function (targetButton) {
 		this.isTextToSpeechActive = !this.isTextToSpeechActive;
 		this._updateButtonActiveState(targetButton, this.isTextToSpeechActive);
 		if (this.isTextToSpeechActive) {
-			document.body.addEventListener('click', this._readClickedText.bind(this));
+			this._boundReadClickedText = this._readClickedText.bind(this);
+			document.body.addEventListener('click', this._boundReadClickedText);
 			this._logMenuChange('Read Aloud enabled. Click on text to hear it.', true)
 		} else {
-			document.body.removeEventListener('click', this._readClickedText.bind(this));
-			this._stopReading(targetButton);
+			if (this._boundReadClickedText)
+				document.body.removeEventListener('click', this._boundReadClickedText);
+			this._stopReading();
 			this._logMenuChange('Read Aloud disabled.', false)
 		}
 	};
 	AR_AccessibilityMenuProto._readClickedText = function (event) {
-		if (this.isTextToSpeechActive && !event.target.closest(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }`) && !event.target.closest(`#ar-virtual-keyboard`)) {
-			const selectedText = window.getSelection().toString().trim();
-			let textToSpeak = selectedText;
-			if (!textToSpeak && event.target.textContent) {
-				textToSpeak = event.target.textContent.trim()
-			}
-			if (textToSpeak.length < 3 || textToSpeak.split(/\s+/).length < 1) {
-				return
-			}
-			if (textToSpeak) {
-				this._stopReading();
-				this.currentSpeechUtterance = new SpeechSynthesisUtterance(textToSpeak);
-				this.currentSpeechUtterance.lang = document.documentElement.lang || 'en-US';
-				let highlightedElement = event.target;
-				while (highlightedElement && !highlightedElement.textContent.includes(textToSpeak) && highlightedElement.parentElement) {
-					highlightedElement = highlightedElement.parentElement
-				}
-				if (highlightedElement) {
-					highlightedElement.classList.add('ar-tts-highlight');
-					this.currentSpeechUtterance.onend = () => {
-						highlightedElement.classList.remove('ar-tts-highlight');
-						this.currentSpeechUtterance = null
-					};
-					this.currentSpeechUtterance.onerror = e => {
-						console.error('Speech synthesis error:', e);
-						highlightedElement.classList.remove('ar-tts-highlight');
-						this.currentSpeechUtterance = null
-					}
-				} else {
-					this.currentSpeechUtterance.onend = () => {
-						this.currentSpeechUtterance = null
-					};
-					this.currentSpeechUtterance.onerror = e => {
-						console.error('Speech synthesis error:', e);
-						this.currentSpeechUtterance = null
-					}
-				}
-				speechSynthesis.speak(this.currentSpeechUtterance);
-				this._logMenuChange(`Reading: "${ textToSpeak.substring(0, Math.min(textToSpeak.length, 50)) }..."`, true)
+		if (!this.isTextToSpeechActive || event.target.closest(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }, #ar-virtual-keyboard`))
+			return;
+		let textToSpeak = window.getSelection().toString().trim();
+		let targetElementForHighlight = event.target;
+		if (!textToSpeak && event.target.textContent)
+			textToSpeak = event.target.textContent.trim();
+		else if (textToSpeak) {
+			const selection = window.getSelection();
+			if (selection.rangeCount > 0) {
+				const range = selection.getRangeAt(0);
+				targetElementForHighlight = range.commonAncestorContainer;
+				if (targetElementForHighlight.nodeType === Node.TEXT_NODE)
+					targetElementForHighlight = targetElementForHighlight.parentElement
 			}
 		}
+		if (!textToSpeak || textToSpeak.length < 3)
+			return;
+		this._stopReading();
+		this.currentSpeechUtterance = new SpeechSynthesisUtterance(textToSpeak);
+		this.currentSpeechUtterance.lang = document.documentElement.lang || 'en-US';
+		const oldHighlight = document.querySelector('.ar-tts-highlight');
+		if (oldHighlight)
+			oldHighlight.classList.remove('ar-tts-highlight');
+		if (targetElementForHighlight && targetElementForHighlight.classList && typeof targetElementForHighlight.classList.add === 'function') {
+			targetElementForHighlight.classList.add('ar-tts-highlight');
+			this.currentSpeechUtterance.onend = () => {
+				targetElementForHighlight.classList.remove('ar-tts-highlight');
+				this.currentSpeechUtterance = null
+			};
+			this.currentSpeechUtterance.onerror = e => {
+				console.error('AR: TTS error:', e);
+				targetElementForHighlight.classList.remove('ar-tts-highlight');
+				this.currentSpeechUtterance = null
+			}
+		} else {
+			this.currentSpeechUtterance.onend = () => {
+				this.currentSpeechUtterance = null
+			};
+			this.currentSpeechUtterance.onerror = e => {
+				console.error('AR: TTS error:', e);
+				this.currentSpeechUtterance = null
+			}
+		}
+		speechSynthesis.speak(this.currentSpeechUtterance);
+		this._logMenuChange(`Reading: "${ textToSpeak.substring(0, 50) }..."`, true)
 	};
 	AR_AccessibilityMenuProto._stopReading = function (targetButton = null) {
-		if (speechSynthesis.speaking) {
-			speechSynthesis.cancel()
-		}
-		if (this.currentSpeechUtterance && this.currentSpeechUtterance.onend) {
-			this.currentSpeechUtterance.onend()
-		}
+		if (speechSynthesis.speaking)
+			speechSynthesis.cancel();
+		const oldHighlight = document.querySelector('.ar-tts-highlight');
+		if (oldHighlight)
+			oldHighlight.classList.remove('ar-tts-highlight');
 		this.currentSpeechUtterance = null;
 		if (targetButton) {
 			const toggleButton = document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-text-to-speech"]`);
 			if (toggleButton)
 				this._updateButtonActiveState(toggleButton, false);
+			this.isTextToSpeechActive = false;
+			if (this._boundReadClickedText)
+				document.body.removeEventListener('click', this._boundReadClickedText);
 			this._logMenuChange('Reading stopped.', false)
 		}
 	};
 	AR_AccessibilityMenuProto._handleCustomCursorAction = function (targetButton) {
-		const bodyEl = document.body;
 		const htmlEl = document.documentElement;
 		const cursorClasses = [
 			'ar-cursor-large',
@@ -1316,15 +1225,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			'ar-cursor-red',
 			'ar-cursor-green'
 		];
-		let nextCursorIndex = (cursorClasses.indexOf(this.activeCursorClassName) + 1) % (cursorClasses.length + 1);
-		bodyEl.classList.remove(...cursorClasses);
-		htmlEl.classList.remove('ar-cursor-active-highlight');
+		let currentCursorIndex = cursorClasses.findIndex(cls => htmlEl.classList.contains(cls));
+		htmlEl.classList.remove(...cursorClasses);
+		const nextCursorIndex = (currentCursorIndex + 1) % (cursorClasses.length + 1);
 		if (nextCursorIndex < cursorClasses.length) {
 			this.activeCursorClassName = cursorClasses[nextCursorIndex];
-			bodyEl.classList.add(this.activeCursorClassName);
-			htmlEl.classList.add('ar-cursor-active-highlight');
+			htmlEl.classList.add(this.activeCursorClassName);
 			this._updateButtonActiveState(targetButton, true);
-			this._logMenuChange(`Custom cursor enabled (${ this.activeCursorClassName.replace('ar-cursor-', '') }).`, true)
+			this._logMenuChange(`Custom cursor: ${ this.activeCursorClassName.replace('ar-cursor-', '') }.`, true)
 		} else {
 			this.activeCursorClassName = 'default';
 			this._updateButtonActiveState(targetButton, false);
@@ -1334,53 +1242,43 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	AR_AccessibilityMenuProto._handlePageZoomAction = function (action, targetButton) {
 		const rootElement = document.documentElement;
 		const zoomIncrement = 0.1;
-		if (action === 'zoom-in') {
-			this.currentZoomLevel = Math.min(2, this.currentZoomLevel + zoomIncrement)
-		} else if (action === 'zoom-out') {
-			this.currentZoomLevel = Math.max(0.5, this.currentZoomLevel - zoomIncrement)
-		} else if (action === 'reset-zoom') {
-			this.currentZoomLevel = 1
-		}
+		if (action === 'zoom-in')
+			this.currentZoomLevel = Math.min(2, this.currentZoomLevel + zoomIncrement);
+		else if (action === 'zoom-out')
+			this.currentZoomLevel = Math.max(0.5, this.currentZoomLevel - zoomIncrement);
+		else if (action === 'reset-zoom')
+			this.currentZoomLevel = 1;
+		this.currentZoomLevel = parseFloat(this.currentZoomLevel.toFixed(2));
 		rootElement.style.transform = `scale(${ this.currentZoomLevel })`;
 		rootElement.classList.toggle('ar-page-zoom-active', this.currentZoomLevel !== 1);
-		const zoomInBtn = document.querySelector('[data-action="zoom-in"]');
-		const zoomOutBtn = document.querySelector('[data-action="zoom-out"]');
-		const resetZoomBtn = document.querySelector('[data-action="reset-zoom"]');
-		this._updateButtonActiveState(zoomInBtn, this.currentZoomLevel > 1);
-		this._updateButtonActiveState(zoomOutBtn, this.currentZoomLevel < 1);
-		this._updateButtonActiveState(resetZoomBtn, this.currentZoomLevel === 1, true);
-		this._logMenuChange(`Page zoom set to ${ Math.round(this.currentZoomLevel * 100) }%.`, true)
+		this._logMenuChange(`Page zoom: ${ Math.round(this.currentZoomLevel * 100) }%.`, this.currentZoomLevel !== 1)
 	};
 	AR_AccessibilityMenuProto._startDragging = function (event) {
 		const panel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
 		if (!panel)
 			return;
-		if (event.target.closest('button')) {
+		const isButton = event.target.closest('button');
+		const isInteractiveInsidePanel = event.target.closest('a, input, select, textarea') && panel.contains(event.target);
+		const isLegend = event.target.closest('legend');
+		const isPanelDirect = event.target === panel;
+		if (isButton || isInteractiveInsidePanel && !isLegend || !isPanelDirect && !isLegend) {
 			this.isDragging = false;
 			return
 		}
 		this.isDragging = true;
 		panel.classList.add('dragging');
 		panel.style.cursor = 'grabbing';
+		panel.style.position = 'fixed';
 		const coords = getClientCoords(event);
-		const computedStyle = window.getComputedStyle(panel);
-		let currentLeft = parseFloat(computedStyle.left);
-		let currentBottom = parseFloat(computedStyle.bottom);
-		if (isNaN(currentLeft)) {
-			currentLeft = window.innerWidth - parseFloat(computedStyle.right) - panel.offsetWidth
-		}
-		if (isNaN(currentBottom)) {
-			currentBottom = window.innerHeight - parseFloat(computedStyle.top) - panel.offsetHeight
-		}
-		this.offsetX = coords.clientX - currentLeft;
-		this.offsetY = coords.clientY - (window.innerHeight - currentBottom - panel.offsetHeight);
-		panel.style.top = `${ window.innerHeight - currentBottom - panel.offsetHeight }px`;
-		panel.style.left = `${ currentLeft }px`;
+		const panelRect = panel.getBoundingClientRect();
+		panel.style.left = `${ panelRect.left }px`;
+		panel.style.top = `${ panelRect.top }px`;
 		panel.style.right = 'auto';
 		panel.style.bottom = 'auto';
-		if (event.type === 'touchstart') {
+		this.offsetX = coords.clientX - panelRect.left;
+		this.offsetY = coords.clientY - panelRect.top;
+		if (event.type === 'touchstart')
 			event.preventDefault()
-		}
 	};
 	AR_AccessibilityMenuProto._doDragging = function (event) {
 		if (!this.isDragging)
@@ -1391,17 +1289,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const coords = getClientCoords(event);
 		let newLeft = coords.clientX - this.offsetX;
 		let newTop = coords.clientY - this.offsetY;
-		const minX = 0;
-		const minY = 0;
 		const maxX = window.innerWidth - panel.offsetWidth;
 		const maxY = window.innerHeight - panel.offsetHeight;
-		newLeft = Math.max(minX, Math.min(newLeft, maxX));
-		newTop = Math.max(minY, Math.min(newTop, maxY));
+		newLeft = Math.max(0, Math.min(newLeft, maxX));
+		newTop = Math.max(0, Math.min(newTop, maxY));
 		panel.style.left = `${ newLeft }px`;
 		panel.style.top = `${ newTop }px`;
-		if (event.type === 'touchmove') {
+		if (event.type === 'touchmove')
 			event.preventDefault()
-		}
 	};
 	AR_AccessibilityMenuProto._stopDragging = function () {
 		if (this.isDragging) {
@@ -1422,22 +1317,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		button.style.cursor = 'grabbing';
 		this.isDraggingOccurred = false;
 		const coords = getClientCoords(event);
-		const computedStyle = window.getComputedStyle(button);
-		let currentLeft = parseFloat(computedStyle.left);
-		let currentTop = parseFloat(computedStyle.top);
-		if (isNaN(currentLeft)) {
-			currentLeft = window.innerWidth - parseFloat(computedStyle.right) - button.offsetWidth
-		}
-		if (isNaN(currentTop)) {
-			currentTop = window.innerHeight - parseFloat(computedStyle.bottom) - button.offsetHeight
-		}
-		this.buttonOffsetX = coords.clientX - currentLeft;
-		this.buttonOffsetY = coords.clientY - currentTop;
+		const buttonRect = button.getBoundingClientRect();
+		button.style.position = 'fixed';
+		button.style.left = `${ buttonRect.left }px`;
+		button.style.top = `${ buttonRect.top }px`;
 		button.style.right = 'auto';
 		button.style.bottom = 'auto';
-		if (event.type === 'touchstart') {
+		button.style.transform = 'none';
+		this.buttonOffsetX = coords.clientX - buttonRect.left;
+		this.buttonOffsetY = coords.clientY - buttonRect.top;
+		if (event.type === 'touchstart')
 			event.preventDefault()
-		}
 	};
 	AR_AccessibilityMenuProto._doButtonDragging = function (event) {
 		if (!this.isButtonDragging)
@@ -1446,22 +1336,20 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (!button)
 			return;
 		const coords = getClientCoords(event);
-		if (Math.abs(coords.clientX - (button.getBoundingClientRect().left + this.buttonOffsetX)) > 5 || Math.abs(coords.clientY - (button.getBoundingClientRect().top + this.buttonOffsetY)) > 5) {
+		const currentRect = button.getBoundingClientRect();
+		if (Math.abs(coords.clientX - (currentRect.left + this.buttonOffsetX)) > 3 || Math.abs(coords.clientY - (currentRect.top + this.buttonOffsetY)) > 3) {
 			this.isDraggingOccurred = true
 		}
 		let newLeft = coords.clientX - this.buttonOffsetX;
 		let newTop = coords.clientY - this.buttonOffsetY;
-		const minX = 0;
-		const minY = 0;
 		const maxX = window.innerWidth - button.offsetWidth;
 		const maxY = window.innerHeight - button.offsetHeight;
-		newLeft = Math.max(minX, Math.min(newLeft, maxX));
-		newTop = Math.max(minY, Math.min(newTop, maxY));
+		newLeft = Math.max(0, Math.min(newLeft, maxX));
+		newTop = Math.max(0, Math.min(newTop, maxY));
 		button.style.left = `${ newLeft }px`;
 		button.style.top = `${ newTop }px`;
-		if (event.type === 'touchmove') {
+		if (event.type === 'touchmove')
 			event.preventDefault()
-		}
 	};
 	AR_AccessibilityMenuProto._stopButtonDragging = function () {
 		if (this.isButtonDragging) {
@@ -1475,19 +1363,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	};
 	AR_AccessibilityMenuProto._resetAllMenuSettings = function () {
 		this._handleFontAction('reset-font', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="reset-font"]`));
-		this._initialComputedFontSizes.clear();
 		this._handleContrastColorAction('reset-contrast', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="reset-contrast"]`));
 		this._handleTextSpacingAction('text-spacing-reset', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="text-spacing-reset"]`));
 		this._handleTextAlignAction('text-align-reset', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="text-align-reset"]`));
 		this._handleHighlightAction('reset-highlights', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="reset-highlights"]`));
 		if (ar_activeReadingGuideType) {
-			const btn = document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-reading-${ ar_activeReadingGuideType }"]`);
-			this._toggleReadingGuide(ar_activeReadingGuideType, btn)
+			this._toggleReadingGuide(ar_activeReadingGuideType, document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-reading-${ ar_activeReadingGuideType }"]`))
 		}
 		if (this.isDyslexiaFontActive) {
 			this._toggleDyslexiaFont(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-dyslexia-font"]`))
 		}
-		if (document.body.classList.contains(AR_CONFIG.ANIMATIONS_STOPPED_CLASS_NAME)) {
+		if (document.body.classList.contains(AR_CONFIG.ANIMATIONS_STOPPED_CLASS_NAME) || document.querySelector('img[data-ar-gif-frozen="true"], canvas[data-ar-frozen-gif-canvas="true"]')) {
 			this._toggleAnimations(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="stop-animations"]`))
 		}
 		if (this.isVirtualKeyboardActive) {
@@ -1499,28 +1385,29 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (this.areImagesHidden) {
 			this._handleHideImagesAction(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-hide-images"]`))
 		}
+		this._stopReading();
 		if (this.isTextToSpeechActive) {
 			this._handleTextToSpeechAction(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-text-to-speech"]`))
 		}
-		this._stopReading();
-		const bodyEl = document.body;
 		const htmlEl = document.documentElement;
-		const cursorClasses = [
+		htmlEl.classList.remove(...[
 			'ar-cursor-large',
 			'ar-cursor-xlarge',
 			'ar-cursor-red',
-			'ar-cursor-green'
-		];
-		bodyEl.classList.remove(...cursorClasses);
-		htmlEl.classList.remove('ar-cursor-active-highlight');
+			'ar-cursor-green',
+			'ar-cursor-active-highlight'
+		]);
 		this.activeCursorClassName = 'default';
 		this._updateButtonActiveState(document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="toggle-custom-cursor"]`), false);
 		this._handlePageZoomAction('reset-zoom', document.querySelector(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } [data-action="reset-zoom"]`));
 		Array.from(document.querySelectorAll(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } button.ar-menu-btn-active:not(.ar-menu-reset-btn)`)).forEach(btn => btn.classList.remove('ar-menu-btn-active'));
 		this._logMenuChange('Reset all menu settings', true);
 		const panel = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID);
+		const menuButton = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
+		const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
 		if (panel) {
-			const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
+			panel.style.top = 'auto';
+			panel.style.left = 'auto';
 			if (docDir === 'rtl') {
 				panel.style.left = '20px';
 				panel.style.right = 'auto'
@@ -1528,25 +1415,27 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				panel.style.right = '20px';
 				panel.style.left = 'auto'
 			}
-			panel.style.bottom = '90px';
-			panel.style.top = 'auto'
+			panel.style.bottom = '90px'
 		}
-		const button = document.getElementById(AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID);
-		if (button) {
-			const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
+		if (menuButton) {
+			menuButton.style.top = '50%';
+			menuButton.style.transform = 'translateY(-50%)';
+			menuButton.style.left = 'auto';
+			menuButton.style.bottom = 'auto';
 			if (docDir === 'rtl') {
-				button.style.left = '20px';
-				button.style.right = 'auto'
+				menuButton.style.left = '20px';
+				menuButton.style.right = 'auto'
 			} else {
-				button.style.right = '20px';
-				button.style.left = 'auto'
+				menuButton.style.right = '20px';
+				menuButton.style.left = 'auto'
 			}
-			button.style.bottom = '20px';
-			button.style.top = 'auto';
-			button.style.transform = 'translateY(-50%)'
 		}
 	};
 	AR_AccessibilityMenuProto._logMenuChange = function (actionDescription, isActive) {
-		ar_logAccessibilityIssue('Info', `Accessibility Menu: ${ actionDescription }${ typeof isActive === 'boolean' ? isActive ? ' enabled.' : ' disabled.' : '.' }`, null, '', 'Operable', 'User Interface Customization', true, 'User')
+		if (typeof ar_logAccessibilityIssue === 'function') {
+			ar_logAccessibilityIssue('Info', `Accessibility Menu: ${ actionDescription }${ typeof isActive === 'boolean' ? isActive ? ' enabled.' : ' disabled.' : '.' }`, null, '', 'Operable', 'User Interface Customization', true, 'User')
+		} else {
+			console.log(`AR_Menu: ${ actionDescription } - ${ isActive === undefined ? '' : isActive }`)
+		}
 	}
 }(AR_AccessibilityMenu))
