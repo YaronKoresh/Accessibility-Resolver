@@ -906,8 +906,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu._handleReadingMaskAction = function (button) {
 		Menu.isReadingMaskActive = !Menu.isReadingMaskActive;
 		if (Menu.readingMaskTop && Menu.readingMaskBottom) {
-			Menu.readingMaskTop.style.display = Menu.isReadingMaskActive ? 'block' : 'none';
-			Menu.readingMaskBottom.style.display = Menu.isReadingMaskActive ? 'block' : 'none';
+			Menu.readingMaskTop.style.display = 'block';
+			Menu.readingMaskBottom.style.display = 'block';
 		}
 		this._updateButtonActiveState(button, Menu.isReadingMaskActive);
 		logAction('Reading mask ' + (Menu.isReadingMaskActive ? 'enabled' : 'disabled'), true);
@@ -915,7 +915,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu._handleReadingLineAction = function (button) {
 		Menu.isReadingLineActive = !Menu.isReadingLineActive;
 		if (Menu.readingLine) {
-			Menu.readingLine.style.display = Menu.isReadingLineActive ? 'block' : 'none';
+			Menu.readingLine.style.display = 'block';
 		}
 		this._updateButtonActiveState(button, Menu.isReadingLineActive);
 		logAction('Reading line ' + (Menu.isReadingLineActive ? 'enabled' : 'disabled'), true);
