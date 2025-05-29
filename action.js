@@ -247,11 +247,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			Menu.panel.createMenuPanel();
 			Menu.panel.createReadingAidElements();
 			Menu.panel.createPageStructurePanel();
+			this._attachEventListeners();
 		} else {
 			console.error('ARMenu: panel.js not loaded or not properly initialized.');
 			return;
 		}
-		this._attachEventListeners();
 		this._loadSettings();
 		logAction('Initialized successfully.');
 	};
@@ -281,6 +281,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (menuPanel) {
 			menuPanel.addEventListener('click', this._handlePanelActionClick.bind(this));
 			menuPanel.addEventListener('keydown', this._handlePanelKeydown.bind(this));
+			menuPanel.addEventListener('mousedown', this._handlePanelMouseDown.bind(this));
+			menuPanel.addEventListener('touchstart', this._handlePanelMouseDown.bind(this), { passive: false });
 		}
 		document.addEventListener('mousemove', this._handleDocumentMouseMove.bind(this));
 		document.addEventListener('mousemove', this._handleReadingAidMouseMove.bind(this));
@@ -384,9 +386,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this.toggleMenu();
 	};
 	Menu._handlePanelActionClick = function (event) {
+		console.log('Menu panel click detected:', event.target);
 		const targetButton = event.target.closest('button');
 		if (targetButton && targetButton.dataset.action) {
-			this.handleAction(targetButton.dataset.action, targetButton);
+			console.log('Action button clicked:', targetButton.dataset.action);
+			try {
+				this.handleAction(targetButton.dataset.action, targetButton);
+			} catch (e) {
+				console.error('Error handling menu action:', targetButton.dataset.action, e);
+			}
+		} else {
+			console.log('Click did not originate from a button with a data-action attribute.');
 		}
 	};
 	Menu._handlePanelKeydown = function (event) {
@@ -1228,11 +1238,4 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			localStorage.removeItem(STORAGE_KEY);
 		}
 	};
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', function () {
-			AR_AccessibilityMenu.init();
-		});
-	} else {
-		AR_AccessibilityMenu.init();
-	}
 }(AR_AccessibilityMenu));
