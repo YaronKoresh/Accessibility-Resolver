@@ -17,13 +17,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu.isFocusEnhanced = false;
 	Menu.areAnimationsStopped = false;
 	Menu.isPanelDragging = false;
-	Menu.panelOffsetX = 0;
-	Menu.panelOffsetY = 0;
 	Menu.isButtonDragging = false;
-	Menu.buttonOffsetX = 0;
-	Menu.buttonOffsetY = 0;
 	Menu.buttonDragOccurred = false;
 	Menu._originalFontSizes = new Map();
+	Menu._initialButtonX = 0;
+	Menu._initialButtonY = 0;
+	Menu._initialPanelX = 0;
+	Menu._initialPanelY = 0;
+	Menu._initialMouseX = 0;
+	Menu._initialMouseY = 0;
+	Menu._panelRelativeOffsetX = 0;
+	Menu._panelRelativeOffsetY = 0;
 	Menu.translations = {
 		'he': {
 			menuTitle: 'כלי נגישות',
@@ -37,7 +41,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			dyslexiaFont: 'גופן דיסלקטי',
 			resetAll: 'איפוס הכל',
 			closeMenu: 'סגור תפריט',
-			accessibilityIcon: 'אייקון נגישות'
+			accessibilityIcon: 'אייקון נגישות',
+			textSize: 'גודל טקסט',
+			contrast: 'ניגודיות',
+			highlight: 'הדגשה',
+			animation: 'אנימציה',
+			fontStyle: 'סגנון גופן',
+			reset: 'איפוס'
 		},
 		'en': {
 			menuTitle: 'Accessibility Tools',
@@ -51,7 +61,13 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			dyslexiaFont: 'Dyslexia Font',
 			resetAll: 'Reset All',
 			closeMenu: 'Close Menu',
-			accessibilityIcon: 'Accessibility Icon'
+			accessibilityIcon: 'Accessibility Icon',
+			textSize: 'Text Size',
+			contrast: 'Contrast',
+			highlight: 'Highlight',
+			animation: 'Animation',
+			fontStyle: 'Font Style',
+			reset: 'Reset'
 		}
 	};
 	Menu._getLocalizedString = function (key) {
@@ -74,114 +90,113 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			clientY: event.clientY
 		}
 	}
-	function logAction(message, isUserAction) {
+	function logAction(message, isUserAction = false) {
 		console.log(`[ARMenu] ${ message } ${ isUserAction ? '(User Action)' : '' }`)
 	}
 	Menu.init = function () {
 		if (document.getElementById(MENU_BUTTON_ID)) {
+			logAction('Already initialized.');
 			return
 		}
 		this._injectStyles();
 		this._createMenuButton();
 		this._createMenuPanel();
-		this._createFilterOverlay();
 		this._attachEventListeners();
-		logAction('Initialized', false)
+		logAction('Initialized successfully.')
 	};
 	Menu._injectStyles = function () {
 		const styleId = 'aaa-menu-styles';
-		if (document.getElementById(styleId)) {
-			return
-		}
+		if (document.getElementById(styleId))
+			return;
 		const css = `
-            /* כללי גופן OpenDyslexic */
+            /* OpenDyslexic Font Rules */
             @font-face {
                 font-family: 'OpenDyslexic';
                 font-style: normal;
-                font-display: swap; /* שימוש ב-swap לביצועים נתפסים טובים יותר */
+                font-display: swap;
                 font-weight: 400;
-                src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff');
+                src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff2) format('woff2'),
+                     url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-400-normal.woff) format('woff');
             }
             @font-face {
                 font-family: 'OpenDyslexic';
                 font-style: normal;
                 font-display: swap;
                 font-weight: 700;
-                src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'), url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff');
+                src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'),
+                     url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff');
             }
 
-            /* כפתור תפריט */
+            /* Menu Button */
             #${ MENU_BUTTON_ID } {
                 position: fixed;
-                z-index: 2147483647; /* Z-index הגבוה ביותר */
-                background-color: #0056b3; /* כחול כהה */
+                z-index: 2147483647; /* Highest z-index */
+                background-color: #0056b3; /* Dark blue */
                 color: white !important;
                 border: none;
                 border-radius: 50%;
-                width: 80px; /* גודל מוגדל לאייקון גדול יותר */
-                height: 80px; /* גודל מוגדל לאייקון גדול יותר */
-                font-size: 50px; /* גודל גופן מוגדל לאייקון SVG גדול יותר */
+                width: 70px; /* Adjusted size */
+                height: 70px; /* Adjusted size */
+                font-size: 36px; /* Icon size within button */
                 cursor: grab;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.2);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                transition: background-color 0.2s, box-shadow 0.2s; /* הוסר מעבר טרנספורמציה */
+                transition: background-color 0.2s, box-shadow 0.2s;
+                padding: 0; /* Ensure SVG fits well */
             }
             #${ MENU_BUTTON_ID }:hover, #${ MENU_BUTTON_ID }:focus-visible {
-                background-color: #003d82; /* כחול כהה יותר בריחוף */
+                background-color: #003d82; /* Darker blue on hover/focus */
                 outline: 2px solid #007bff;
                 outline-offset: 2px;
             }
             #${ MENU_BUTTON_ID }.dragging { cursor: grabbing; }
 
-            /* ודא שהאייקון SVG בתוך הכפתור הראשי גלוי וממורכז */
             #${ MENU_BUTTON_ID } .ar-aaa-menu-icon {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                width: 100% !important; /* ודא שהספאן ממלא את הכפתור */
-                height: 100% !important; /* ודא שהספאן ממלא את הכפתור */
+                width: 60% !important; /* Control icon size relative to button */
+                height: 60% !important;
             }
             #${ MENU_BUTTON_ID } .ar-aaa-menu-icon svg {
-                width: 100% !important; /* ודא שה-SVG ממלא את הספאן */
-                height: 100% !important; /* ודא שה-SVG ממלא את הספאן */
-                fill: currentColor !important; /* ודא שהצבע יורש מהכפתור בעדיפות עליונה */
-                color: inherit !important; /* ודא שהצבע יורש מהכפתור בעדיפות עליונה */
+                width: 100% !important;
+                height: 100% !important;
+                fill: currentColor !important;
             }
 
-
-            /* פאנל תפריט */
+            /* Menu Panel */
             #${ MENU_PANEL_ID } {
                 display: none;
                 position: fixed;
                 width: 320px;
-                max-height: calc(100vh - 100px);
+                max-height: calc(100vh - 100px); /* Leave space around panel */
                 overflow-y: auto;
-                background-color: white; /* לבן */
-                border: 1px solid #0056b3; /* גבול כחול כהה */
+                background-color: white;
+                border: 1px solid #0056b3; /* Dark blue border */
                 border-radius: 8px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-                z-index: 2147483646; /* מיד מתחת לכפתור */
+                z-index: 2147483646; /* Just below the button */
                 padding: 15px;
-                font-family: 'Inter', Arial, sans-serif;
+                font-family: 'Inter', Arial, sans-serif; /* Consistent font */
                 font-size: 14px;
-                color: #0056b3; /* צבע טקסט כללי בפאנל: כחול כהה */
-                cursor: grab; /* הופך את הפאנל עצמו לניתן לגרירה */
+                color: #333; /* Default text color in panel */
+                cursor: grab; /* Panel itself is draggable */
             }
             #${ MENU_PANEL_ID } h3 {
                 margin-top: 0;
                 margin-bottom: 15px;
                 font-size: 1.2em;
-                color: #0056b3; /* כחול כהה */
+                color: #0056b3; /* Dark blue title */
                 text-align: center;
-                cursor: grab; /* הופך את הכותרת לניתנת לגרירה */
+                cursor: grab; /* Title is also draggable */
             }
             #${ MENU_PANEL_ID }.ar-aaa-menu-open { display: block; }
             #${ MENU_PANEL_ID } .ar-aaa-menu-group {
                 margin-bottom: 15px;
                 padding-bottom: 10px;
-                border-bottom: 1px solid #e9ecef; /* גבול עדין בין קבוצות */
+                border-bottom: 1px solid #e9ecef; /* Light separator */
             }
             #${ MENU_PANEL_ID } .ar-aaa-menu-group:last-of-type {
                 margin-bottom: 0;
@@ -194,87 +209,98 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 gap: 8px;
             }
             #${ MENU_PANEL_ID } button {
-                flex: 1 1 calc(50% - 4px); /* שני כפתורים בשורה עם רווח */
+                flex: 1 1 calc(50% - 4px); /* Two buttons per row with gap */
                 padding: 8px 10px;
                 font-size: 0.95em;
-                background-color: white; /* לבן */
-                color: #0056b3 !important; /* כחול כהה */
-                border: 1px solid #0056b3; /* גבול כחול כהה */
+                background-color: #f8f9fa; /* Light gray background */
+                color: #0056b3 !important; /* Dark blue text */
+                border: 1px solid #0056b3; /* Dark blue border */
                 border-radius: 4px;
                 cursor: pointer;
                 transition: background-color 0.2s, border-color 0.2s, color 0.2s;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 6px;
+                gap: 6px; /* Space between icon and text */
+                min-height: 38px; /* Ensure consistent button height */
             }
             #${ MENU_PANEL_ID } button:hover, #${ MENU_PANEL_ID } button:focus-visible {
-                background-color: #e6f2ff; /* כחול בהיר מאוד בריחוף */
-                border-color: #0056b3; /* גבול כחול כהה */
+                background-color: #e9ecef; /* Slightly darker gray on hover */
+                border-color: #003d82;
                 outline: 1px solid #0056b3;
             }
             #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active {
-                background-color: #0056b3 !important; /* כחול כהה */
-                color: white !important; /* לבן */
-                border-color: #004085 !important; /* כחול כהה יותר */
+                background-color: #0056b3 !important; /* Dark blue active */
+                color: white !important;
+                border-color: #003d82 !important;
             }
             #${ MENU_PANEL_ID } button.ar-aaa-fullwidth-btn {
-                flex-basis: 100%; /* כפתור ברוחב מלא */
+                flex-basis: 100%; /* Full width button */
             }
-            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn {
-                background-color: white; /* לבן */
-                border-color: #0056b3; /* גבול כחול כהה */
-                color: #0056b3 !important; /* כחול כהה */
+            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn { /* Specific style for reset button */
+                background-color: #d1ecf1; /* Light cyan */
+                border-color: #007bff;
+                color: #004085 !important; /* Darker cyan text */
             }
             #${ MENU_PANEL_ID } button.ar-aaa-reset-btn:hover {
-                background-color: #e6f2ff; /* כחול בהיר מאוד בריחוף */
+                background-color: #b8e0e8;
             }
             #${ MENU_PANEL_ID } .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor; }
 
-            /* שכבת על פילטר למצבי ניגודיות */
+            /* Filter Overlay (not actively used for visual effects now, but structure kept) */
             #${ FILTER_OVERLAY_ID } {
-                position: fixed;
-                top: 0; left: 0; width: 100%; height: 100%;
-                pointer-events: none; /* מאפשר אינטראקציה עם אלמנטים מתחת */
-                z-index: -1; /* בהתחלה מאחורי הכל */
-                display: none; /* שכבת על זו אינה נחוצה יותר עבור היפוך עצמו */
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                pointer-events: none;
+                z-index: -1; /* Behind everything if it were used with mix-blend-mode */
+                display: none; /* Not needed for direct body class filters */
             }
-            /* מצב היפוך צבעים (עיצוב ישיר באמצעות קלאס) */
+
+            /* Invert Colors Mode */
             body.${ CLASS_INVERT_COLORS } {
                 filter: invert(100%) hue-rotate(180deg) !important;
+                background-color: #fff; /* Ensure background is white before invert for consistency if needed */
             }
-            /* ודא שממשק המשתמש של התפריט עצמו אינו מושפע מפילטרים */
-            #${ MENU_BUTTON_ID }, #${ MENU_PANEL_ID } { filter: none !important; }
+            /* Ensure menu UI is not inverted */
+            body.${ CLASS_INVERT_COLORS } #${ MENU_BUTTON_ID },
+            body.${ CLASS_INVERT_COLORS } #${ MENU_PANEL_ID } {
+                filter: invert(100%) hue-rotate(180deg) !important; /* Double invert to appear normal */
+            }
+             /* Fix for images/videos in inverted mode */
+            body.${ CLASS_INVERT_COLORS } img,
+            body.${ CLASS_INVERT_COLORS } video,
+            body.${ CLASS_INVERT_COLORS } svg,
+            body.${ CLASS_INVERT_COLORS } [style*="background-image"] {
+                filter: invert(100%) hue-rotate(180deg) !important;
+            }
 
 
-            /* מצב ניגודיות גבוהה (עיצוב ישיר באמצעות קלאס) */
+            /* High Contrast Mode */
             body.${ CLASS_HIGH_CONTRAST } { background-color: #000 !important; color: #fff !important; }
-            body.${ CLASS_HIGH_CONTRAST } a { color: #0ff !important; }
-            body.${ CLASS_HIGH_CONTRAST } button, body.${ CLASS_HIGH_CONTRAST } input, body.${ CLASS_HIGH_CONTRAST } select, body.${ CLASS_HIGH_CONTRAST } textarea {
+            body.${ CLASS_HIGH_CONTRAST } a { color: #0ff !important; text-decoration: underline !important; }
+            body.${ CLASS_HIGH_CONTRAST } button, body.${ CLASS_HIGH_CONTRAST } input,
+            body.${ CLASS_HIGH_CONTRAST } select, body.${ CLASS_HIGH_CONTRAST } textarea {
                 background-color: #222 !important; color: #fff !important; border: 1px solid #fff !important;
             }
-            /* אלמנטים בתוך התפריט אינם מושפעים ממצב ניגודיות גבוהה */
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID },
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } {
-                background-color: white !important; /* שמור על צבעי התפריט המוגדרים */
-                border-color: #0056b3 !important; /* שמור על צבעי התפריט המוגדרים */
-                color: #0056b3 !important; /* צבע טקסט כללי בפאנל: כחול כהה */
+            /* Exclude menu UI from high contrast body styles */
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } {
+                background-color: white !important; border-color: #0056b3 !important; color: #333 !important;
             }
-            /* ודא שכפתורים בתוך התפריט שומרים על צבעיהם המיועדים במצב ניגודיות גבוהה */
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } h3 { color: #0056b3 !important; }
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button {
-                background-color: white !important;
-                color: #0056b3 !important;
-                border-color: #0056b3 !important;
+                background-color: #f8f9fa !important; color: #0056b3 !important; border-color: #0056b3 !important;
             }
-            /* ודא שכפתורים פעילים בתוך התפריט שומרים על צבעיהם הספציפיים במצב ניגודיות גבוהה */
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active {
-                background-color: #0056b3 !important; /* כחול כהה */
-                color: white !important; /* לבן */
-                border-color: #004085 !important; /* כחול כהה יותר */
+                background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important;
+            }
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-reset-btn {
+                 background-color: #d1ecf1 !important; border-color: #007bff !important; color: #004085 !important;
+            }
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } {
+                background-color: #0056b3 !important; color: white !important;
             }
 
 
-            /* הדגשת קישורים */
+            /* Highlight Links */
             body.${ CLASS_HIGHLIGHT_LINKS } a[href] {
                 background-color: yellow !important;
                 color: black !important;
@@ -282,14 +308,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 border-radius: 2px;
             }
 
-            /* מיקוד משופר */
+            /* Enhanced Focus */
             body.${ CLASS_ENHANCED_FOCUS } *:focus-visible {
                 outline: 3px solid #007bff !important;
                 outline-offset: 2px !important;
                 box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important;
             }
 
-            /* עצירת אנימציות */
+            /* Stop Animations */
             body.${ CLASS_ANIMATIONS_STOPPED } *,
             body.${ CLASS_ANIMATIONS_STOPPED } *::before,
             body.${ CLASS_ANIMATIONS_STOPPED } *::after {
@@ -297,57 +323,50 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
                 transition-delay: 0ms !important;
-                animation-play-state: paused !important;
+                /* animation-play-state: paused !important; /* This can be too aggressive */
             }
-            /* ודא שאנימציית התפריט עדיין עובדת (אם קיימת) */
+             /* Ensure menu panel animation (if any) still works - currently none defined */
             body.${ CLASS_ANIMATIONS_STOPPED } #${ MENU_PANEL_ID }.ar-aaa-menu-open {
-                /* אם יש אנימציה ספציפית לפתיחה, הגדר אותה כאן */
-                /* animation: ar-slide-up .3s ease-out !important; */
-                animation-play-state: running !important;
+                /* animation-play-state: running !important; */
             }
 
 
-            /* גופן דיסלקטי */
+            /* Dyslexia Font */
             body.${ CLASS_DYSLEXIA_FONT } {
                 font-family: 'OpenDyslexic', Arial, sans-serif !important;
             }
-            /* החל גופן דיסלקטי על כל האלמנטים למעט סקריפטים, סגנונות וקישורים */
-            body.${ CLASS_DYSLEXIA_FONT } *:not(script):not(style):not(link) {
-                font-family: inherit !important;
+            body.${ CLASS_DYSLEXIA_FONT } *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) {
+                font-family: inherit !important; /* Inherit OpenDyslexic */
             }
-            /* ודא שהתפריט עצמו אינו מקבל גופן דיסלקטי אם הגוף מקבל אותו */
+            /* Ensure menu UI uses its own font */
             #${ MENU_PANEL_ID }, #${ MENU_PANEL_ID } *,
             #${ MENU_BUTTON_ID }, #${ MENU_BUTTON_ID } * {
-                font-family: 'Inter', Arial, sans-serif !important; /* שמור על גופן התפריט עקבי */
+                font-family: 'Inter', Arial, sans-serif !important;
             }
 
-
-            /* רספונסיביות */
+            /* Responsive Adjustments */
             @media (max-width: 480px) {
                 #${ MENU_PANEL_ID } {
-                    width: calc(100% - 20px);
-                    left: 10px;
-                    right: 10px;
-                    bottom: 10px;
-                    max-height: calc(100vh - 80px); /* התאמה לכפתור קטן יותר */
+                    width: calc(100% - 20px); /* Full width with small margin */
+                    left: 10px; right: 10px; bottom: 10px; top: auto; /* Position at bottom */
+                    max-height: calc(100vh - 80px); /* Adjust max height */
                 }
                 #${ MENU_BUTTON_ID } {
-                    width: 50px; height: 50px; font-size: 20px;
+                    width: 50px; height: 50px; font-size: 24px; /* Smaller button */
                 }
                 #${ MENU_PANEL_ID } button {
-                    flex-basis: 100%; /* כפתורים ברוחב מלא במסכים קטנים מאוד */
+                    flex-basis: 100%; /* Stack buttons vertically */
                 }
             }
         `;
 		const styleEl = document.createElement('style');
 		styleEl.id = styleId;
-		document.head.appendChild(styleEl);
-		styleEl.textContent = css
+		styleEl.textContent = css;
+		document.head.appendChild(styleEl)
 	};
 	Menu._createFilterOverlay = function () {
-		if (document.getElementById(FILTER_OVERLAY_ID)) {
-			return
-		}
+		if (document.getElementById(FILTER_OVERLAY_ID))
+			return;
 		this.filterOverlayElement = document.createElement('div');
 		this.filterOverlayElement.id = FILTER_OVERLAY_ID;
 		document.body.appendChild(this.filterOverlayElement)
@@ -358,7 +377,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		btn.setAttribute('aria-label', Menu._getLocalizedString('menuTitle'));
 		btn.setAttribute('aria-expanded', 'false');
 		btn.setAttribute('aria-controls', MENU_PANEL_ID);
-		btn.innerHTML = `<span class="ar-aaa-menu-icon" role="img" aria-label="${ Menu._getLocalizedString('accessibilityIcon') }"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4M12,7A2,2 0 0,1 14,9A2,2 0 0,1 12,11A2,2 0 0,1 10,9A2,2 0 0,1 12,7M12,13A1,1 0 0,1 13,14V17A1,1 0 0,1 12,18A1,1 0 0,1 11,17V14A1,1 0 0,1 12,13Z" /></svg></span>`;
+		const accessibilityIconSVG = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z"/></svg>';
+		btn.innerHTML = `<span class="ar-aaa-menu-icon" role="img" aria-label="${ Menu._getLocalizedString('accessibilityIcon') }">${ accessibilityIconSVG }</span>`;
 		btn.style.right = '20px';
 		btn.style.top = '50%';
 		btn.style.transform = 'translateY(-50%)';
@@ -381,14 +401,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		panel.addEventListener('touchstart', this._handlePanelMouseDown.bind(this), { passive: false })
 	};
 	Menu._getIconSVG = function (pathData, label = '') {
-		return `<span class="ar-aaa-menu-icon" role="img" aria-label="${ label }"><svg viewBox="0 0 24 24" width="100%" height="100%">${ pathData }</svg></span>`
+		return `<span class="ar-aaa-menu-icon" role="img" aria-label="${ label }"><svg viewBox="0 0 24 24">${ pathData }</svg></span>`
 	};
 	Menu._getMenuPanelHTML = function () {
 		const ICONS = {
-			textSize: this._getIconSVG('<path d="M2.5,4V7H7.5V19H10.5V7H15.5V4M10.5,10.5H13.5V13.5H10.5"/>', Menu._getLocalizedString('textSize')),
+			textSize: this._getIconSVG('<path d="M2.5,4V7H7.5V19H10.5V7H15.5V4M10.5,10.5H13.5V13.5H10.5V10.5Z"/>', Menu._getLocalizedString('textSize')),
 			contrast: this._getIconSVG('<path d="M12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6V18M20,15L19.3,14C19.5,13.4 19.6,12.7 19.6,12C19.6,11.3 19.5,10.6 19.3,10L20,9L17.3,4L16.7,5C15.9,4.3 14.9,3.8 13.8,3.5L13.5,2H10.5L10.2,3.5C9.1,3.8 8.1,4.3 7.3,5L6.7,4L4,9L4.7,10C4.5,10.6 4.4,11.3 4.4,12C4.4,12.7 4.5,13.4 4.7,14L4,15L6.7,20L7.3,19C8.1,19.7 9.1,20.2 10.2,20.5L10.5,22H13.5L13.8,20.5C14.9,20.2 15.9,19.7 16.7,19L17.3,20L20,15Z"/>', Menu._getLocalizedString('contrast')),
 			highlight: this._getIconSVG('<path d="M16.2,12L12,16.2L7.8,12L12,7.8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"/>', Menu._getLocalizedString('highlight')),
-			animation: this._getIconSVG('<path d="M8,5V19L19,12"/>', Menu._getLocalizedString('animation')),
+			animation: this._getIconSVG('<path d="M8,5V19L19,12L8,5Z"/>', Menu._getLocalizedString('animation')),
 			fontStyle: this._getIconSVG('<path d="M9.25,4V5.5H6.75V4H5.25V5.5H2.75V4H1.25V14.5H2.75V16H5.25V14.5H7.75V16H10.25V14.5H11.75V4H9.25M17.75,4V14.5H19.25V16H21.75V14.5H24.25V4H21.75V5.5H19.25V4H17.75M10.25,7H7.75V13H10.25V7M16.25,7H13.75V13H16.25V7Z"/>', Menu._getLocalizedString('fontStyle')),
 			reset: this._getIconSVG('<path d="M12,5V1L7,6L12,11V7A6,6 0 0,1 18,13A6,6 0 0,1 12,19A6,6 0 0,1 6,13H4A8,8 0 0,0 12,21A8,8 0 0,0 20,13A8,8 0 0,0 12,5Z"/>', Menu._getLocalizedString('reset')),
 			close: this._getIconSVG('<path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>', Menu._getLocalizedString('closeMenu'))
@@ -494,14 +514,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 		}
 	};
-	Menu._initialButtonX = 0;
-	Menu._initialButtonY = 0;
-	Menu._initialPanelX = 0;
-	Menu._initialPanelY = 0;
-	Menu._initialMouseX = 0;
-	Menu._initialMouseY = 0;
-	Menu._panelRelativeOffsetX = 0;
-	Menu._panelRelativeOffsetY = 0;
 	Menu._startDragging = function (event, isButtonDrag) {
 		const button = document.getElementById(MENU_BUTTON_ID);
 		const panel = document.getElementById(MENU_PANEL_ID);
@@ -510,23 +522,22 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		let draggedElement = isButtonDrag ? button : panel;
 		if (!isButtonDrag) {
 			const target = event.target;
-			const isButtonClick = target.closest('button');
-			const isLegendClick = target.closest('legend');
-			const isPanelDirectClick = target === panel;
-			const isPanelTitleClick = target === panel.querySelector('h3');
-			if (isButtonClick || isLegendClick || isPanelDirectClick && !isPanelTitleClick) {
-				if (isButtonDrag)
-					this.isButtonDragging = false;
-				else
-					this.isPanelDragging = false;
+			if (target.closest('button')) {
+				this.isPanelDragging = false;
+				return
+			}
+			const isPanelItself = target === panel;
+			const isPanelTitle = target === panel.querySelector('h3');
+			if (!isPanelItself && !isPanelTitle) {
+				this.isPanelDragging = false;
 				return
 			}
 		}
 		this.isButtonDragging = isButtonDrag;
 		this.isPanelDragging = !isButtonDrag;
+		if (isButtonDrag)
+			Menu.buttonDragOccurred = false;
 		draggedElement.classList.add('dragging');
-		button.style.position = 'fixed';
-		panel.style.position = 'fixed';
 		const coords = getClientCoords(event);
 		const buttonRect = button.getBoundingClientRect();
 		const panelRect = panel.getBoundingClientRect();
@@ -536,19 +547,29 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		Menu._initialPanelY = panelRect.top;
 		Menu._initialMouseX = coords.clientX;
 		Menu._initialMouseY = coords.clientY;
-		button.style.transform = 'none';
+		if (isButtonDrag && button.style.transform !== 'none') {
+			button.style.transform = 'none'
+		}
 		if (Menu.isOpen) {
 			Menu._panelRelativeOffsetX = panelRect.left - buttonRect.left;
 			Menu._panelRelativeOffsetY = panelRect.top - buttonRect.top
 		} else {
-			Menu._panelRelativeOffsetX = 0;
-			Menu._panelRelativeOffsetY = -panelRect.height - 10
+			const estimatedPanelHeight = panel.offsetHeight || 300;
+			const estimatedPanelWidth = panel.offsetWidth || 320;
+			const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
+			if (docDir === 'rtl') {
+				Menu._panelRelativeOffsetX = buttonRect.width - estimatedPanelWidth
+			} else {
+				Menu._panelRelativeOffsetX = 0
+			}
+			Menu._panelRelativeOffsetY = -estimatedPanelHeight - 10
 		}
 		if (event.type === 'touchstart') {
 			event.preventDefault()
 		}
 	};
 	Menu._handleButtonMouseDown = function (event) {
+		Menu.buttonDragOccurred = false;
 		this._startDragging(event, true)
 	};
 	Menu._handlePanelMouseDown = function (event) {
@@ -561,6 +582,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const panel = document.getElementById(MENU_PANEL_ID);
 		if (!button || !panel)
 			return;
+		if (this.isButtonDragging) {
+			Menu.buttonDragOccurred = true
+		}
 		const coords = getClientCoords(event);
 		const deltaX = coords.clientX - Menu._initialMouseX;
 		const deltaY = coords.clientY - Menu._initialMouseY;
@@ -578,28 +602,34 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 		const buttonWidth = button.offsetWidth;
 		const buttonHeight = button.offsetHeight;
-		const panelWidth = panel.offsetWidth;
-		const panelHeight = panel.offsetHeight;
-		targetButtonX = Math.max(0, Math.min(targetButtonX, window.innerWidth - buttonWidth));
-		targetButtonY = Math.max(0, Math.min(targetButtonY, window.innerHeight - buttonHeight));
-		let clampedPanelX = targetButtonX + Menu._panelRelativeOffsetX;
-		let clampedPanelY = targetButtonY + Menu._panelRelativeOffsetY;
-		clampedPanelX = Math.max(0, Math.min(clampedPanelX, window.innerWidth - panelWidth));
-		clampedPanelY = Math.max(0, Math.min(clampedPanelY, window.innerHeight - panelHeight));
-		if (clampedPanelX !== targetButtonX + Menu._panelRelativeOffsetX) {
-			targetButtonX = clampedPanelX - Menu._panelRelativeOffsetX
-		}
-		if (clampedPanelY !== targetButtonY + Menu._panelRelativeOffsetY) {
-			targetButtonY = clampedPanelY - Menu._panelRelativeOffsetY
-		}
 		targetButtonX = Math.max(0, Math.min(targetButtonX, window.innerWidth - buttonWidth));
 		targetButtonY = Math.max(0, Math.min(targetButtonY, window.innerHeight - buttonHeight));
 		button.style.left = `${ targetButtonX }px`;
 		button.style.top = `${ targetButtonY }px`;
 		button.style.transform = 'none';
+		button.style.right = 'auto';
+		button.style.bottom = 'auto';
 		if (Menu.isOpen) {
-			panel.style.left = `${ targetButtonX + Menu._panelRelativeOffsetX }px`;
-			panel.style.top = `${ targetButtonY + Menu._panelRelativeOffsetY }px`
+			const panelWidth = panel.offsetWidth;
+			const panelHeight = panel.offsetHeight;
+			let desiredPanelX = targetButtonX + Menu._panelRelativeOffsetX;
+			let desiredPanelY = targetButtonY + Menu._panelRelativeOffsetY;
+			desiredPanelX = Math.max(0, Math.min(desiredPanelX, window.innerWidth - panelWidth));
+			desiredPanelY = Math.max(0, Math.min(desiredPanelY, window.innerHeight - panelHeight));
+			panel.style.left = `${ desiredPanelX }px`;
+			panel.style.top = `${ desiredPanelY }px`;
+			panel.style.right = 'auto';
+			panel.style.bottom = 'auto';
+			if (this.isButtonDragging) {
+				let adjustedButtonX = desiredPanelX - Menu._panelRelativeOffsetX;
+				let adjustedButtonY = desiredPanelY - Menu._panelRelativeOffsetY;
+				adjustedButtonX = Math.max(0, Math.min(adjustedButtonX, window.innerWidth - buttonWidth));
+				adjustedButtonY = Math.max(0, Math.min(adjustedButtonY, window.innerHeight - buttonHeight));
+				button.style.left = `${ adjustedButtonX }px`;
+				button.style.top = `${ adjustedButtonY }px`;
+				Menu._panelRelativeOffsetX = desiredPanelX - adjustedButtonX;
+				Menu._panelRelativeOffsetY = desiredPanelY - adjustedButtonY
+			}
 		}
 		if (event.type === 'touchmove') {
 			event.preventDefault()
@@ -610,11 +640,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this.isButtonDragging = false;
 			const button = document.getElementById(MENU_BUTTON_ID);
 			if (button)
-				button.classList.remove('dragging');
-			Menu.buttonDragOccurred = true;
-			setTimeout(() => {
-				Menu.buttonDragOccurred = false
-			}, 50)
+				button.classList.remove('dragging')
 		}
 		if (this.isPanelDragging) {
 			this.isPanelDragging = false;
@@ -642,15 +668,16 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (docDir === 'rtl') {
 				newLeft = buttonRect.right - panelRect.width
 			}
-			if (newTop < 10)
-				newTop = buttonRect.bottom + 10;
+			if (newTop < 10) {
+				newTop = buttonRect.bottom + 10
+			}
 			if (newTop + panelRect.height > window.innerHeight - 10) {
 				newTop = Math.max(10, window.innerHeight - panelRect.height - 10)
 			}
 			if (newLeft < 10)
 				newLeft = 10;
 			if (newLeft + panelRect.width > window.innerWidth - 10) {
-				newLeft = window.innerWidth - panelRect.width - 10
+				newLeft = Math.max(10, window.innerWidth - panelRect.width - 10)
 			}
 			panel.style.position = 'fixed';
 			panel.style.top = `${ newTop }px`;
@@ -666,8 +693,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		} else {
 			button.focus()
 		}
+		logAction(`Menu ${ this.isOpen ? 'opened' : 'closed' }`)
 	};
 	Menu.handleAction = function (action, targetButton) {
+		logAction(`Action: ${ action }`, true);
 		if (action === 'close-menu') {
 			this.toggleMenu();
 			return
@@ -719,24 +748,22 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 		if (!elements || elements.length === 0) {
 			console.warn('ARMenu: ar_getElementsForMenuTextStyleAdjustments() not available or returned empty. Using fallback selector.');
-			elements = Array.from(document.querySelectorAll('p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '), h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup'))
+			elements = Array.from(document.querySelectorAll('p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '):not([class*="icon"]):not(:empty),' + 'h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup')).filter(el => el.closest(`#${ MENU_PANEL_ID }`) === null && el.closest(`#${ MENU_BUTTON_ID }`) === null)
 		}
 		let factor = 1;
-		if (action === 'increase-text') {
-			factor = FONT_SIZE_MULTIPLIER
-		} else if (action === 'decrease-text') {
-			factor = 1 / FONT_SIZE_MULTIPLIER
-		}
+		if (action === 'increase-text')
+			factor = FONT_SIZE_MULTIPLIER;
+		else if (action === 'decrease-text')
+			factor = 1 / FONT_SIZE_MULTIPLIER;
 		elements.forEach(el => {
-			if (!document.body.contains(el)) {
-				return
-			}
+			if (!document.body.contains(el))
+				return;
 			if (!Menu._originalFontSizes.has(el)) {
 				Menu._originalFontSizes.set(el, window.getComputedStyle(el).fontSize)
 			}
 			if (action === 'reset-font') {
 				const originalSize = Menu._originalFontSizes.get(el);
-				if (originalSize !== null && originalSize !== undefined && originalSize !== '') {
+				if (originalSize) {
 					el.style.setProperty('font-size', originalSize, 'important')
 				} else {
 					el.style.removeProperty('font-size')
@@ -745,64 +772,52 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			} else {
 				const currentSize = parseFloat(window.getComputedStyle(el).fontSize);
 				if (!isNaN(currentSize) && currentSize > 0) {
-					el.style.setProperty('font-size', `${ currentSize * factor }px`, 'important')
+					let newSize = currentSize * factor;
+					if (factor < 1 && newSize < 8)
+						newSize = 8;
+					if (factor > 1 && newSize > 72)
+						newSize = 72;
+					el.style.setProperty('font-size', `${ newSize }px`, 'important')
 				}
 			}
-		});
-		logAction(`Text size ${ action }`, true);
-		if (action === 'reset-font' && button && button.closest('.ar-aaa-menu-group')) {
-			button.closest('.ar-aaa-menu-group').querySelectorAll('button[data-action="increase-text"], button[data-action="decrease-text"]').forEach(btn => {
-				this._updateButtonActiveState(btn, false)
-			})
-		}
+		})
 	};
 	Menu._handleContrastAction = function (action, button) {
 		const body = document.body;
+		const isHighContrast = action === 'contrast-high';
+		const isInvertColors = action === 'contrast-invert';
+		let newMode = 'default';
+		if (isHighContrast && this.activeContrastMode !== 'high')
+			newMode = 'high';
+		else if (isInvertColors && this.activeContrastMode !== 'inverted')
+			newMode = 'inverted';
 		body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_INVERT_COLORS);
 		const parentGroup = button.closest('.ar-aaa-button-row') || button.closest('.ar-aaa-menu-group');
 		if (parentGroup) {
 			parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
-				if (btn !== button) {
-					this._updateButtonActiveState(btn, false)
-				}
+				this._updateButtonActiveState(btn, false)
 			})
 		}
-		if (action === 'contrast-high') {
-			if (this.activeContrastMode !== 'high') {
-				body.classList.add(CLASS_HIGH_CONTRAST);
-				this.activeContrastMode = 'high';
-				this._updateButtonActiveState(button, true);
-				logAction('High contrast enabled', true)
-			} else {
-				this.activeContrastMode = 'default';
-				this._updateButtonActiveState(button, false);
-				logAction('High contrast disabled', true)
-			}
-		} else if (action === 'contrast-invert') {
-			if (this.activeContrastMode !== 'inverted') {
-				body.classList.add(CLASS_INVERT_COLORS);
-				this.activeContrastMode = 'inverted';
-				this._updateButtonActiveState(button, true);
-				logAction('Invert colors enabled', true)
-			} else {
-				this.activeContrastMode = 'default';
-				this._updateButtonActiveState(button, false);
-				logAction('Invert colors disabled', true)
-			}
+		if (newMode === 'high') {
+			body.classList.add(CLASS_HIGH_CONTRAST);
+			this._updateButtonActiveState(button, true)
+		} else if (newMode === 'inverted') {
+			body.classList.add(CLASS_INVERT_COLORS);
+			this._updateButtonActiveState(button, true)
 		}
+		this.activeContrastMode = newMode;
+		logAction(`Contrast mode set to: ${ this.activeContrastMode }`)
 	};
 	Menu._handleHighlightAction = function (action, button) {
 		const body = document.body;
 		if (action === 'highlight-links') {
 			this.areLinksHighlighted = !this.areLinksHighlighted;
 			body.classList.toggle(CLASS_HIGHLIGHT_LINKS, this.areLinksHighlighted);
-			this._updateButtonActiveState(button, this.areLinksHighlighted);
-			logAction('Highlight links ' + (this.areLinksHighlighted ? 'enabled' : 'disabled'), true)
+			this._updateButtonActiveState(button, this.areLinksHighlighted)
 		} else if (action === 'enhanced-focus') {
 			this.isFocusEnhanced = !this.isFocusEnhanced;
 			body.classList.toggle(CLASS_ENHANCED_FOCUS, this.isFocusEnhanced);
-			this._updateButtonActiveState(button, this.isFocusEnhanced);
-			logAction('Enhanced focus ' + (this.isFocusEnhanced ? 'enabled' : 'disabled'), true)
+			this._updateButtonActiveState(button, this.isFocusEnhanced)
 		}
 	};
 	Menu._handleStopAnimationsAction = function (button) {
@@ -818,9 +833,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				}
 			});
 			gifsToFreeze.forEach(img => {
-				if (typeof window.ar_isVisuallyHidden === 'function' && window.ar_isVisuallyHidden(img)) {
-					return
-				}
+				if (typeof window.ar_isVisuallyHidden === 'function' && window.ar_isVisuallyHidden(img))
+					return;
 				img.dataset.arOriginalSrc = img.src;
 				img.dataset.arOriginalAlt = img.alt || '';
 				img.dataset.arOriginalDisplay = img.style.display || '';
@@ -830,8 +844,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				tempImage.crossOrigin = 'Anonymous';
 				tempImage.onload = () => {
 					const canvas = document.createElement('canvas');
-					canvas.width = tempImage.naturalWidth || parseInt(img.dataset.arOriginalWidth) || 50;
-					canvas.height = tempImage.naturalHeight || parseInt(img.dataset.arOriginalHeight) || 50;
+					canvas.width = tempImage.naturalWidth || parseInt(img.dataset.arOriginalWidth) || img.width || 50;
+					canvas.height = tempImage.naturalHeight || parseInt(img.dataset.arOriginalHeight) || img.height || 50;
 					canvas.className = img.className;
 					canvas.style.cssText = img.style.cssText;
 					canvas.style.width = img.dataset.arOriginalWidth;
@@ -842,10 +856,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 						canvas.style.display = img.dataset.arOriginalDisplay || 'block'
 					}
 					canvas.setAttribute('role', 'img');
-					canvas.setAttribute('aria-label', img.dataset.arOriginalAlt || `אנימציה קפואה: ${ img.src.split('/').pop() }`);
+					canvas.setAttribute('aria-label', img.dataset.arOriginalAlt || `Frozen animation: ${ img.src.split('/').pop() }`);
 					canvas.dataset.arFrozenGifCanvas = 'true';
 					if (!img.id) {
-						img.id = typeof window.ar_generateUniqueElementId === 'function' ? window.ar_generateUniqueElementId('ar-original-gif-') : `ar-gif-${ Date.now() }-${ Math.random() }`
+						img.id = typeof window.ar_generateUniqueElementId === 'function' ? window.ar_generateUniqueElementId('ar-original-gif-') : `ar-gif-${ Date.now() }-${ Math.random().toString(36).substr(2, 5) }`
 					}
 					canvas.dataset.arOriginalImgId = img.id;
 					const ctx = canvas.getContext('2d');
@@ -857,7 +871,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 							img.parentNode.insertBefore(canvas, img.nextSibling)
 						}
 					} catch (e) {
-						console.error('ARMenu: failed to freeze GIF using canvas, falling back to blank GIF.', e);
+						console.error('ARMenu: Failed to draw GIF to canvas. Freezing by replacing src.', e);
 						img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 						img.style.display = img.dataset.arOriginalDisplay || '';
 						img.dataset.arGifFrozen = 'true';
@@ -865,7 +879,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 					}
 				};
 				tempImage.onerror = () => {
-					console.error('ARMenu: Failed to load GIF for freezing, falling back to blank GIF.');
+					console.error('ARMenu: Failed to load GIF for freezing. Replacing src.');
 					img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 					img.dataset.arGifFrozen = 'true';
 					img.dataset.arGifFrozenFallback = 'true'
@@ -887,9 +901,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 							'arOriginalWidth',
 							'arOriginalHeight',
 							'arGifFrozenFallback'
-						].forEach(attr => {
-							delete originalImg.dataset[attr]
-						})
+						].forEach(attr => delete originalImg.dataset[attr])
 					}
 				}
 				if (canvas.parentNode) {
@@ -908,23 +920,19 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 					'arOriginalDisplay',
 					'arOriginalWidth',
 					'arOriginalHeight'
-				].forEach(attr => {
-					delete img.dataset[attr]
-				})
+				].forEach(attr => delete img.dataset[attr])
 			})
 		}
-		logAction('Stop animations ' + (this.areAnimationsStopped ? 'enabled' : 'disabled'), true)
 	};
 	Menu._handleDyslexiaFontAction = function (button) {
 		this.isDyslexiaFontActive = !this.isDyslexiaFontActive;
 		document.body.classList.toggle(CLASS_DYSLEXIA_FONT, this.isDyslexiaFontActive);
-		this._updateButtonActiveState(button, this.isDyslexiaFontActive);
-		logAction('Dyslexia font ' + (this.isDyslexiaFontActive ? 'enabled' : 'disabled'), true)
+		this._updateButtonActiveState(button, this.isDyslexiaFontActive)
 	};
 	Menu._resetAllSettings = function () {
 		Menu._originalFontSizes.forEach((originalSize, el) => {
 			if (document.body.contains(el)) {
-				if (originalSize !== null && originalSize !== undefined && originalSize !== '') {
+				if (originalSize) {
 					el.style.setProperty('font-size', originalSize, 'important')
 				} else {
 					el.style.removeProperty('font-size')
@@ -949,7 +957,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (this.isDyslexiaFontActive) {
 			this._handleDyslexiaFontAction(document.querySelector(`#${ MENU_PANEL_ID } button[data-action="toggle-dyslexia-font"]`))
 		}
-		logAction('All settings reset', true);
 		const menuButton = document.getElementById(MENU_BUTTON_ID);
 		if (menuButton) {
 			menuButton.style.right = '20px';
@@ -959,25 +966,36 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			menuButton.style.bottom = 'auto'
 		}
 		const panel = document.getElementById(MENU_PANEL_ID);
-		if (panel) {
-			if (this.isOpen) {
-				this.toggleMenu();
-				this.toggleMenu()
-			} else {
-				const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
-				if (docDir === 'rtl') {
-					panel.style.left = '20px';
-					panel.style.right = 'auto'
-				} else {
-					panel.style.right = '20px';
-					panel.style.left = 'auto'
-				}
-				panel.style.bottom = '90px';
-				panel.style.top = 'auto'
-			}
+		if (panel && this.isOpen && menuButton) {
+			const buttonRect = menuButton.getBoundingClientRect();
+			const panelRect = panel.getBoundingClientRect();
+			let newTop = buttonRect.top - panelRect.height - 10;
+			let newLeft = buttonRect.left;
+			const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
+			if (docDir === 'rtl')
+				newLeft = buttonRect.right - panelRect.width;
+			if (newTop < 10)
+				newTop = buttonRect.bottom + 10;
+			if (newTop + panelRect.height > window.innerHeight - 10)
+				newTop = Math.max(10, window.innerHeight - panelRect.height - 10);
+			if (newLeft < 10)
+				newLeft = 10;
+			if (newLeft + panelRect.width > window.innerWidth - 10)
+				newLeft = window.innerWidth - panelRect.width - 10;
+			panel.style.top = `${ newTop }px`;
+			panel.style.left = `${ newLeft }px`;
+			panel.style.bottom = 'auto';
+			panel.style.right = 'auto';
+			Menu._panelRelativeOffsetX = newLeft - buttonRect.left;
+			Menu._panelRelativeOffsetY = newTop - buttonRect.top
 		}
+		logAction('All settings reset.')
 	};
-	document.addEventListener('DOMContentLoaded', function () {
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', function () {
+			AR_AccessibilityMenu.init()
+		})
+	} else {
 		AR_AccessibilityMenu.init()
-	})
+	}
 }(AR_AccessibilityMenu))
