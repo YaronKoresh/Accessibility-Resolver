@@ -10,15 +10,20 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	const CLASS_ENHANCED_FOCUS = 'ar-aaa-enhanced-focus';
 	const CLASS_ANIMATIONS_STOPPED = 'ar-aaa-animations-stopped';
 	const CLASS_DYSLEXIA_FONT = 'ar-aaa-dyslexia-font';
+	const STORAGE_KEY = 'AR_AccessibilityMenu_Settings';
 	Menu.isOpen = false;
 	Menu.isDyslexiaFontActive = false;
 	Menu.activeContrastMode = 'default';
 	Menu.areLinksHighlighted = false;
 	Menu.isFocusEnhanced = false;
 	Menu.areAnimationsStopped = false;
+	Menu.isReadingAloud = false;
+	Menu.fontScaleLevel = 0;
 	Menu.isPanelDragging = false;
 	Menu.isButtonDragging = false;
 	Menu.buttonDragOccurred = false;
+	Menu.buttonWasDragged = false;
+	Menu.panelWasDragged = false;
 	Menu._originalFontSizes = new Map();
 	Menu._initialButtonX = 0;
 	Menu._initialButtonY = 0;
@@ -39,6 +44,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			enhancedFocus: 'מיקוד משופר',
 			stopAnimations: 'עצור אנימציות',
 			dyslexiaFont: 'גופן דיסלקטי',
+			readAloud: 'קרא בקול',
+			stopReading: 'הפסק קריאה',
 			resetAll: 'איפוס הכל',
 			closeMenu: 'סגור תפריט',
 			accessibilityIcon: 'אייקון נגישות',
@@ -47,7 +54,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			highlight: 'הדגשה',
 			animation: 'אנימציה',
 			fontStyle: 'סגנון גופן',
-			reset: 'איפוס'
+			reset: 'איפוס',
+			readAloudIcon: 'אייקון קריאה בקול',
+			speechNotSupported: 'סינתזת דיבור אינה נתמכת בדפדפן זה.'
 		},
 		'en': {
 			menuTitle: 'Accessibility Tools',
@@ -59,6 +68,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			enhancedFocus: 'Enhanced Focus',
 			stopAnimations: 'Stop Animations',
 			dyslexiaFont: 'Dyslexia Font',
+			readAloud: 'Read Aloud',
+			stopReading: 'Stop Reading',
 			resetAll: 'Reset All',
 			closeMenu: 'Close Menu',
 			accessibilityIcon: 'Accessibility Icon',
@@ -67,7 +78,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			highlight: 'Highlight',
 			animation: 'Animation',
 			fontStyle: 'Font Style',
-			reset: 'Reset'
+			reset: 'Reset',
+			readAloudIcon: 'Read Aloud Icon',
+			speechNotSupported: 'Speech synthesis not supported in this browser.'
 		}
 	};
 	Menu._getLocalizedString = function (key) {
@@ -102,6 +115,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this._createMenuButton();
 		this._createMenuPanel();
 		this._attachEventListeners();
+		this._loadSettings();
 		logAction('Initialized successfully.')
 	};
 	Menu._injectStyles = function () {
@@ -119,132 +133,43 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 src: url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff2) format('woff2'),
                      url(https://cdn.jsdelivr.net/fontsource/fonts/opendyslexic@latest/latin-700-normal.woff) format('woff');
             }
-
-            #${ MENU_BUTTON_ID } {
-                position: fixed; z-index: 2147483647; background-color: #0056b3; color: white !important;
-                border: none; border-radius: 50%; width: 70px; height: 70px; font-size: 36px;
-                cursor: grab; box-shadow: 0 2px 10px rgba(0,0,0,0.2); display: flex;
-                align-items: center; justify-content: center; transition: background-color 0.2s, box-shadow 0.2s; padding: 0;
-            }
-            #${ MENU_BUTTON_ID }:hover, #${ MENU_BUTTON_ID }:focus-visible {
-                background-color: #003d82; outline: 2px solid #007bff; outline-offset: 2px;
-            }
+            #${ MENU_BUTTON_ID } { position: fixed; z-index: 2147483647; background-color: #0056b3; color: white !important; border: none; border-radius: 50%; width: 70px; height: 70px; font-size: 36px; cursor: grab; box-shadow: 0 2px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; transition: background-color 0.2s, box-shadow 0.2s; padding: 0; }
+            #${ MENU_BUTTON_ID }:hover, #${ MENU_BUTTON_ID }:focus-visible { background-color: #003d82; outline: 2px solid #007bff; outline-offset: 2px; }
             #${ MENU_BUTTON_ID }.dragging { cursor: grabbing; }
-            #${ MENU_BUTTON_ID } .ar-aaa-menu-icon {
-                display: flex; align-items: center; justify-content: center;
-                width: 60% !important; height: 60% !important;
-            }
+            #${ MENU_BUTTON_ID } .ar-aaa-menu-icon { display: flex; align-items: center; justify-content: center; width: 60% !important; height: 60% !important; }
             #${ MENU_BUTTON_ID } .ar-aaa-menu-icon svg { width: 100% !important; height: 100% !important; fill: currentColor !important; }
-
-            #${ MENU_PANEL_ID } {
-                display: none; position: fixed; width: 320px; max-height: calc(100vh - 100px);
-                overflow-y: auto; background-color: white; border: 1px solid #0056b3;
-                border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 2147483646;
-                padding: 15px; font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #333; cursor: grab;
-            }
-            #${ MENU_PANEL_ID } h3 {
-                margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: #0056b3; text-align: center; cursor: grab;
-            }
+            #${ MENU_PANEL_ID } { display: none; position: fixed; width: 320px; max-height: calc(100vh - 100px); overflow-y: auto; background-color: white; border: 1px solid #0056b3; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); z-index: 2147483646; padding: 15px; font-family: 'Inter', Arial, sans-serif; font-size: 14px; color: #333; cursor: grab; }
+            #${ MENU_PANEL_ID } h3 { margin-top: 0; margin-bottom: 15px; font-size: 1.2em; color: #0056b3; text-align: center; cursor: grab; }
             #${ MENU_PANEL_ID }.ar-aaa-menu-open { display: block; }
             #${ MENU_PANEL_ID } .ar-aaa-menu-group { margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #e9ecef; }
             #${ MENU_PANEL_ID } .ar-aaa-menu-group:last-of-type { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
             #${ MENU_PANEL_ID } .ar-aaa-button-row { display: flex; flex-wrap: wrap; gap: 8px; }
-            #${ MENU_PANEL_ID } button {
-                flex: 1 1 calc(50% - 4px); padding: 8px 10px; font-size: 0.95em; background-color: #f8f9fa;
-                color: #0056b3 !important; border: 1px solid #0056b3; border-radius: 4px; cursor: pointer;
-                transition: background-color 0.2s, border-color 0.2s, color 0.2s; display: flex;
-                align-items: center; justify-content: center; gap: 6px; min-height: 38px;
-            }
-            #${ MENU_PANEL_ID } button:hover, #${ MENU_PANEL_ID } button:focus-visible {
-                background-color: #e9ecef; border-color: #003d82; outline: 1px solid #0056b3;
-            }
-            #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active {
-                background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important;
-            }
+            #${ MENU_PANEL_ID } button { flex: 1 1 calc(50% - 4px); padding: 8px 10px; font-size: 0.95em; background-color: #f8f9fa; color: #0056b3 !important; border: 1px solid #0056b3; border-radius: 4px; cursor: pointer; transition: background-color 0.2s, border-color 0.2s, color 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; }
+            #${ MENU_PANEL_ID } button:hover, #${ MENU_PANEL_ID } button:focus-visible { background-color: #e9ecef; border-color: #003d82; outline: 1px solid #0056b3; }
+            #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active { background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important; }
             #${ MENU_PANEL_ID } button.ar-aaa-fullwidth-btn { flex-basis: 100%; }
-            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn {
-                background-color: #d1ecf1; border-color: #007bff; color: #004085 !important;
-            }
+            #${ MENU_PANEL_ID } button.ar-aaa-reset-btn { background-color: #d1ecf1; border-color: #007bff; color: #004085 !important; }
             #${ MENU_PANEL_ID } button.ar-aaa-reset-btn:hover { background-color: #b8e0e8; }
             #${ MENU_PANEL_ID } .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor; }
-
-            html.${ CLASS_INVERT_COLORS } {
-                filter: invert(100%) hue-rotate(180deg) !important;
-                background-color: #fff !important; 
-            }
-            html.${ CLASS_INVERT_COLORS } #${ MENU_BUTTON_ID },
-            html.${ CLASS_INVERT_COLORS } #${ MENU_PANEL_ID } {
-                filter: invert(100%) hue-rotate(180deg) !important; 
-            }
-            html.${ CLASS_INVERT_COLORS } img,
-            html.${ CLASS_INVERT_COLORS } video,
-            html.${ CLASS_INVERT_COLORS } svg,
-            html.${ CLASS_INVERT_COLORS } [style*="background-image"] { 
-                filter: invert(100%) hue-rotate(180deg) !important;
-            }
-
+            html.${ CLASS_INVERT_COLORS } { filter: invert(100%) hue-rotate(180deg) !important; background-color: #fff !important; }
+            html.${ CLASS_INVERT_COLORS } #${ MENU_BUTTON_ID }, html.${ CLASS_INVERT_COLORS } #${ MENU_PANEL_ID } { filter: invert(100%) hue-rotate(180deg) !important; }
+            html.${ CLASS_INVERT_COLORS } img, html.${ CLASS_INVERT_COLORS } video, html.${ CLASS_INVERT_COLORS } svg, html.${ CLASS_INVERT_COLORS } [style*="background-image"] { filter: invert(100%) hue-rotate(180deg) !important; }
             body.${ CLASS_HIGH_CONTRAST } { background-color: #000 !important; color: #fff !important; }
-            body.${ CLASS_HIGH_CONTRAST } a { 
-                color: #FFFF00 !important; /* Yellow link text */
-                background-color: #000000 !important; /* Black background for link */
-                text-decoration: underline !important; 
-            }
-            body.${ CLASS_HIGH_CONTRAST } button, body.${ CLASS_HIGH_CONTRAST } input,
-            body.${ CLASS_HIGH_CONTRAST } select, body.${ CLASS_HIGH_CONTRAST } textarea {
-                background-color: #333333 !important; color: #fff !important; border: 1px solid #FFFFFF !important;
-            }
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } {
-                background-color: white !important; border-color: #0056b3 !important; color: #333 !important;
-            }
+            body.${ CLASS_HIGH_CONTRAST } a { color: #FFFF00 !important; background-color: #000000 !important; text-decoration: underline !important; }
+            body.${ CLASS_HIGH_CONTRAST } button, body.${ CLASS_HIGH_CONTRAST } input, body.${ CLASS_HIGH_CONTRAST } select, body.${ CLASS_HIGH_CONTRAST } textarea { background-color: #333333 !important; color: #fff !important; border: 1px solid #FFFFFF !important; }
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } { background-color: white !important; border-color: #0056b3 !important; color: #333 !important; }
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } h3 { color: #0056b3 !important; }
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button {
-                background-color: #f8f9fa !important; color: #0056b3 !important; border-color: #0056b3 !important;
-            }
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active {
-                background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important;
-            }
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-reset-btn {
-                 background-color: #d1ecf1 !important; border-color: #007bff !important; color: #004085 !important;
-            }
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } { 
-                background-color: #0056b3 !important; color: white !important;
-            }
-
-            body.${ CLASS_HIGHLIGHT_LINKS } a[href] {
-                background-color: yellow !important; color: black !important;
-                outline: 2px solid orange !important; border-radius: 2px;
-            }
-
-            body.${ CLASS_ENHANCED_FOCUS } *:focus-visible {
-                outline: 3px solid #007bff !important;
-                outline-offset: 2px !important;
-                box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important;
-            }
-
-            body.${ CLASS_ANIMATIONS_STOPPED } *,
-            body.${ CLASS_ANIMATIONS_STOPPED } *::before,
-            body.${ CLASS_ANIMATIONS_STOPPED } *::after {
-                animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important; transition-delay: 0ms !important;
-            }
-            
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button { background-color: #f8f9fa !important; color: #0056b3 !important; border-color: #0056b3 !important; }
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-menu-btn-active { background-color: #0056b3 !important; color: white !important; border-color: #003d82 !important; }
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-reset-btn { background-color: #d1ecf1 !important; border-color: #007bff !important; color: #004085 !important; }
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } { background-color: #0056b3 !important; color: white !important; }
+            body.${ CLASS_HIGHLIGHT_LINKS } a[href] { background-color: yellow !important; color: black !important; outline: 2px solid orange !important; border-radius: 2px; }
+            body.${ CLASS_ENHANCED_FOCUS } *:focus-visible { outline: 10px dotted red !important; background-color: yellow !important; border: 5px solid limegreen !important; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important; }
+            body.${ CLASS_ANIMATIONS_STOPPED } *, body.${ CLASS_ANIMATIONS_STOPPED } *::before, body.${ CLASS_ANIMATIONS_STOPPED } *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0ms !important; }
             body.${ CLASS_DYSLEXIA_FONT } { font-family: 'OpenDyslexic', Arial, sans-serif !important; }
-            body.${ CLASS_DYSLEXIA_FONT } *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) {
-                font-family: inherit !important;
-            }
-            #${ MENU_PANEL_ID }, #${ MENU_PANEL_ID } *,
-            #${ MENU_BUTTON_ID }, #${ MENU_BUTTON_ID } * {
-                font-family: 'Inter', Arial, sans-serif !important;
-            }
-
-            @media (max-width: 480px) {
-                #${ MENU_PANEL_ID } {
-                    width: calc(100% - 20px); left: 10px; right: 10px; bottom: 10px; top: auto;
-                    max-height: calc(100vh - 80px);
-                }
-                #${ MENU_BUTTON_ID } { width: 50px; height: 50px; font-size: 24px; }
-                #${ MENU_PANEL_ID } button { flex-basis: 100%; }
-            }
+            body.${ CLASS_DYSLEXIA_FONT } *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) { font-family: inherit !important; }
+            #${ MENU_PANEL_ID }, #${ MENU_PANEL_ID } *, #${ MENU_BUTTON_ID }, #${ MENU_BUTTON_ID } * { font-family: 'Inter', Arial, sans-serif !important; }
+            @media (max-width: 480px) { #${ MENU_PANEL_ID } { width: calc(100% - 20px); left: 10px; right: 10px; bottom: 10px; top: auto; max-height: calc(100vh - 80px); } #${ MENU_BUTTON_ID } { width: 50px; height: 50px; font-size: 24px; } #${ MENU_PANEL_ID } button { flex-basis: 100%; } }
         `;
 		const styleEl = document.createElement('style');
 		styleEl.id = styleId;
@@ -292,6 +217,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			highlight: this._getIconSVG('<path d="M16.2,12L12,16.2L7.8,12L12,7.8M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4Z"/>', Menu._getLocalizedString('highlight')),
 			animation: this._getIconSVG('<path d="M8,5V19L19,12L8,5Z"/>', Menu._getLocalizedString('animation')),
 			fontStyle: this._getIconSVG('<path d="M9.25,4V5.5H6.75V4H5.25V5.5H2.75V4H1.25V14.5H2.75V16H5.25V14.5H7.75V16H10.25V14.5H11.75V4H9.25M17.75,4V14.5H19.25V16H21.75V14.5H24.25V4H21.75V5.5H19.25V4H17.75M10.25,7H7.75V13H10.25V7M16.25,7H13.75V13H16.25V7Z"/>', Menu._getLocalizedString('fontStyle')),
+			readAloud: this._getIconSVG('<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>', Menu._getLocalizedString('readAloudIcon')),
 			reset: this._getIconSVG('<path d="M12,5V1L7,6L12,11V7A6,6 0 0,1 18,13A6,6 0 0,1 12,19A6,6 0 0,1 6,13H4A8,8 0 0,0 12,21A8,8 0 0,0 20,13A8,8 0 0,0 12,5Z"/>', Menu._getLocalizedString('reset')),
 			close: this._getIconSVG('<path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>', Menu._getLocalizedString('closeMenu'))
 		};
@@ -308,6 +234,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row">
                 <button data-action="highlight-links">${ ICONS.highlight } ${ Menu._getLocalizedString('highlightLinks') }</button>
                 <button data-action="enhanced-focus">${ ICONS.highlight } ${ Menu._getLocalizedString('enhancedFocus') }</button>
+            </div></div>
+            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row">
+                <button data-action="read-aloud" class="ar-aaa-fullwidth-btn">${ ICONS.readAloud } ${ Menu._getLocalizedString('readAloud') }</button>
             </div></div>
             <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row">
                 <button data-action="stop-animations" class="ar-aaa-fullwidth-btn">${ ICONS.animation } ${ Menu._getLocalizedString('stopAnimations') }</button>
@@ -335,7 +264,73 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.addEventListener('mouseup', this._handleDocumentMouseUp.bind(this));
 		document.addEventListener('touchmove', this._handleDocumentMouseMove.bind(this), { passive: false });
 		document.addEventListener('touchend', this._handleDocumentMouseUp.bind(this));
-		document.addEventListener('keydown', this._handleTabKeyFocusTrap.bind(this))
+		document.addEventListener('keydown', this._handleTabKeyFocusTrap.bind(this));
+		window.addEventListener('resize', this._handleWindowResize.bind(this))
+	};
+	Menu._handleWindowResize = function () {
+		const button = document.getElementById(MENU_BUTTON_ID);
+		const panel = document.getElementById(MENU_PANEL_ID);
+		if (!button)
+			return;
+		if (Menu.buttonWasDragged) {
+			const buttonWidth = button.offsetWidth;
+			const buttonHeight = button.offsetHeight;
+			let currentLeft = parseFloat(button.style.left);
+			let currentTop = parseFloat(button.style.top);
+			const newButtonX = Math.max(0, Math.min(currentLeft, window.innerWidth - buttonWidth));
+			const newButtonY = Math.max(0, Math.min(currentTop, window.innerHeight - buttonHeight));
+			if (parseFloat(button.style.left) !== newButtonX || parseFloat(button.style.top) !== newButtonY) {
+				button.style.left = `${ newButtonX }px`;
+				button.style.top = `${ newButtonY }px`
+			}
+			if (this.isOpen && panel && Menu.panelWasDragged) {
+				const panelWidth = panel.offsetWidth;
+				const panelHeight = panel.offsetHeight;
+				let panelNewLeft = newButtonX + Menu._panelRelativeOffsetX;
+				let panelNewTop = newButtonY + Menu._panelRelativeOffsetY;
+				panelNewLeft = Math.max(0, Math.min(panelNewLeft, window.innerWidth - panelWidth));
+				panelNewTop = Math.max(0, Math.min(panelNewTop, window.innerHeight - panelHeight));
+				panel.style.left = `${ panelNewLeft }px`;
+				panel.style.top = `${ panelNewTop }px`;
+				panel.style.right = 'auto';
+				panel.style.bottom = 'auto';
+				Menu._panelRelativeOffsetX = panelNewLeft - newButtonX;
+				Menu._panelRelativeOffsetY = panelNewTop - newButtonY
+			} else if (this.isOpen && panel) {
+				this._positionPanelRelativeToButton(button, panel)
+			}
+		} else if (this.isOpen && panel) {
+			this._positionPanelRelativeToButton(button, panel)
+		}
+	};
+	Menu._positionPanelRelativeToButton = function (button, panel) {
+		if (!button || !panel)
+			return;
+		const buttonRect = button.getBoundingClientRect();
+		const panelRect = panel.getBoundingClientRect();
+		let newTop = buttonRect.top - panelRect.height - 10;
+		let newLeft = buttonRect.left;
+		const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
+		if (docDir === 'rtl') {
+			newLeft = buttonRect.right - panelRect.width
+		}
+		if (newTop < 10) {
+			newTop = buttonRect.bottom + 10
+		}
+		if (newTop + panelRect.height > window.innerHeight - 10) {
+			newTop = Math.max(10, window.innerHeight - panelRect.height - 10)
+		}
+		if (newLeft < 10)
+			newLeft = 10;
+		if (newLeft + panelRect.width > window.innerWidth - 10) {
+			newLeft = Math.max(10, window.innerWidth - panelRect.width - 10)
+		}
+		panel.style.top = `${ newTop }px`;
+		panel.style.left = `${ newLeft }px`;
+		panel.style.bottom = 'auto';
+		panel.style.right = 'auto';
+		Menu._panelRelativeOffsetX = newLeft - buttonRect.left;
+		Menu._panelRelativeOffsetY = newTop - buttonRect.top
 	};
 	Menu._handleMenuButtonClick = function (event) {
 		if (Menu.buttonDragOccurred) {
@@ -404,8 +399,12 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 		this.isButtonDragging = isButtonDrag;
 		this.isPanelDragging = !isButtonDrag;
-		if (isButtonDrag)
+		if (isButtonDrag) {
 			Menu.buttonDragOccurred = false;
+			Menu.buttonWasDragged = true
+		} else {
+			Menu.panelWasDragged = true
+		}
 		draggedElement.classList.add('dragging');
 		const coords = getClientCoords(event);
 		const buttonRect = button.getBoundingClientRect();
@@ -505,17 +504,23 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 	};
 	Menu._handleDocumentMouseUp = function () {
+		let settingsChanged = false;
 		if (this.isButtonDragging) {
 			this.isButtonDragging = false;
 			const button = document.getElementById(MENU_BUTTON_ID);
 			if (button)
-				button.classList.remove('dragging')
+				button.classList.remove('dragging');
+			settingsChanged = true
 		}
 		if (this.isPanelDragging) {
 			this.isPanelDragging = false;
 			const panel = document.getElementById(MENU_PANEL_ID);
 			if (panel)
-				panel.classList.remove('dragging')
+				panel.classList.remove('dragging');
+			settingsChanged = true
+		}
+		if (settingsChanged) {
+			this._saveSettings()
 		}
 	};
 	Menu.toggleMenu = function () {
@@ -529,32 +534,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		panel.setAttribute('aria-hidden', String(!this.isOpen));
 		button.setAttribute('aria-expanded', String(this.isOpen));
 		if (this.isOpen) {
-			const panelRect = panel.getBoundingClientRect();
-			const buttonRect = button.getBoundingClientRect();
-			let newTop = buttonRect.top - panelRect.height - 10;
-			let newLeft = buttonRect.left;
-			const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
-			if (docDir === 'rtl') {
-				newLeft = buttonRect.right - panelRect.width
+			if (!Menu.panelWasDragged || !panel.style.left || !panel.style.top) {
+				this._positionPanelRelativeToButton(button, panel)
 			}
-			if (newTop < 10) {
-				newTop = buttonRect.bottom + 10
-			}
-			if (newTop + panelRect.height > window.innerHeight - 10) {
-				newTop = Math.max(10, window.innerHeight - panelRect.height - 10)
-			}
-			if (newLeft < 10)
-				newLeft = 10;
-			if (newLeft + panelRect.width > window.innerWidth - 10) {
-				newLeft = Math.max(10, window.innerWidth - panelRect.width - 10)
-			}
-			panel.style.position = 'fixed';
-			panel.style.top = `${ newTop }px`;
-			panel.style.left = `${ newLeft }px`;
-			panel.style.bottom = 'auto';
-			panel.style.right = 'auto';
-			Menu._panelRelativeOffsetX = newLeft - buttonRect.left;
-			Menu._panelRelativeOffsetY = newTop - buttonRect.top;
 			const firstFocusableButton = panel.querySelector('button:not([disabled])');
 			if (firstFocusableButton) {
 				firstFocusableButton.focus()
@@ -562,7 +544,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		} else {
 			button.focus()
 		}
-		logAction(`Menu ${ this.isOpen ? 'opened' : 'closed' }`)
+		logAction(`Menu ${ this.isOpen ? 'opened' : 'closed' }`);
+		this._saveSettings()
 	};
 	Menu.handleAction = function (action, targetButton) {
 		logAction(`Action: ${ action }`, true);
@@ -583,6 +566,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		case 'enhanced-focus':
 			this._handleHighlightAction(action, targetButton);
 			break;
+		case 'read-aloud':
+			this._handleReadAloudAction(targetButton);
+			break;
 		case 'stop-animations':
 			this._handleStopAnimationsAction(targetButton);
 			break;
@@ -592,6 +578,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		case 'reset-all':
 			this._resetAllSettings();
 			break
+		}
+		if (action !== 'read-aloud') {
+			this._saveSettings()
 		}
 	};
 	Menu._updateButtonActiveState = function (buttonElement, isActive) {
@@ -610,20 +599,14 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 		buttonElement.classList.toggle('ar-aaa-menu-btn-active', isActive)
 	};
-	Menu._handleTextSizeAction = function (action, button) {
+	Menu._applyFontScaleToElements = function () {
 		let elements = [];
 		if (typeof window.ar_getElementsForMenuTextStyleAdjustments === 'function') {
 			elements = window.ar_getElementsForMenuTextStyleAdjustments()
 		}
 		if (!elements || elements.length === 0) {
-			console.warn('ARMenu: ar_getElementsForMenuTextStyleAdjustments() not available or returned empty. Using fallback selector.');
 			elements = Array.from(document.querySelectorAll('p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '):not([class*="icon"]):not(:empty),' + 'h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup')).filter(el => el.closest(`#${ MENU_PANEL_ID }`) === null && el.closest(`#${ MENU_BUTTON_ID }`) === null)
 		}
-		let factor = 1;
-		if (action === 'increase-text')
-			factor = FONT_SIZE_MULTIPLIER;
-		else if (action === 'decrease-text')
-			factor = 1 / FONT_SIZE_MULTIPLIER;
 		elements.forEach(el => {
 			if (!document.body.contains(el))
 				return;
@@ -631,20 +614,25 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				const initialComputedPx = parseFloat(window.getComputedStyle(el).fontSize);
 				Menu._originalFontSizes.set(el, {
 					inline: el.style.fontSize || '',
-					initialPx: initialComputedPx,
-					currentPx: initialComputedPx
+					initialPx: initialComputedPx
 				})
 			}
-			let sizeState = Menu._originalFontSizes.get(el);
-			let baseSizeForChange = sizeState.currentPx;
-			let newSize = baseSizeForChange * factor;
-			if (factor < 1 && newSize < 8)
+			const sizeData = Menu._originalFontSizes.get(el);
+			let newSize = sizeData.initialPx * Math.pow(FONT_SIZE_MULTIPLIER, Menu.fontScaleLevel);
+			if (newSize < 8)
 				newSize = 8;
-			if (factor > 1 && newSize > 72)
+			if (newSize > 72)
 				newSize = 72;
-			el.style.setProperty('font-size', `${ newSize }px`, 'important');
-			sizeState.currentPx = newSize
+			el.style.setProperty('font-size', `${ newSize }px`, 'important')
 		})
+	};
+	Menu._handleTextSizeAction = function (action, button) {
+		if (action === 'increase-text') {
+			Menu.fontScaleLevel++
+		} else if (action === 'decrease-text') {
+			Menu.fontScaleLevel--
+		}
+		this._applyFontScaleToElements()
 	};
 	Menu._handleContrastAction = function (action, button) {
 		const htmlEl = document.documentElement;
@@ -687,6 +675,51 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			body.classList.toggle(CLASS_ENHANCED_FOCUS, this.isFocusEnhanced);
 			this._updateButtonActiveState(button, this.isFocusEnhanced);
 			logAction(`Enhanced focus ${ this.isFocusEnhanced ? 'enabled' : 'disabled' }. Class on body: ${ body.classList.contains(CLASS_ENHANCED_FOCUS) }`)
+		}
+	};
+	Menu._handleReadAloudAction = function (button) {
+		if (!('speechSynthesis' in window)) {
+			alert(Menu._getLocalizedString('speechNotSupported') || 'Speech synthesis not supported in this browser.');
+			button.disabled = true;
+			return
+		}
+		if (Menu.isReadingAloud) {
+			window.speechSynthesis.cancel();
+			Menu.isReadingAloud = false;
+			this._updateButtonActiveState(button, false);
+			logAction('Speech cancelled', true)
+		} else {
+			let textToRead = '';
+			const mainContent = document.querySelector('main');
+			if (mainContent) {
+				textToRead = mainContent.innerText
+			} else {
+				const bodyClone = document.body.cloneNode(true);
+				bodyClone.querySelectorAll('script, style, noscript, #' + MENU_BUTTON_ID + ', #' + MENU_PANEL_ID).forEach(el => el.remove());
+				textToRead = bodyClone.innerText
+			}
+			if (textToRead.trim() === '') {
+				logAction('No text found to read.');
+				return
+			}
+			const utterance = new SpeechSynthesisUtterance(textToRead);
+			const docLang = document.documentElement.lang || 'en';
+			utterance.lang = docLang;
+			utterance.onend = () => {
+				Menu.isReadingAloud = false;
+				this._updateButtonActiveState(button, false);
+				logAction('Speech finished')
+			};
+			utterance.onerror = event => {
+				Menu.isReadingAloud = false;
+				this._updateButtonActiveState(button, false);
+				console.error('Speech synthesis error:', event.error);
+				logAction('Speech error')
+			};
+			window.speechSynthesis.speak(utterance);
+			Menu.isReadingAloud = true;
+			this._updateButtonActiveState(button, true);
+			logAction('Speech started', true)
 		}
 	};
 	Menu._handleStopAnimationsAction = function (button) {
@@ -799,6 +832,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this._updateButtonActiveState(button, this.isDyslexiaFontActive)
 	};
 	Menu._resetAllSettings = function () {
+		Menu.fontScaleLevel = 0;
 		Menu._originalFontSizes.forEach((sizeState, el) => {
 			if (document.body.contains(el)) {
 				if (sizeState.inline === '' || sizeState.inline === null) {
@@ -809,23 +843,26 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 		});
 		Menu._originalFontSizes.clear();
+		if (Menu.isReadingAloud && 'speechSynthesis' in window) {
+			window.speechSynthesis.cancel();
+			Menu.isReadingAloud = false
+		}
 		document.documentElement.classList.remove(CLASS_INVERT_COLORS);
-		document.body.classList.remove(CLASS_HIGH_CONTRAST);
+		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS, CLASS_ANIMATIONS_STOPPED, CLASS_DYSLEXIA_FONT);
 		this.activeContrastMode = 'default';
-		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action^="contrast-"]`).forEach(btn => {
-			this._updateButtonActiveState(btn, false)
-		});
-		document.body.classList.remove(CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS);
 		this.areLinksHighlighted = false;
 		this.isFocusEnhanced = false;
-		document.querySelectorAll(`#${ MENU_PANEL_ID } button[data-action="highlight-links"], #${ MENU_PANEL_ID } button[data-action="enhanced-focus"]`).forEach(btn => {
-			this._updateButtonActiveState(btn, false)
-		});
-		if (this.areAnimationsStopped) {
-			this._handleStopAnimationsAction(document.querySelector(`#${ MENU_PANEL_ID } button[data-action="stop-animations"]`))
-		}
-		if (this.isDyslexiaFontActive) {
-			this._handleDyslexiaFontAction(document.querySelector(`#${ MENU_PANEL_ID } button[data-action="toggle-dyslexia-font"]`))
+		this.areAnimationsStopped = false;
+		this.isDyslexiaFontActive = false;
+		this.isReadingAloud = false;
+		const panel = document.getElementById(MENU_PANEL_ID);
+		if (panel) {
+			panel.querySelectorAll('button[data-action]').forEach(btn => {
+				const action = btn.dataset.action;
+				if (action.startsWith('contrast-') || action === 'highlight-links' || action === 'enhanced-focus' || action === 'stop-animations' || action === 'toggle-dyslexia-font' || action === 'read-aloud') {
+					this._updateButtonActiveState(btn, false)
+				}
+			})
 		}
 		const menuButton = document.getElementById(MENU_BUTTON_ID);
 		if (menuButton) {
@@ -833,33 +870,142 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			menuButton.style.top = '50%';
 			menuButton.style.transform = 'translateY(-50%)';
 			menuButton.style.left = 'auto';
-			menuButton.style.bottom = 'auto'
+			menuButton.style.bottom = 'auto';
+			Menu.buttonWasDragged = false
 		}
+		if (panel) {
+			Menu.panelWasDragged = false;
+			if (this.isOpen) {
+				this._positionPanelRelativeToButton(menuButton, panel)
+			}
+		}
+		logAction('All settings reset.');
+		this._saveSettings()
+	};
+	Menu._saveSettings = function () {
+		const button = document.getElementById(MENU_BUTTON_ID);
 		const panel = document.getElementById(MENU_PANEL_ID);
-		if (panel && this.isOpen && menuButton) {
-			const buttonRect = menuButton.getBoundingClientRect();
-			const panelRect = panel.getBoundingClientRect();
-			let newTop = buttonRect.top - panelRect.height - 10;
-			let newLeft = buttonRect.left;
-			const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
-			if (docDir === 'rtl')
-				newLeft = buttonRect.right - panelRect.width;
-			if (newTop < 10)
-				newTop = buttonRect.bottom + 10;
-			if (newTop + panelRect.height > window.innerHeight - 10)
-				newTop = Math.max(10, window.innerHeight - panelRect.height - 10);
-			if (newLeft < 10)
-				newLeft = 10;
-			if (newLeft + panelRect.width > window.innerWidth - 10)
-				newLeft = window.innerWidth - panelRect.width - 10;
-			panel.style.top = `${ newTop }px`;
-			panel.style.left = `${ newLeft }px`;
-			panel.style.bottom = 'auto';
-			panel.style.right = 'auto';
-			Menu._panelRelativeOffsetX = newLeft - buttonRect.left;
-			Menu._panelRelativeOffsetY = newTop - buttonRect.top
+		let buttonPosition = {
+			left: button ? button.style.left : null,
+			top: button ? button.style.top : null,
+			right: button ? button.style.right : null,
+			bottom: button ? button.style.bottom : null,
+			transform: button ? button.style.transform : null,
+			wasDragged: Menu.buttonWasDragged
+		};
+		let panelPosition = null;
+		if (Menu.isOpen && panel && Menu.panelWasDragged) {
+			panelPosition = {
+				left: panel.style.left,
+				top: panel.style.top
+			}
 		}
-		logAction('All settings reset.')
+		const settings = {
+			version: '1.2',
+			activeContrastMode: Menu.activeContrastMode,
+			areLinksHighlighted: Menu.areLinksHighlighted,
+			isFocusEnhanced: Menu.isFocusEnhanced,
+			areAnimationsStopped: Menu.areAnimationsStopped,
+			isDyslexiaFontActive: Menu.isDyslexiaFontActive,
+			fontScaleLevel: Menu.fontScaleLevel,
+			isOpen: Menu.isOpen,
+			buttonPosition: buttonPosition,
+			panelPosition: panelPosition,
+			panelWasDragged: Menu.panelWasDragged
+		};
+		try {
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+			logAction('Settings saved.')
+		} catch (e) {
+			console.error('Error saving settings to localStorage:', e)
+		}
+	};
+	Menu._loadSettings = function () {
+		try {
+			const savedSettingsJSON = localStorage.getItem(STORAGE_KEY);
+			if (!savedSettingsJSON) {
+				logAction('No saved settings found.');
+				return
+			}
+			const savedSettings = JSON.parse(savedSettingsJSON);
+			if (!savedSettings || savedSettings.version !== '1.2') {
+				logAction('Saved settings are outdated or invalid. Using defaults.');
+				localStorage.removeItem(STORAGE_KEY);
+				return
+			}
+			logAction('Loading saved settings.');
+			Menu.activeContrastMode = savedSettings.activeContrastMode || 'default';
+			if (Menu.activeContrastMode === 'high')
+				document.body.classList.add(CLASS_HIGH_CONTRAST);
+			else if (Menu.activeContrastMode === 'inverted')
+				document.documentElement.classList.add(CLASS_INVERT_COLORS);
+			Menu.areLinksHighlighted = savedSettings.areLinksHighlighted || false;
+			if (Menu.areLinksHighlighted)
+				document.body.classList.add(CLASS_HIGHLIGHT_LINKS);
+			Menu.isFocusEnhanced = savedSettings.isFocusEnhanced || false;
+			if (Menu.isFocusEnhanced)
+				document.body.classList.add(CLASS_ENHANCED_FOCUS);
+			Menu.areAnimationsStopped = savedSettings.areAnimationsStopped || false;
+			if (Menu.areAnimationsStopped) {
+				this._handleStopAnimationsAction(document.querySelector(`#${ MENU_PANEL_ID } button[data-action="stop-animations"]`));
+				Menu.areAnimationsStopped = true;
+				document.body.classList.add(CLASS_ANIMATIONS_STOPPED)
+			}
+			Menu.isDyslexiaFontActive = savedSettings.isDyslexiaFontActive || false;
+			if (Menu.isDyslexiaFontActive)
+				document.body.classList.add(CLASS_DYSLEXIA_FONT);
+			Menu.fontScaleLevel = savedSettings.fontScaleLevel || 0;
+			if (Menu.fontScaleLevel !== 0) {
+				this._applyFontScaleToElements()
+			}
+			const button = document.getElementById(MENU_BUTTON_ID);
+			if (button && savedSettings.buttonPosition) {
+				Menu.buttonWasDragged = savedSettings.buttonPosition.wasDragged || false;
+				if (Menu.buttonWasDragged && savedSettings.buttonPosition.left && savedSettings.buttonPosition.top) {
+					button.style.left = savedSettings.buttonPosition.left;
+					button.style.top = savedSettings.buttonPosition.top;
+					button.style.right = 'auto';
+					button.style.bottom = 'auto';
+					button.style.transform = 'none'
+				} else if (savedSettings.buttonPosition.right && savedSettings.buttonPosition.top && savedSettings.buttonPosition.transform) {
+					button.style.right = savedSettings.buttonPosition.right;
+					button.style.top = savedSettings.buttonPosition.top;
+					button.style.transform = savedSettings.buttonPosition.transform;
+					button.style.left = 'auto';
+					button.style.bottom = 'auto'
+				}
+			}
+			const panel = document.getElementById(MENU_PANEL_ID);
+			if (panel) {
+				this._updateButtonActiveState(panel.querySelector('[data-action="contrast-high"]'), Menu.activeContrastMode === 'high');
+				this._updateButtonActiveState(panel.querySelector('[data-action="contrast-invert"]'), Menu.activeContrastMode === 'inverted');
+				this._updateButtonActiveState(panel.querySelector('[data-action="highlight-links"]'), Menu.areLinksHighlighted);
+				this._updateButtonActiveState(panel.querySelector('[data-action="enhanced-focus"]'), Menu.isFocusEnhanced);
+				this._updateButtonActiveState(panel.querySelector('[data-action="stop-animations"]'), Menu.areAnimationsStopped);
+				this._updateButtonActiveState(panel.querySelector('[data-action="toggle-dyslexia-font"]'), Menu.isDyslexiaFontActive)
+			}
+			Menu.panelWasDragged = savedSettings.panelWasDragged || false;
+			if (savedSettings.isOpen) {
+				Menu.isOpen = false;
+				this.toggleMenu();
+				if (panel && Menu.panelWasDragged && savedSettings.panelPosition && savedSettings.panelPosition.left && savedSettings.panelPosition.top) {
+					panel.style.left = savedSettings.panelPosition.left;
+					panel.style.top = savedSettings.panelPosition.top;
+					panel.style.right = 'auto';
+					panel.style.bottom = 'auto';
+					if (button) {
+						const panelRect = panel.getBoundingClientRect();
+						const buttonRect = button.getBoundingClientRect();
+						Menu._panelRelativeOffsetX = panelRect.left - buttonRect.left;
+						Menu._panelRelativeOffsetY = panelRect.top - buttonRect.top
+					}
+				}
+			}
+			this._handleWindowResize()
+		} catch (e) {
+			console.error('Error loading settings from localStorage:', e);
+			localStorage.removeItem(STORAGE_KEY)
+		}
 	};
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', function () {
