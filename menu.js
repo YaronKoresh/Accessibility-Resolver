@@ -17,23 +17,23 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 
 	Menu.isOpen = false;
 	Menu.isDyslexiaFontActive = false;
-	Menu.activeContrastMode = 'default'; 
+	Menu.activeContrastMode = 'default';
 	Menu.areLinksHighlighted = false;
 	Menu.isFocusEnhanced = false;
 	Menu.areAnimationsStopped = false;
-	Menu.isReadingAloud = false; 
-    Menu.fontScaleLevel = 0; 
+	Menu.isReadingAloud = false;
+    Menu.fontScaleLevel = 0;
     Menu.isReadingModeActive = false;
     Menu.isReadingMaskActive = false;
     Menu.isReadingLineActive = false;
 
 	Menu.isPanelDragging = false;
 	Menu.isButtonDragging = false;
-	Menu.buttonDragOccurred = false; 
-    Menu.buttonWasDragged = false; 
-    Menu.panelWasDragged = false; 
+	Menu.buttonDragOccurred = false;
+    Menu.buttonWasDragged = false;
+    Menu.panelWasDragged = false;
 
-	Menu._originalFontSizes = new Map(); 
+	Menu._originalFontSizes = new Map();
 	Menu._initialButtonX = 0; Menu._initialButtonY = 0;
 	Menu._initialPanelX = 0; Menu._initialPanelY = 0;
 	Menu._initialMouseX = 0; Menu._initialMouseY = 0;
@@ -109,11 +109,28 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             #${MENU_PANEL_ID} .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor; }
             html.${CLASS_INVERT_COLORS} { filter: invert(100%) hue-rotate(180deg) !important; background-color: #fff !important; }
             html.${CLASS_INVERT_COLORS} #${MENU_BUTTON_ID}, html.${CLASS_INVERT_COLORS} #${MENU_PANEL_ID} { filter: invert(100%) hue-rotate(180deg) !important; }
-            html.${CLASS_INVERT_COLORS} svg { filter: invert(100%) hue-rotate(180deg) !important; isolation: isolate !important; }
+            html.${CLASS_INVERT_COLORS} svg { isolation: isolate !important; }
             html.${CLASS_INVERT_COLORS} img, html.${CLASS_INVERT_COLORS} video, html.${CLASS_INVERT_COLORS} [style*="background-image"] { filter: invert(100%) hue-rotate(180deg) !important; }
             body.${CLASS_HIGH_CONTRAST} { background-color: #000 !important; color: #fff !important; }
+            body.${CLASS_HIGH_CONTRAST} p,
+            body.${CLASS_HIGH_CONTRAST} span,
+            body.${CLASS_HIGH_CONTRAST} div:not(#${MENU_BUTTON_ID}):not(#${MENU_BUTTON_ID} *):not(#${MENU_PANEL_ID}):not(#${MENU_PANEL_ID} *):not([class*="icon"]), 
+            body.${CLASS_HIGH_CONTRAST} li,
+            body.${CLASS_HIGH_CONTRAST} h1, body.${CLASS_HIGH_CONTRAST} h2, body.${CLASS_HIGH_CONTRAST} h3, body.${CLASS_HIGH_CONTRAST} h4, body.${CLASS_HIGH_CONTRAST} h5, body.${CLASS_HIGH_CONTRAST} h6,
+            body.${CLASS_HIGH_CONTRAST} td, body.${CLASS_HIGH_CONTRAST} th,
+            body.${CLASS_HIGH_CONTRAST} label,
+            body.${CLASS_HIGH_CONTRAST} strong, body.${CLASS_HIGH_CONTRAST} em, body.${CLASS_HIGH_CONTRAST} b, body.${CLASS_HIGH_CONTRAST} i,
+            body.${CLASS_HIGH_CONTRAST} small, body.${CLASS_HIGH_CONTRAST} big, body.${CLASS_HIGH_CONTRAST} sub, body.${CLASS_HIGH_CONTRAST} sup {
+                background-color: transparent !important;
+                color: #fff !important;
+            }
             body.${CLASS_HIGH_CONTRAST} a { color: #FFFF00 !important; background-color: #000000 !important; text-decoration: underline !important; }
-            body.${CLASS_HIGH_CONTRAST} button, body.${CLASS_HIGH_CONTRAST} input, body.${CLASS_HIGH_CONTRAST} select, body.${CLASS_HIGH_CONTRAST} textarea { background-color: #333333 !important; color: #fff !important; border: 1px solid #FFFFFF !important; }
+            body.${CLASS_HIGH_CONTRAST} button:not(#${MENU_BUTTON_ID}):not(#${MENU_PANEL_ID} button), 
+            body.${CLASS_HIGH_CONTRAST} input, 
+            body.${CLASS_HIGH_CONTRAST} select, 
+            body.${CLASS_HIGH_CONTRAST} textarea { 
+                background-color: #333333 !important; color: #fff !important; border: 1px solid #FFFFFF !important; 
+            }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} { background-color: white !important; border-color: #0056b3 !important; color: #333 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} h3 { color: #0056b3 !important; }
             body.${CLASS_HIGH_CONTRAST} #${MENU_PANEL_ID} button { background-color: #f8f9fa !important; color: #0056b3 !important; border-color: #0056b3 !important; }
@@ -125,7 +142,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${CLASS_ANIMATIONS_STOPPED} *, body.${CLASS_ANIMATIONS_STOPPED} *::before, body.${CLASS_ANIMATIONS_STOPPED} *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; transition-delay: 0ms !important; }
             body.${CLASS_DYSLEXIA_FONT} { font-family: 'OpenDyslexic', Arial, sans-serif !important; }
             body.${CLASS_DYSLEXIA_FONT} *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) { font-family: inherit !important; }
-            
             body.${CLASS_READING_MODE} header, 
             body.${CLASS_READING_MODE} footer, 
             body.${CLASS_READING_MODE} nav, 
@@ -136,10 +152,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${CLASS_READING_MODE} [role="navigation"],
             body.${CLASS_READING_MODE} [role="search"]
             { display: none !important; }
-
             body.${CLASS_READING_MODE} { font-size: 1.1em; line-height: 1.7; } 
             body.${CLASS_READING_MODE} main, body.${CLASS_READING_MODE} article, body.${CLASS_READING_MODE} .content { width: 90% !important; max-width: 800px !important; margin: 20px auto !important; padding: 10px !important; }
-
             .${READING_MASK_TOP_ID}, .${READING_MASK_BOTTOM_ID} { position: fixed; left: 0; width: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 2147483640; pointer-events: none; display: none; }
             .${READING_MASK_TOP_ID} { top: 0; }
             .${READING_MASK_BOTTOM_ID} { bottom: 0; }
