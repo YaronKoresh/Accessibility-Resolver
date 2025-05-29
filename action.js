@@ -11,6 +11,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	const EDGE_MARGIN_PX = 38;
 	const CLASS_HIGH_CONTRAST = 'ar-aaa-high-contrast';
 	const CLASS_INVERT_COLORS = 'ar-aaa-invert-colors';
+	const CLASS_DARK_CONTRAST = 'ar-aaa-dark-contrast';
 	const CLASS_HIGHLIGHT_LINKS = 'ar-aaa-highlight-links';
 	const CLASS_ENHANCED_FOCUS = 'ar-aaa-enhanced-focus';
 	const CLASS_ANIMATIONS_STOPPED = 'ar-aaa-animations-stopped';
@@ -75,7 +76,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			settings: {
 				fontScaleLevel: 2,
 				highlightLinks: true,
-				activeContrastMode: 'high'
+				activeContrastMode: 'dark'
 			},
 			labelKey: 'profileVision',
 			iconPath: '<path d="M12,4.5C7,4.5 2.73,7.61 1,12c1.73,4.39 6,7.5 11,7.5s9.27-3.11 11-7.5C21.27,7.61 17,4.5 12,4.5zM12,17a4.5,4.5 0 1,1 0-9 4.5,4.5 0 0,1 0,9zm0-7a2.5,2.5 0 0,0 0,5 2.5,2.5 0 0,0 0-5z"/>'
@@ -86,8 +87,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			menuTitle: 'כלי נגישות',
 			increaseText: 'הגדל טקסט',
 			decreaseText: 'הקטן טקסט',
-			highContrast: 'ניגודיות גבוהה',
+			highContrast: 'ניגודיות גבוהה (בהיר)',
 			invertColors: 'היפוך צבעים',
+			darkContrast: 'ניגודיות גבוהה (כהה)',
 			highlightLinks: 'הדגש קישורים',
 			enhancedFocus: 'מיקוד משופר',
 			stopAnimations: 'עצור אנימציות',
@@ -128,17 +130,19 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			navigation: 'ניווט',
 			header: 'כותרת עליונה',
 			footer: 'כותרת תחתונה',
-			complementary: 'תוכן משלים',
+			complementary: 'תוכן משלים (סרגל צד)',
 			form: 'טופס',
 			search: 'חיפוש',
-			region: 'אזור'
+			region: 'אזור',
+			unlabeled: 'ללא תווית'
 		},
 		'en': {
 			menuTitle: 'Accessibility Tools',
 			increaseText: 'Increase Text',
 			decreaseText: 'Decrease Text',
-			highContrast: 'High Contrast',
+			highContrast: 'High Contrast (Light)',
 			invertColors: 'Invert Colors',
+			darkContrast: 'High Contrast (Dark)',
 			highlightLinks: 'Highlight Links',
 			enhancedFocus: 'Enhanced Focus',
 			stopAnimations: 'Stop Animations',
@@ -182,7 +186,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			complementary: 'Sidebar',
 			form: 'Form',
 			search: 'Search',
-			region: 'Region'
+			region: 'Region',
+			unlabeled: 'Unlabeled'
 		}
 	};
 	Menu._getLocalizedString = function (key) {
@@ -626,10 +631,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this.toggleMenu();
 			return;
 		}
-		if (action === 'page-structure') {
-			this._togglePageStructurePanel();
-			return;
-		}
 		if (action === 'close-structure-panel') {
 			this._togglePageStructurePanel(false);
 			return;
@@ -647,6 +648,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			break;
 		case 'contrast-high':
 		case 'contrast-invert':
+		case 'contrast-dark':
 			this._handleContrastAction(action, targetButton);
 			break;
 		case 'highlight-links':
@@ -721,6 +723,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this._applyFontScaleToElements();
 		}
 		if (profile.settings.activeContrastMode) {
+			panel.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
+				this._updateButtonActiveState(btn, false);
+			});
 			const contrastButton = panel.querySelector(`button[data-action="contrast-${ profile.settings.activeContrastMode }"]`);
 			if (contrastButton)
 				this._handleContrastAction(`contrast-${ profile.settings.activeContrastMode }`, contrastButton);
@@ -767,17 +772,19 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (!buttonElement)
 			return;
 		const action = buttonElement.dataset.action;
-		if (isActive && action && action.startsWith('contrast-')) {
+		if (action && action.startsWith('contrast-')) {
 			const parentGroup = buttonElement.closest('.ar-aaa-button-row') || buttonElement.closest('.ar-aaa-menu-group');
 			if (parentGroup) {
 				parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
-					if (btn !== buttonElement) {
-						btn.classList.remove('ar-aaa-menu-btn-active');
-					}
+					btn.classList.remove('ar-aaa-menu-btn-active');
 				});
 			}
+			if (isActive) {
+				buttonElement.classList.add('ar-aaa-menu-btn-active');
+			}
+		} else {
+			buttonElement.classList.toggle('ar-aaa-menu-btn-active', isActive);
 		}
-		buttonElement.classList.toggle('ar-aaa-menu-btn-active', isActive);
 	};
 	Menu._applyFontScaleToElements = function () {
 		let elements = [];
@@ -820,14 +827,17 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const bodyEl = document.body;
 		const isHighContrastAction = action === 'contrast-high';
 		const isInvertColorsAction = action === 'contrast-invert';
+		const isDarkContrastAction = action === 'contrast-dark';
 		let newMode = 'default';
 		if (isHighContrastAction) {
 			newMode = this.activeContrastMode === 'high' ? 'default' : 'high';
 		} else if (isInvertColorsAction) {
 			newMode = this.activeContrastMode === 'inverted' ? 'default' : 'inverted';
+		} else if (isDarkContrastAction) {
+			newMode = this.activeContrastMode === 'dark' ? 'default' : 'dark';
 		}
 		htmlEl.classList.remove(CLASS_INVERT_COLORS);
-		bodyEl.classList.remove(CLASS_HIGH_CONTRAST);
+		bodyEl.classList.remove(CLASS_HIGH_CONTRAST, CLASS_DARK_CONTRAST);
 		const parentGroup = button.closest('.ar-aaa-button-row') || button.closest('.ar-aaa-menu-group');
 		if (parentGroup) {
 			parentGroup.querySelectorAll('button[data-action^="contrast-"]').forEach(btn => {
@@ -839,6 +849,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this._updateButtonActiveState(button, true);
 		} else if (newMode === 'inverted') {
 			htmlEl.classList.add(CLASS_INVERT_COLORS);
+			this._updateButtonActiveState(button, true);
+		} else if (newMode === 'dark') {
+			bodyEl.classList.add(CLASS_DARK_CONTRAST);
 			this._updateButtonActiveState(button, true);
 		}
 		this.activeContrastMode = newMode;
@@ -918,6 +931,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.body.classList.toggle(CLASS_READING_MODE, Menu.isReadingModeActive);
 		this._updateButtonActiveState(button, Menu.isReadingModeActive);
 		logAction('Reading mode ' + (Menu.isReadingModeActive ? 'enabled' : 'disabled'), true);
+		this._togglePageStructurePanel(Menu.isReadingModeActive);
 	};
 	Menu._handleReadingMaskAction = function (button) {
 		Menu.isReadingMaskActive = !Menu.isReadingMaskActive;
@@ -1075,7 +1089,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this.areAnimationsStopped = false;
 		this.isDyslexiaFontActive = false;
 		document.documentElement.classList.remove(CLASS_INVERT_COLORS);
-		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS, CLASS_ANIMATIONS_STOPPED, CLASS_DYSLEXIA_FONT, CLASS_READING_MODE);
+		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_DARK_CONTRAST, CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS, CLASS_ANIMATIONS_STOPPED, CLASS_DYSLEXIA_FONT, CLASS_READING_MODE);
 		if (Menu.readingMaskTop)
 			Menu.readingMaskTop.style.display = 'none';
 		if (Menu.readingMaskBottom)
@@ -1168,6 +1182,8 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			Menu.activeContrastMode = savedSettings.activeContrastMode || 'default';
 			if (Menu.activeContrastMode === 'high')
 				document.body.classList.add(CLASS_HIGH_CONTRAST);
+			else if (Menu.activeContrastMode === 'dark')
+				document.body.classList.add(CLASS_DARK_CONTRAST);
 			else if (Menu.activeContrastMode === 'inverted')
 				document.documentElement.classList.add(CLASS_INVERT_COLORS);
 			Menu.areLinksHighlighted = savedSettings.areLinksHighlighted || false;
@@ -1223,6 +1239,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (panel) {
 				this._updateButtonActiveState(panel.querySelector('[data-action="contrast-high"]'), Menu.activeContrastMode === 'high');
 				this._updateButtonActiveState(panel.querySelector('[data-action="contrast-invert"]'), Menu.activeContrastMode === 'inverted');
+				this._updateButtonActiveState(panel.querySelector('[data-action="contrast-dark"]'), Menu.activeContrastMode === 'dark');
 				this._updateButtonActiveState(panel.querySelector('[data-action="highlight-links"]'), Menu.areLinksHighlighted);
 				this._updateButtonActiveState(panel.querySelector('[data-action="enhanced-focus"]'), Menu.isFocusEnhanced);
 				this._updateButtonActiveState(panel.querySelector('[data-action="stop-animations"]'), Menu.areAnimationsStopped);
@@ -1249,6 +1266,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				}
 			}
 			this._handleWindowResize();
+			if (Menu.isReadingModeActive) {
+				this._togglePageStructurePanel(true);
+			}
 		} catch (e) {
 			console.error('Error loading settings from localStorage:', e);
 			localStorage.removeItem(STORAGE_KEY);
