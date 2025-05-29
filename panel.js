@@ -7,6 +7,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	const READING_MASK_BOTTOM_ID = 'aaa-reading-mask-bottom';
 	const READING_LINE_ID = 'aaa-reading-line';
 	const CLASS_TEMP_HIGHLIGHT = 'ar-aaa-temp-highlight';
+	function isAccessibilityMenuElement(el) {
+		return el.closest(`#${ MENU_BUTTON_ID }`) || el.closest(`#${ MENU_PANEL_ID }`) || el.closest(`#${ PAGE_STRUCTURE_PANEL_ID }`);
+	}
 	if (typeof Menu._getLocalizedString === 'undefined') {
 		console.error('ARMenu: _getLocalizedString is not defined. Ensure core.js is loaded before panel.js.');
 		Menu._getLocalizedString = key => key;
@@ -97,62 +100,175 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu.panel.populatePageStructurePanel = function () {
 		if (!Menu.pageStructurePanel)
 			return;
+		const listedElements = new Set();
+		const getAccessibleName = el => {
+			if (!el)
+				return '';
+			if (el.hasAttribute('aria-label') && el.getAttribute('aria-label').trim()) {
+				return el.getAttribute('aria-label').trim();
+			}
+			if (el.hasAttribute('aria-labelledby')) {
+				const labelledbyIds = el.getAttribute('aria-labelledby').split(/\s+/);
+				for (const id of labelledbyIds) {
+					const lblEl = document.getElementById(id);
+					if (lblEl && lblEl.textContent.trim()) {
+						return lblEl.textContent.trim();
+					}
+				}
+			}
+			if (el.textContent && el.textContent.trim()) {
+				return el.textContent.trim();
+			}
+			if (el.tagName === 'A') {
+				const img = el.querySelector('img[alt]');
+				if (img && img.alt.trim()) {
+					return img.alt.trim();
+				}
+			}
+			if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+				if (el.placeholder && el.placeholder.trim())
+					return el.placeholder.trim();
+				if (el.title && el.title.trim())
+					return el.title.trim();
+			}
+			return '';
+		};
+		const isElementAlreadyListed = el => {
+			if (listedElements.has(el))
+				return true;
+			let current = el.parentElement;
+			while (current) {
+				if (listedElements.has(current)) {
+					const role = current.getAttribute('role') || current.tagName.toLowerCase();
+					if ([
+							'main',
+							'navigation',
+							'header',
+							'footer',
+							'aside',
+							'form',
+							'section'
+						].includes(role)) {
+						return true;
+					}
+				}
+				current = current.parentElement;
+			}
+			return false;
+		};
+		const addToList = (el, text, type) => {
+			if (isAccessibilityMenuElement(el)) {
+				return;
+			}
+			if (isElementAlreadyListed(el)) {
+				return;
+			}
+			const li = document.createElement('li');
+			const button = document.createElement('button');
+			const display_text = text.substring(0, 70) + (text.length > 70 ? '...' : '');
+			button.textContent = display_text;
+			button.title = text;
+			button.addEventListener('click', () => {
+				el.scrollIntoView({
+					behavior: 'smooth',
+					block: 'center'
+				});
+				el.classList.add(CLASS_TEMP_HIGHLIGHT);
+				setTimeout(() => {
+					el.classList.remove(CLASS_TEMP_HIGHLIGHT);
+				}, 2000);
+				Menu._togglePageStructurePanel(false);
+			});
+			li.appendChild(button);
+			listedElements.add(el);
+			return li;
+		};
 		const createList = (selector, containerId, itemType) => {
 			const container = Menu.pageStructurePanel.querySelector(`#${ containerId } ul`);
 			if (!container)
 				return;
 			container.innerHTML = '';
-			let elements;
+			let elements = [];
 			if (itemType === 'landmarks') {
-				const landmarkRoles = [
+				const landmarkSelectors = [
 					'main',
-					'navigation',
-					'banner',
-					'contentinfo',
-					'complementary',
+					'[role="main"]',
+					'nav',
+					'[role="navigation"]',
+					'header',
+					'[role="banner"]',
+					'footer',
+					'[role="contentinfo"]',
+					'aside',
+					'[role="complementary"]',
 					'form',
-					'region',
-					'search'
-				];
-				const semanticLandmarks = 'main, nav, header, footer, aside, section[aria-label], section[aria-labelledby], form[aria-label], form[aria-labelledby]';
-				elements = Array.from(document.querySelectorAll(landmarkRoles.map(r => `[role="${ r }"]`).join(', ') + `, ${ semanticLandmarks }`));
+					'[role="form"]',
+					'[role="search"]',
+					'section[aria-label]',
+					'section[aria-labelledby]',
+					'[role="region"][aria-label]',
+					'[role="region"][aria-labelledby]'
+				].join(',');
+				elements = Array.from(document.querySelectorAll(landmarkSelectors));
 			} else {
 				elements = Array.from(document.querySelectorAll(selector));
 			}
 			elements = elements.filter(el => el.offsetWidth > 0 || el.offsetHeight > 0);
-			if (elements.length === 0) {
-				container.innerHTML = `<li>${ Menu._getLocalizedString('noItemsFound') }</li>`;
-				return;
-			}
-			elements.forEach((el, index) => {
-				let text = el.textContent.trim().substring(0, 50) + (el.textContent.trim().length > 50 ? '...' : '');
-				if (itemType === 'links' && !text)
-					text = el.href;
-				if (itemType === 'landmarks' && !text)
-					text = el.getAttribute('aria-label') || el.tagName.toLowerCase();
-				if (!text)
-					text = `${ itemType } ${ index + 1 }`;
-				const li = document.createElement('li');
-				const button = document.createElement('button');
-				button.textContent = text;
-				button.title = el.textContent.trim();
-				button.addEventListener('click', () => {
-					el.scrollIntoView({
-						behavior: 'smooth',
-						block: 'center'
-					});
-					el.classList.add(CLASS_TEMP_HIGHLIGHT);
-					setTimeout(() => {
-						el.classList.remove(CLASS_TEMP_HIGHLIGHT);
-					}, 2000);
-					Menu._togglePageStructurePanel(false);
-				});
-				li.appendChild(button);
-				container.appendChild(li);
+			const itemsToAdd = [];
+			elements.forEach(el => {
+				let text = getAccessibleName(el);
+				let originalText = text;
+				if (itemType === 'landmarks') {
+					const role = el.getAttribute('role') || el.tagName.toLowerCase();
+					const landmarkNameMap = {
+						'main': Menu._getLocalizedString('mainContent'),
+						'navigation': Menu._getLocalizedString('navigation'),
+						'banner': Menu._getLocalizedString('header'),
+						'contentinfo': Menu._getLocalizedString('footer'),
+						'complementary': Menu._getLocalizedString('complementary'),
+						'form': Menu._getLocalizedString('form'),
+						'search': Menu._getLocalizedString('search'),
+						'region': Menu._getLocalizedString('region'),
+						'header': Menu._getLocalizedString('header'),
+						'nav': Menu._getLocalizedString('navigation'),
+						'aside': Menu._getLocalizedString('complementary'),
+						'footer': Menu._getLocalizedString('footer'),
+						'section': Menu._getLocalizedString('region')
+					};
+					const localizedName = landmarkNameMap[role];
+					if (localizedName) {
+						text = localizedName + (text ? `: ${ text }` : '');
+					} else if (!text) {
+						text = `${ role.charAt(0).toUpperCase() + role.slice(1) } (unlabeled)`;
+					}
+				} else if (itemType === 'links') {
+					if (!text || text.length < 2 || text.toLowerCase().includes('read more') || text.toLowerCase().includes('click here')) {
+						const parentText = el.parentElement ? el.parentElement.textContent.trim().replace(/\s+/g, ' ') : '';
+						if (parentText.length > 10 && parentText.length < 100) {
+							text = `Link: ${ parentText.substring(0, Math.min(parentText.length, 50)) }...`;
+						} else {
+							text = `Link: ${ el.href || 'No descriptive text' }`;
+						}
+					}
+				} else if (itemType === 'Heading' && !text) {
+					text = `${ el.tagName } (unlabeled)`;
+				}
+				if (text && text.trim() !== '') {
+					const listItem = addToList(el, originalText || text, itemType);
+					if (listItem) {
+						itemsToAdd.push(listItem);
+					}
+				}
 			});
+			if (itemsToAdd.length === 0) {
+				container.innerHTML = `<li>${ Menu._getLocalizedString('noItemsFound') }</li>`;
+			} else {
+				itemsToAdd.forEach(li => container.appendChild(li));
+			}
 		};
+		listedElements.clear();
 		createList('h1, h2, h3, h4, h5, h6', 'ar-aaa-structure-headings', 'Heading');
 		createList('', 'ar-aaa-structure-landmarks', 'landmarks');
-		createList('a[href]', 'ar-aaa-structure-links', 'Link');
+		createList('a[href]:not([href=""]):not([href="#"]):not([href^="javascript:"])', 'ar-aaa-structure-links', 'links');
 	};
 }(AR_AccessibilityMenu));
