@@ -27,7 +27,6 @@ function ar_setupMutationObserverForContrast() {
 	console.log('\uD83D\uDCA1 MutationObserver for live contrast changes is active.')
 }
 async function ar_runAccessibilityScan() {
-	console.clear();
 	ar_loggedIssuesTracker.clear();
 	ar_accessibilityIssuesLog.length = 0;
 	ar_totalScannedIssuesCounter = 0;
