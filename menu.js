@@ -168,32 +168,31 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             #${ MENU_PANEL_ID } button.ar-aaa-reset-btn:hover { background-color: #b8e0e8; }
             #${ MENU_PANEL_ID } .ar-aaa-menu-icon svg { width: 1em; height: 1em; fill: currentColor; }
 
-            /* Invert Colors Mode - Applied to HTML element */
             html.${ CLASS_INVERT_COLORS } {
                 filter: invert(100%) hue-rotate(180deg) !important;
-                background-color: #fff !important; /* Ensure consistent base for inversion */
+                background-color: #fff !important; 
             }
-            /* Ensure menu UI is not inverted when html is inverted */
             html.${ CLASS_INVERT_COLORS } #${ MENU_BUTTON_ID },
             html.${ CLASS_INVERT_COLORS } #${ MENU_PANEL_ID } {
-                filter: invert(100%) hue-rotate(180deg) !important; /* Double invert to appear normal */
+                filter: invert(100%) hue-rotate(180deg) !important; 
             }
-            /* Fix for images/videos/svgs in inverted mode when html is inverted */
             html.${ CLASS_INVERT_COLORS } img,
             html.${ CLASS_INVERT_COLORS } video,
             html.${ CLASS_INVERT_COLORS } svg,
-            html.${ CLASS_INVERT_COLORS } [style*="background-image"] { /* Also consider elements with background images */
+            html.${ CLASS_INVERT_COLORS } [style*="background-image"] { 
                 filter: invert(100%) hue-rotate(180deg) !important;
             }
 
-            /* High Contrast Mode - Applied to BODY element */
             body.${ CLASS_HIGH_CONTRAST } { background-color: #000 !important; color: #fff !important; }
-            body.${ CLASS_HIGH_CONTRAST } a { color: #FFFF00 !important; text-decoration: underline !important; } /* Yellow link */
+            body.${ CLASS_HIGH_CONTRAST } a { 
+                color: #FFFF00 !important; /* Yellow link text */
+                background-color: #000000 !important; /* Black background for link */
+                text-decoration: underline !important; 
+            }
             body.${ CLASS_HIGH_CONTRAST } button, body.${ CLASS_HIGH_CONTRAST } input,
             body.${ CLASS_HIGH_CONTRAST } select, body.${ CLASS_HIGH_CONTRAST } textarea {
-                background-color: #333333 !important; color: #fff !important; border: 1px solid #FFFFFF !important; /* Adjusted bg */
+                background-color: #333333 !important; color: #fff !important; border: 1px solid #FFFFFF !important;
             }
-            /* Exclude menu UI from high contrast body styles */
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } {
                 background-color: white !important; border-color: #0056b3 !important; color: #333 !important;
             }
@@ -207,24 +206,21 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
             body.${ CLASS_HIGH_CONTRAST } #${ MENU_PANEL_ID } button.ar-aaa-reset-btn {
                  background-color: #d1ecf1 !important; border-color: #007bff !important; color: #004085 !important;
             }
-            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } { /* Ensure button itself is not affected by body high contrast */
+            body.${ CLASS_HIGH_CONTRAST } #${ MENU_BUTTON_ID } { 
                 background-color: #0056b3 !important; color: white !important;
             }
 
-            /* Highlight Links */
             body.${ CLASS_HIGHLIGHT_LINKS } a[href] {
                 background-color: yellow !important; color: black !important;
                 outline: 2px solid orange !important; border-radius: 2px;
             }
 
-            /* Enhanced Focus */
             body.${ CLASS_ENHANCED_FOCUS } *:focus-visible {
                 outline: 3px solid #007bff !important;
                 outline-offset: 2px !important;
                 box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5) !important;
             }
 
-            /* Stop Animations */
             body.${ CLASS_ANIMATIONS_STOPPED } *,
             body.${ CLASS_ANIMATIONS_STOPPED } *::before,
             body.${ CLASS_ANIMATIONS_STOPPED } *::after {
@@ -232,7 +228,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
                 transition-duration: 0.01ms !important; transition-delay: 0ms !important;
             }
             
-            /* Dyslexia Font */
             body.${ CLASS_DYSLEXIA_FONT } { font-family: 'OpenDyslexic', Arial, sans-serif !important; }
             body.${ CLASS_DYSLEXIA_FONT } *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) {
                 font-family: inherit !important;
@@ -633,17 +628,22 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (!document.body.contains(el))
 				return;
 			if (!Menu._originalFontSizes.has(el)) {
-				Menu._originalFontSizes.set(el, el.style.fontSize || '')
+				const initialComputedPx = parseFloat(window.getComputedStyle(el).fontSize);
+				Menu._originalFontSizes.set(el, {
+					inline: el.style.fontSize || '',
+					initialPx: initialComputedPx,
+					currentPx: initialComputedPx
+				})
 			}
-			const currentSize = parseFloat(window.getComputedStyle(el).fontSize);
-			if (!isNaN(currentSize) && currentSize > 0) {
-				let newSize = currentSize * factor;
-				if (factor < 1 && newSize < 8)
-					newSize = 8;
-				if (factor > 1 && newSize > 72)
-					newSize = 72;
-				el.style.setProperty('font-size', `${ newSize }px`, 'important')
-			}
+			let sizeState = Menu._originalFontSizes.get(el);
+			let baseSizeForChange = sizeState.currentPx;
+			let newSize = baseSizeForChange * factor;
+			if (factor < 1 && newSize < 8)
+				newSize = 8;
+			if (factor > 1 && newSize > 72)
+				newSize = 72;
+			el.style.setProperty('font-size', `${ newSize }px`, 'important');
+			sizeState.currentPx = newSize
 		})
 	};
 	Menu._handleContrastAction = function (action, button) {
@@ -799,12 +799,12 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this._updateButtonActiveState(button, this.isDyslexiaFontActive)
 	};
 	Menu._resetAllSettings = function () {
-		Menu._originalFontSizes.forEach((originalInlineStyleFontSize, el) => {
+		Menu._originalFontSizes.forEach((sizeState, el) => {
 			if (document.body.contains(el)) {
-				if (originalInlineStyleFontSize === '' || originalInlineStyleFontSize === null) {
+				if (sizeState.inline === '' || sizeState.inline === null) {
 					el.style.removeProperty('font-size')
 				} else {
-					el.style.setProperty('font-size', originalInlineStyleFontSize, 'important')
+					el.style.setProperty('font-size', sizeState.inline, 'important')
 				}
 			}
 		});
