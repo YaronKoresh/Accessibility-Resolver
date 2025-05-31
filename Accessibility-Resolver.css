@@ -331,6 +331,8 @@
     z-index: 2;
     position: relative;
     outline-offset: 1px;
+    margin: 2mm;
+    padding: 2mm;
 }
  body.ar-aaa-enhanced-focus *:focus-visible {
 	 outline: 6px solid #FFD700 !important;
