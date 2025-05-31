@@ -149,14 +149,10 @@ function ar_initializeAndRunMerged() {
 		return
 	}
 	AR_AccessibilityMenu.init();
-	if (document.readyState === 'loading') {
-		document.addEventListener('load', ar_runAccessibilityScan);
-	} else {
-		ar_runAccessibilityScan()
-	}
+	ar_runAccessibilityScan();
 }
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-	setTimeout(ar_initializeAndRunMerged, 400)
+if (document.readyState === 'complete') {
+	ar_initializeAndRunMerged();
 } else {
-	window.addEventListener('load', () => setTimeout(ar_initializeAndRunMerged, 400))
+	window.addEventListener('load', () => ar_initializeAndRunMerged);
 }
