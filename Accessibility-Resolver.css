@@ -304,7 +304,7 @@
     opacity: 0;
     display: none !important;
 }
- body.ar-aaa-dark-contrast a:has(img, video, svg:has(path ~ path)) {
+ body.ar-aaa-dark-contrast.ar-aaa-highlight-links a[href]:has(img, video, svg path ~ path) {
 	 outline: black !important;
 }
  body.ar-aaa-dark-contrast a, body.ar-aaa-dark-contrast a[style] {
