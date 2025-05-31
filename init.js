@@ -138,6 +138,7 @@ async function ar_runAccessibilityScan() {
 		]
 	})
 }
+
 function ar_initializeAndRunMerged() {
 	console.log('%c Made by Yaron Koresh ', 'background:#4CAF50;color:white;font-size:1em;font-weight:bold;padding:5px 10px;border-radius:3px;');
 	if (typeof AR_AccessibilityMenu.init !== 'function') {
@@ -151,8 +152,11 @@ function ar_initializeAndRunMerged() {
 	AR_AccessibilityMenu.init();
 	ar_runAccessibilityScan();
 }
+
 if (document.readyState === 'complete') {
 	ar_initializeAndRunMerged();
 } else {
-	window.addEventListener('load', () => ar_initializeAndRunMerged);
+	document.addEventListener('load', () => {
+		ar_initializeAndRunMerged()
+	});
 }
