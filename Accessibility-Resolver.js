@@ -3634,8 +3634,6 @@ var AR_CheckModules = AR_CheckModules || {};
 				if (defaultOutlineNone && defaultBoxShadowNone) {
 					if (el.style.outline === 'none !important' || el.style.outlineStyle === 'none' && el.style.getPropertyPriority('outline-style') === 'important') {
 						ar_logAccessibilityIssue('Moderate', 'Element has `outline: none !important;`. This can override default focus indicators.', el, 'Avoid using `!important` to remove outlines. Ensure a visible focus indicator is provided via `:focus-visible`.', 'Operable', '2.4.7', false, 'AA')
-					} else if (defaultOutlineNone) {
-						ar_logAccessibilityIssue('Minor', 'Element has `outline: none`. Ensure :focus-visible provides a clear indicator.', el, 'Verify that a visible focus indicator is provided for keyboard users, especially if `outline: none` is used.', 'Operable', '2.4.7', false, 'AA')
 					}
 				}
 			} catch (e) {
