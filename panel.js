@@ -144,8 +144,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (el.textContent && el.textContent.trim()) {
 				let text = el.textContent.trim().replace(/\s+/g, ' ');
 				const tempDiv = document.createElement('div');
-				tempDiv.innerHTML = text;
-				tempDiv.querySelectorAll('script, style, noscript, link, meta').forEach(n => n.remove());
+				tempDiv.textContent = text;
 				text = tempDiv.textContent.trim().replace(/\s+/g, ' ');
 				if (text.length > 100) {
 					text = text.substring(0, 97) + '...';
