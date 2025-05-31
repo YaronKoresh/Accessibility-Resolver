@@ -267,7 +267,8 @@
 	 isolation: isolate !important;
 }
  html.ar-aaa-invert-colors #aaa-menu-button,
- html.ar-aaa-invert-colors #aaa-menu-button *,
+ html.ar-aaa-invert-colors #aaa-menu-panel,
+ html.ar-aaa-invert-colors #aaa-menu-panel button[data-action="contrast-invert"],
  html.ar-aaa-invert-colors #aaa-page-structure-panel,
  html.ar-aaa-invert-colors #aaa-page-structure-panel * {
 	 filter: invert(100%) hue-rotate(180deg) !important;
