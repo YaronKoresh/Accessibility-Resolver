@@ -143,6 +143,10 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 			if (el.textContent && el.textContent.trim()) {
 				let text = el.textContent.trim().replace(/\s+/g, ' ');
+				const tempDiv = document.createElement('div');
+				tempDiv.innerHTML = text;
+				tempDiv.querySelectorAll('script, style, noscript, link, meta').forEach(n => n.remove());
+				text = tempDiv.textContent.trim().replace(/\s+/g, ' ');
 				if (text.length > 100) {
 					text = text.substring(0, 97) + '...';
 				}
@@ -179,7 +183,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 							'region',
 							'search'
 						].includes(currentRole)) {
-						if (getAccessibleName(current) && !el.matches('h1, h2, h3, h4, h5, h6, a[href]')) {
+						if (getAccessibleName(current) && !el.matches('h1, h2, h3, h4, h5, h6, a[href], button, input, select, textarea, [role="button"], [role="link"]')) {
 							return true;
 						}
 					}
