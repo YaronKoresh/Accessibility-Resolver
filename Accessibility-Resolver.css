@@ -444,4 +444,6 @@
  .ar-text-scaled-by-menu {
 	 font-size: var(--ar-scaled-font-size, inherit) !important;
 }
- 
+ body.ar-aaa-reading-mode :is(img, video, svg:not(#aaa-menu-button svg)), body.ar-aaa-reading-mode div:not(:has(:not(div, img, video, svg:not(#aaa-menu-button svg)))) {
+    display: none !important;
+}
