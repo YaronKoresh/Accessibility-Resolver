@@ -332,6 +332,7 @@
 	 color: black !important;
 	 outline: 2px solid orange !important;
 	 border-radius: 2px !important;
+	 z-index: 2;
 }
  body.ar-aaa-enhanced-focus *:focus-visible {
 	 outline: 6px solid #FFD700 !important;
