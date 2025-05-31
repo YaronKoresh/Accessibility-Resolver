@@ -555,16 +555,16 @@ var AR_CheckModules = AR_CheckModules || {};
 						if (refEl.id === newId)
 							return;
 						if (refEl.hasAttribute('aria-controls') && refEl.getAttribute('aria-controls') === id) {
-							refEl.setAttribute('aria-controls', newId);
+							ar_setAttributeAndLog(refEl, 'aria-controls', newId, 'Moderate', `Updated 'aria-controls' reference to the old ID from "#${ id }" to "#${ newId }".`, 'Ensure all references to the old ID are updated.', 'Robust', '4.1.2', true, 'A')
 						}
 						if (refEl.hasAttribute('aria-labelledby') && refEl.getAttribute('aria-labelledby') === id) {
-							refEl.setAttribute('aria-labelledby', newId);
+							ar_setAttributeAndLog(refEl, 'aria-labelledby', newId, 'Moderate', `Updated 'aria-labelledby' reference to the old ID from "#${ id }" to "#${ newId }".`, 'Ensure all references to the old ID are updated.', 'Robust', '4.1.2', true, 'A')
 						}
 						if (refEl.hasAttribute('aria-describedby') && refEl.getAttribute('aria-describedby') === id) {
-							refEl.setAttribute('aria-describedby', newId);
+							ar_setAttributeAndLog(refEl, 'aria-describedby', newId, 'Moderate', `Updated 'aria-describedby' reference to the old ID from "#${ id }" to "#${ newId }".`, 'Ensure all references to the old ID are updated.', 'Robust', '4.1.2', true, 'A')
 						}
 						if (refEl.tagName === 'LABEL' && refEl.htmlFor === id) {
-							refEl.htmlFor = newId;
+							ar_setAttributeAndLog(refEl, 'for', newId, 'Moderate', `Updated 'for' reference to the old ID from "#${ id }" to "#${ newId }".`, 'Ensure all references to the old ID are updated.', 'Robust', '4.1.2', true, 'A')
 						}
 					})
 				} else {
