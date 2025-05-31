@@ -1605,7 +1605,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		if (Menu.readingLine)
 			Menu.readingLine.style.display = 'none';
 		if (Menu.isStructurePanelOpen) {
-			this._togglePageStructurePanel(false);
+			//this._togglePageStructurePanel(false);
 		}
 		const panel = document.getElementById(MENU_PANEL_ID);
 		if (panel) {
@@ -1760,7 +1760,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 			this._handleWindowResize();
 			if (Menu.isReadingModeActive) {
-				this._togglePageStructurePanel(true);
+				//this._togglePageStructurePanel(true);
 			}
 		} catch (e) {
 			console.error('Error loading settings from localStorage:', e);
