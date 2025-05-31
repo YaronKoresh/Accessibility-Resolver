@@ -918,7 +918,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			currentFgRgba[3] = 1;
 			newFgCss = `rgb(${ currentFgRgba.slice(0, 3).join(',') })`;
 			ar_storeOriginalInlineStyle(el, 'color');
-			el.style.setProperty('color', newFgCss, 'important');
+			el.style.setProperty('color', newFgCss);
 			const reEvaluatedPerceivedFg = ar_blendColors(currentFgRgba, currentBgRgba);
 			newContrast = ar_getContrastRatioBetweenColors(reEvaluatedPerceivedFg, currentBgRgba);
 			if (newContrast >= requiredContrast)
@@ -945,7 +945,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		];
 		newFgCss = `rgb(${ currentFgRgba.slice(0, 3).join(',') })`;
 		ar_storeOriginalInlineStyle(el, 'color');
-		el.style.setProperty('color', newFgCss, 'important');
+		el.style.setProperty('color', newFgCss);
 		newContrast = ar_getContrastRatioBetweenColors(currentFgRgba, currentBgRgba);
 		if (newContrast >= requiredContrast)
 			return {
@@ -967,7 +967,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			];
 			newFgCss = `rgb(${ currentFgRgba.slice(0, 3).join(',') })`;
 			ar_storeOriginalInlineStyle(el, 'color');
-			el.style.setProperty('color', newFgCss, 'important');
+			el.style.setProperty('color', newFgCss);
 			newContrast = ar_getContrastRatioBetweenColors(currentFgRgba, currentBgRgba);
 			if (newContrast >= requiredContrast)
 				return {
@@ -1005,7 +1005,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				];
 				newBgCss = `rgb(${ currentBgRgba.slice(0, 3).join(',') })`;
 				ar_storeOriginalInlineStyle(el, 'background-color');
-				el.style.setProperty('background-color', newBgCss, 'important');
+				el.style.setProperty('background-color', newBgCss);
 				newContrast = ar_getContrastRatioBetweenColors(fgRgba, currentBgRgba);
 				if (newContrast >= requiredContrast) {
 					return {
