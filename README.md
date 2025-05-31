@@ -22,8 +22,8 @@
 
 * Link Accessibility-Resolver to your website externally:
 ```
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@851762f985ec0b1bad09351b595b3f0623cc22ea/Accessibility-Resolver.css">
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@851762f985ec0b1bad09351b595b3f0623cc22ea/Accessibility-Resolver.js" async></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@132124362adbe9ee8e1a2aa4a5e36fdcc98965ae/Accessibility-Resolver.css">
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@132124362adbe9ee8e1a2aa4a5e36fdcc98965ae/Accessibility-Resolver.js" async></script>
 ```
 
 - - -
