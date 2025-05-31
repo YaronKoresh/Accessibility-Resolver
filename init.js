@@ -150,7 +150,7 @@ function ar_initializeAndRunMerged() {
 	}
 	AR_AccessibilityMenu.init();
 	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', ar_runAccessibilityScan);
+		document.addEventListener('load', ar_runAccessibilityScan);
 	} else {
 		ar_runAccessibilityScan()
 	}
@@ -158,5 +158,5 @@ function ar_initializeAndRunMerged() {
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
 	setTimeout(ar_initializeAndRunMerged, 400)
 } else {
-	window.addEventListener('DOMContentLoaded', () => setTimeout(ar_initializeAndRunMerged, 400))
+	window.addEventListener('load', () => setTimeout(ar_initializeAndRunMerged, 400))
 }
