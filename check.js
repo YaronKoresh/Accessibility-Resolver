@@ -519,7 +519,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	        const controlsId = el.getAttribute('aria-controls');
 	        const isExpanded = el.getAttribute('aria-expanded');
 	
-	        if (controlsId) {
+	        if (controlsId && controlsId.trim() !== "") {
 	            const controlledElement = document.getElementById(controlsId);
 	            if (controlledElement) {
 	                const isControlledElementVisible = !ar_isVisuallyHidden(controlledElement);
@@ -590,7 +590,7 @@ var AR_CheckModules = AR_CheckModules || {};
 						ar_setAttributeAndLog(el, 'aria-haspopup', 'true', 'Moderate', `Invalid aria-haspopup value "${ popupValue }". Auto-set to "true".`, 'Use valid values (menu, listbox, tree, grid, dialog, true, false).', 'Operable', '4.1.2', 'A')
 					}
 				}
-				if (controlsId) {
+				if (controlsId && controlsId.trim() !== "") {
 					const controlledElement = document.getElementById(controlsId);
 					if (controlledElement) {
 						const isControlledElementVisible = !ar_isVisuallyHidden(controlledElement);
@@ -942,7 +942,8 @@ var AR_CheckModules = AR_CheckModules || {};
 		].forEach(attr => {
 			document.querySelectorAll(`[${ attr }]`).forEach(el => {
 				try {
-					const idRefs = el.getAttribute(attr).split(/\s+/).filter(id => id.trim() !== '');
+					const raw = el.getAttribute(attr) || "";
+					const idRefs = raw.split(/\s+/).map(id => id.trim()).filter(id => id.length > 0);
 					const validIdRefs = idRefs.filter(id => document.getElementById(id));
 					if (validIdRefs.length !== idRefs.length) {
 						if (validIdRefs.length > 0) {
