@@ -792,7 +792,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			elements = window.ar_getElementsForMenuTextStyleAdjustments();
 		}
 		if (!elements || elements.length === 0) {
-			elements = Array.from(document.querySelectorAll('p, li, span, div:not(:has(*)):not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '):not([class*="icon"]):not(:empty),' + 'h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup')).filter(el => el.closest(`#${ MENU_PANEL_ID }`) === null && el.closest(`#${ MENU_BUTTON_ID }`) === null);
+			elements = Array.from(document.querySelectorAll('p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '):not([class*="icon"]):not(:empty),' + 'h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup')).filter(el => el.closest(`#${ MENU_PANEL_ID }`) === null && el.closest(`#${ MENU_BUTTON_ID }`) === null);
 		}
 		elements.forEach(el => {
 			if (!document.body.contains(el))
