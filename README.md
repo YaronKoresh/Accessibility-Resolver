@@ -23,7 +23,7 @@
 * Link Accessibility-Resolver to your website externally:
 ```
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@de97e9da1ff1e736fbbd3942a773675d3ac9d79c/Accessibility-Resolver.css">
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@de97e9da1ff1e736fbbd3942a773675d3ac9d79c/Accessibility-Resolver.js" async></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@c79ffbe5b9fbe31e1878703189f3c6a6847ef8b8/Accessibility-Resolver.js" async></script>
 ```
 
 - - -
