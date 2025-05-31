@@ -116,30 +116,31 @@ function getDevice(){
 		(document.body.classList.contains('portrait') ? 'portrait' : 'landscape')
 	];
 }
-function _setDeviceOrientation() {
-	const newOrientation = screen.orientation.type;
-	const newAngle = screen.orientation.angle;	
-	document.body.classList.remove('portrait', 'landscape');
-	if (newOrientation.startsWith('portrait')) {
-	    document.body.classList.add('portrait');
-	} else if (newOrientation.startsWith('landscape')) {
-	    document.body.classList.add('landscape');
-	}
-}
 function setDeviceOrientation() {
-	screen.orientation.addEventListener('change', () => _setDeviceOrientation);
-	_setDeviceOrientation();
+	function _setDeviceOrientation() {
+		const newOrientation = screen.orientation.type;
+		document.body.classList.remove('portrait', 'landscape');
+		if (newOrientation.includes('portrait')) {
+		    document.body.classList.add('portrait');
+		} else if (newOrientation.includes('landscape')) {
+		    document.body.classList.add('landscape');
+		}
+	}
+	screen.orientation.addEventListener('change', function(e) {
+		return _setDeviceOrientation();
+	});
+	return _setDeviceOrientation();
 }
 function setDeviceType() {
 	const ua = navigator.userAgent;
 	document.body.classList.remove('tablet', 'mobile', 'desktop');
 	if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
 		document.body.classList.add( "tablet" );
-	}
-	if ( /Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test( ua )) {
+	} else if ( /Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test( ua )) {
 		document.body.classList.add( "mobile" );
+	} else {
+		document.body.classList.add( "desktop" );
 	}
-	document.body.classList.add( "desktop" );
 }
 function ar_generateUniqueElementId(prefix = 'ar-uid') {
 	let newId;
