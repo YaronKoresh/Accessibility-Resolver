@@ -911,72 +911,157 @@ var AR_CheckModules = AR_CheckModules || {};
 			console.groupEnd()
 	};
 	AR_CheckModulesProto._attemptContrastFix = function (el, fgRgba, bgRgba, requiredContrast, origFgCss, origBgCss) {
-		let currentFgRgba = [...fgRgba], currentBgRgba = [...bgRgba];
-		let newContrast = 0, newFgCss = '', newBgCss = null, strategy = '';
-		if (currentFgRgba[3] < 1) {
-			strategy = 'force_opaque_text';
-			currentFgRgba[3] = 1;
-			newFgCss = `rgb(${ currentFgRgba.slice(0, 3).join(',') })`;
-			ar_storeOriginalInlineStyle(el, 'color');
-			el.style.setProperty('color', newFgCss);
-			const reEvaluatedPerceivedFg = ar_blendColors(currentFgRgba, currentBgRgba);
-			newContrast = ar_getContrastRatioBetweenColors(reEvaluatedPerceivedFg, currentBgRgba);
-			if (newContrast >= requiredContrast)
-				return {
-					success: true,
-					newFgCss,
-					newBgCss,
-					newContrast,
-					strategy
-				}
+		function clamp(val, min, max) {
+			return Math.max(min, Math.min(max, val));
 		}
-		strategy = 'simple_bw_text';
-		const isBgDark = ar_getLuminanceFromRgb(currentBgRgba) < 0.5;
-		currentFgRgba = isBgDark ? [
-			255,
-			255,
-			255,
-			1
-		] : [
-			0,
-			0,
-			0,
-			1
-		];
-		newFgCss = `rgb(${ currentFgRgba.slice(0, 3).join(',') })`;
-		ar_storeOriginalInlineStyle(el, 'color');
-		el.style.setProperty('color', newFgCss);
-		newContrast = ar_getContrastRatioBetweenColors(currentFgRgba, currentBgRgba);
-		if (newContrast >= requiredContrast)
+		function luminance([r, g, b]) {
+			const norm = [
+				r,
+				g,
+				b
+			].map(v => {
+				v /= 255;
+				return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+			});
+			return 0.2126 * norm[0] + 0.7152 * norm[1] + 0.0722 * norm[2];
+		}
+		function contrast(rgb1, rgb2) {
+			const lum1 = luminance(rgb1);
+			const lum2 = luminance(rgb2);
+			return (Math.max(lum1, lum2) + 0.05) / (Math.min(lum1, lum2) + 0.05);
+		}
+		function rgbToHsl(r, g, b) {
+			r /= 255;
+			g /= 255;
+			b /= 255;
+			const max = Math.max(r, g, b), min = Math.min(r, g, b);
+			let h, s, l = (max + min) / 2;
+			if (max === min) {
+				h = s = 0;
+			} else {
+				const d = max - min;
+				s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+				switch (max) {
+				case r:
+					h = (g - b) / d + (g < b ? 6 : 0);
+					break;
+				case g:
+					h = (b - r) / d + 2;
+					break;
+				case b:
+					h = (r - g) / d + 4;
+					break;
+				}
+				h /= 6;
+			}
+			return [
+				h,
+				s,
+				l
+			];
+		}
+		function hslToRgb(h, s, l) {
+			let r, g, b;
+			if (s === 0)
+				r = g = b = l;
+			else {
+				function hue2rgb(p, q, t) {
+					if (t < 0)
+						t += 1;
+					if (t > 1)
+						t -= 1;
+					if (t < 1 / 6)
+						return p + (q - p) * 6 * t;
+					if (t < 1 / 2)
+						return q;
+					if (t < 2 / 3)
+						return p + (q - p) * (2 / 3 - t) * 6;
+					return p;
+				}
+				const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+				const p = 2 * l - q;
+				r = hue2rgb(p, q, h + 1 / 3);
+				g = hue2rgb(p, q, h);
+				b = hue2rgb(p, q, h - 1 / 3);
+			}
+			return [
+				Math.round(r * 255),
+				Math.round(g * 255),
+				Math.round(b * 255)
+			];
+		}
+		let currentFg = fgRgba.slice(0, 3);
+		let currentBg = bgRgba.slice(0, 3);
+		let c = contrast(currentFg, currentBg);
+		if (c >= requiredContrast) {
 			return {
 				success: true,
-				newFgCss,
-				newBgCss,
-				newContrast,
-				strategy
+				newFgCss: origFgCss,
+				newBgCss: origBgCss,
+				newContrast: c,
+				strategy: 'already_ok'
 			};
-		strategy = 'iterative_text_hsl';
-		let tempFgRgb = fgRgba.slice(0, 3);
-		for (let i = 0; i < AR_CONFIG.CONTRAST_ADJUSTMENT_STEPS; i++) {
-			let [h, s, l] = ar_rgbToHsl(...tempFgRgb);
-			l = isBgDark ? Math.min(1, l + AR_CONFIG.CONTRAST_ADJUSTMENT_AMOUNT * (i / (AR_CONFIG.CONTRAST_ADJUSTMENT_STEPS - 1) + 0.1)) : Math.max(0, l - AR_CONFIG.CONTRAST_ADJUSTMENT_AMOUNT * (i / (AR_CONFIG.CONTRAST_ADJUSTMENT_STEPS - 1) + 0.1));
-			tempFgRgb = ar_hslToRgb(h, s, l);
-			currentFgRgba = [
-				...tempFgRgb,
-				1
-			];
-			newFgCss = `rgb(${ currentFgRgba.slice(0, 3).join(',') })`;
-			ar_storeOriginalInlineStyle(el, 'color');
-			el.style.setProperty('color', newFgCss);
-			newContrast = ar_getContrastRatioBetweenColors(currentFgRgba, currentBgRgba);
-			if (newContrast >= requiredContrast)
+		}
+		let bestFg = currentFg, bestBg = currentBg, bestC = c, bestFgCss = origFgCss, bestBgCss = origBgCss, bestStrategy = 'none';
+		const testColors = [
+			[
+				0,
+				0,
+				0
+			],
+			[
+				255,
+				255,
+				255
+			]
+		];
+		for (const testFg of testColors) {
+			let testC = contrast(testFg, currentBg);
+			if (testC > bestC) {
+				bestC = testC;
+				bestFg = testFg;
+				bestFgCss = `rgb(${ testFg.join(',') })`;
+				bestStrategy = 'bw_text';
+			}
+		}
+		if (bestC >= requiredContrast) {
+			el.style.setProperty('color', bestFgCss);
+			return {
+				success: true,
+				newFgCss: bestFgCss,
+				newBgCss: origBgCss,
+				newContrast: bestC,
+				strategy: bestStrategy
+			};
+		}
+		let [h, s, l] = rgbToHsl(...currentFg);
+		let step = 0.02, found = false, maxSteps = 20;
+		for (let i = 1; i <= maxSteps; i++) {
+			let lUp = clamp(l + step * i, 0, 1), lDn = clamp(l - step * i, 0, 1);
+			let tryFg1 = hslToRgb(h, s, lUp), tryFg2 = hslToRgb(h, s, lDn);
+			let c1 = contrast(tryFg1, currentBg), c2 = contrast(tryFg2, currentBg);
+			if (c1 > bestC) {
+				bestC = c1;
+				bestFg = tryFg1;
+				bestFgCss = `rgb(${ tryFg1.join(',') })`;
+				bestStrategy = 'hsl_text';
+			}
+			if (c2 > bestC) {
+				bestC = c2;
+				bestFg = tryFg2;
+				bestFgCss = `rgb(${ tryFg2.join(',') })`;
+				bestStrategy = 'hsl_text';
+			}
+			if (bestC >= requiredContrast) {
+				el.style.setProperty('color', bestFgCss);
 				return {
 					success: true,
-					newFgCss,
-					newBgCss,
-					newContrast,
-					strategy
-				}
+					newFgCss: bestFgCss,
+					newBgCss: origBgCss,
+					newContrast: bestC,
+					strategy: bestStrategy
+				};
+			}
 		}
 		const nonBgChangeTags = [
 			'BODY',
@@ -987,46 +1072,53 @@ var AR_CheckModules = AR_CheckModules || {};
 			'ASIDE'
 		];
 		if (!nonBgChangeTags.includes(el.tagName.toUpperCase())) {
-			strategy += '+iterative_bg_hsl';
-			let tempBgRgb = bgRgba.slice(0, 3);
-			const isOriginalTextDark = ar_getLuminanceFromRgb(fgRgba) < 0.5;
-			ar_restoreOriginalInlineStyle(el, 'color');
-			currentFgRgba = [...fgRgba];
-			for (let i = 0; i < AR_CONFIG.CONTRAST_ADJUSTMENT_STEPS; i++) {
-				let [h, s, l] = ar_rgbToHsl(...tempBgRgb);
-				const delta = AR_CONFIG.CONTRAST_ADJUSTMENT_AMOUNT * (i / (AR_CONFIG.CONTRAST_ADJUSTMENT_STEPS - 1) + 0.1);
-				if (delta > AR_CONFIG.AGGRESSIVE_CONTRAST_BG_ADJUST_MAX_DELTA)
-					break;
-				l = isOriginalTextDark ? Math.min(1, l + delta) : Math.max(0, l - delta);
-				tempBgRgb = ar_hslToRgb(h, s, l);
-				currentBgRgba = [
-					...tempBgRgb,
-					1
-				];
-				newBgCss = `rgb(${ currentBgRgba.slice(0, 3).join(',') })`;
-				ar_storeOriginalInlineStyle(el, 'background-color');
-				el.style.setProperty('background-color', newBgCss);
-				newContrast = ar_getContrastRatioBetweenColors(fgRgba, currentBgRgba);
-				if (newContrast >= requiredContrast) {
-					return {
-						success: true,
-						newFgCss: origFgCss,
-						newBgCss,
-						newContrast,
-						strategy
+			let [bh, bs, bl] = rgbToHsl(...currentBg);
+			for (let i = 1; i <= maxSteps; i++) {
+				let blUp = clamp(bl + step * i, 0, 1), blDn = clamp(bl - step * i, 0, 1);
+				let tryBg1 = hslToRgb(bh, bs, blUp), tryBg2 = hslToRgb(bh, bs, blDn);
+				for (const testFg of testColors) {
+					let c1 = contrast(testFg, tryBg1);
+					if (c1 > bestC) {
+						bestC = c1;
+						bestFg = testFg;
+						bestBg = tryBg1;
+						bestFgCss = `rgb(${ testFg.join(',') })`;
+						bestBgCss = `rgb(${ tryBg1.join(',') })`;
+						bestStrategy = 'hsl_bg_bw_text';
+					}
+					let c2 = contrast(testFg, tryBg2);
+					if (c2 > bestC) {
+						bestC = c2;
+						bestFg = testFg;
+						bestBg = tryBg2;
+						bestFgCss = `rgb(${ testFg.join(',') })`;
+						bestBgCss = `rgb(${ tryBg2.join(',') })`;
+						bestStrategy = 'hsl_bg_bw_text';
 					}
 				}
 			}
+			if (bestC >= requiredContrast) {
+				el.style.setProperty('color', bestFgCss);
+				el.style.setProperty('background-color', bestBgCss);
+				return {
+					success: true,
+					newFgCss: bestFgCss,
+					newBgCss: bestBgCss,
+					newContrast: bestC,
+					strategy: bestStrategy
+				};
+			}
 		}
-		ar_restoreOriginalInlineStyle(el, 'color');
-		ar_restoreOriginalInlineStyle(el, 'background-color');
+		el.style.setProperty('color', origFgCss);
+		if (origBgCss)
+			el.style.setProperty('background-color', origBgCss);
 		return {
 			success: false,
 			newFgCss: origFgCss,
 			newBgCss: origBgCss,
-			newContrast: newContrast,
-			strategy: 'all_failed'
-		}
+			newContrast: bestC,
+			strategy: 'failed'
+		};
 	};
 	AR_CheckModulesProto.checkFormFieldLabels = function () {
 		ar_logSection('Form Field Labels');
