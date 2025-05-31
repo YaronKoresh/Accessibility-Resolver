@@ -2020,46 +2020,16 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			const itemsToAdd = [];
 			elements.forEach(el => {
 				let text = getAccessibleName(el);
-				let originalText = text;
-				if (itemType === 'landmarks') {
-					const role = el.getAttribute('role') || el.tagName.toLowerCase();
-					const landmarkNameMap = {
-						'main': Menu._getLocalizedString('mainContent'),
-						'navigation': Menu._getLocalizedString('navigation'),
-						'banner': Menu._getLocalizedString('header'),
-						'contentinfo': Menu._getLocalizedString('footer'),
-						'complementary': Menu._getLocalizedString('complementary'),
-						'form': Menu._getLocalizedString('form'),
-						'search': Menu._getLocalizedString('search'),
-						'region': Menu._getLocalizedString('region'),
-						'header': Menu._getLocalizedString('header'),
-						'nav': Menu._getLocalizedString('navigation'),
-						'aside': Menu._getLocalizedString('complementary'),
-						'footer': Menu._getLocalizedString('footer'),
-						'section': Menu._getLocalizedString('region')
-					};
-					const localizedName = landmarkNameMap[role];
-					if (localizedName) {
-						text = localizedName + (text ? `: ${ text }` : ` (${ Menu._getLocalizedString('unlabeled') })`);
-					} else if (!text) {
-						text = `${ role.charAt(0).toUpperCase() + role.slice(1) } (${ Menu._getLocalizedString('unlabeled') })`;
+				if (!( !text || text.length < 2 || text.toLowerCase().includes('read more') || text.toLowerCase().includes('click here') )){
+					const parentText = el.parentElement ? el.parentElement.textContent.trim().replace(/\s+/g, ' ') : '';
+					if (parentText.length > 10 && parentText.length < 100) {
+						text = `${ parentText.substring(0, Math.min(parentText.length, 50)) }...`;
 					}
-				} else if (itemType === 'links') {
-					if (!text || text.length < 2 || text.toLowerCase().includes('read more') || text.toLowerCase().includes('click here')) {
-						const parentText = el.parentElement ? el.parentElement.textContent.trim().replace(/\s+/g, ' ') : '';
-						if (parentText.length > 10 && parentText.length < 100) {
-							text = `Link: ${ parentText.substring(0, Math.min(parentText.length, 50)) }...`;
-						} else {
-							text = `Link: ${ el.href || Menu._getLocalizedString('unlabeled') }`;
+					if (text && text.trim() !== '') {
+						const listItem = addToList(el, text, itemType);
+						if (listItem) {
+							itemsToAdd.push(listItem);
 						}
-					}
-				} else if (itemType === 'Heading' && !text) {
-					text = `${ el.tagName } (${ Menu._getLocalizedString('unlabeled') })`;
-				}
-				if (text && text.trim() !== '') {
-					const listItem = addToList(el, originalText || text, itemType);
-					if (listItem) {
-						itemsToAdd.push(listItem);
 					}
 				}
 			});
