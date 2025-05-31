@@ -260,7 +260,9 @@
 	 filter: invert(100%) hue-rotate(180deg) !important;
 	 background-color: #fff !important;
 }
- html.ar-aaa-invert-colors img, html.ar-aaa-invert-colors video, html.ar-aaa-invert-colors [style*="background-image"] {
+ html.ar-aaa-invert-colors img,
+ html.ar-aaa-invert-colors video,
+ html.ar-aaa-invert-colors [style*="background-image"] {
 	 filter: invert(100%) hue-rotate(180deg) !important;
 }
  html.ar-aaa-invert-colors svg {
