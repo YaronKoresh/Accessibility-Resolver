@@ -1,3 +1,12 @@
+function ar_escapeHtml(str) {
+    if (typeof str !== "string") return str;
+    return str
+	.replace(/&/g, "&amp;")
+	.replace(/</g, "&lt;")
+	.replace(/>/g, "&gt;")
+	.replace(/"/g, "&quot;")
+	.replace(/'/g, "&#39;");
+}
 function ar_hasAriaLabel(el) {
 	return el.getAttribute('aria-label') && el.getAttribute('aria-label').trim();
 }
