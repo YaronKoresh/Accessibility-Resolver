@@ -1197,7 +1197,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		Menu.pageStructurePanel.setAttribute('aria-hidden', String(!Menu.isStructurePanelOpen));
 		if (Menu.isStructurePanelOpen) {
 			if (typeof Menu.panel !== 'undefined' && typeof Menu.panel.populatePageStructurePanel === 'function') {
-				Menu.panel.populatePageStructurePanel();
+				Menu.panel.populatePageStructurePanel(null);
 			}
 			const firstFocusable = Menu.pageStructurePanel.querySelector('button, [href]');
 			if (firstFocusable)
