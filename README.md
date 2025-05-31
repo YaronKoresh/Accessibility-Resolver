@@ -26,8 +26,8 @@
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/logging.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/dom.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/menu.css">
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/panel.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/action.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/panel.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/check.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/init.js"></script>
 ```
