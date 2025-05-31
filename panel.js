@@ -11,7 +11,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		return el.closest(`#${ MENU_BUTTON_ID }`) || el.closest(`#${ MENU_PANEL_ID }`) || el.closest(`#${ PAGE_STRUCTURE_PANEL_ID }`);
 	}
 	if (typeof Menu._getLocalizedString === 'undefined') {
-		console.error('ARMenu: _getLocalizedString is not defined. Ensure core.js is loaded before panel.js.');
+		console.error('ARMenu: _getLocalizedString is not defined. Ensure action.js is loaded before panel.js.');
 		Menu._getLocalizedString = key => key;
 	}
 	Menu.panel = Menu.panel || {};
