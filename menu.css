@@ -295,6 +295,11 @@
  html.ar-aaa-invert-colors svg {
 	 isolation: isolate !important;
 }
+/* Make menu elements immune to the invert filter */
+ html.ar-aaa-invert-colors #aaa-menu-button, html.ar-aaa-invert-colors #aaa-menu-button *, html.ar-aaa-invert-colors #aaa-menu-panel, html.ar-aaa-invert-colors #aaa-menu-panel *, html.ar-aaa-invert-colors #aaa-page-structure-panel, html.ar-aaa-invert-colors #aaa-page-structure-panel * {
+	 filter: invert(100%) hue-rotate(180deg) !important;
+	/* Re-invert to cancel out the parent filter */
+}
 /* High Contrast (Light) */
  body.ar-aaa-high-contrast {
 	 background-color: #fff !important;
@@ -351,21 +356,28 @@
 	 border-radius: 2px !important;
 }
  body.ar-aaa-enhanced-focus *:focus-visible {
-	 outline: 3px solid #0056b3 !important;
-	 outline-offset: 2px !important;
-	 box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.4) !important;
+	 outline: 4px solid #FFD700 !important;
+	/* Gold color */
+	 outline-offset: 3px !important;
+	 box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.6) !important;
+	/* Larger, more visible shadow */
+	 border-radius: 4px !important;
+	/* Add some rounded corners */
 }
  html.ar-aaa-invert-colors body.ar-aaa-enhanced-focus *:focus-visible {
-	 outline-color: #FFFF00 !important;
-	 box-shadow: 0 0 0 3px rgba(255, 255, 0, 0.5) !important;
+	 outline-color: #00FFFF !important;
+	/* Cyan in inverted mode */
+	 box-shadow: 0 0 0 5px rgba(0, 255, 255, 0.6) !important;
 }
  body.ar-aaa-high-contrast.ar-aaa-enhanced-focus *:focus-visible {
-	 outline-color: #000000 !important;
-	 box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.5) !important;
+	 outline-color: #00FF00 !important;
+	/* Bright green in high contrast */
+	 box-shadow: 0 0 0 5px rgba(0, 255, 0, 0.6) !important;
 }
  body.ar-aaa-dark-contrast.ar-aaa-enhanced-focus *:focus-visible {
-	 outline-color: #FFFFFF !important;
-	 box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5) !important;
+	 outline-color: #00FF00 !important;
+	/* Bright green in dark contrast */
+	 box-shadow: 0 0 0 5px rgba(0, 255, 0, 0.6) !important;
 }
  body.ar-aaa-animations-stopped *, body.ar-aaa-animations-stopped *::before, body.ar-aaa-animations-stopped *::after {
 	 animation-duration: 0.01ms !important;
