@@ -149,7 +149,11 @@ function ar_initializeAndRunMerged() {
 		return
 	}
 	AR_AccessibilityMenu.init();
-	ar_runAccessibilityScan()
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', ar_runAccessibilityScan);
+	} else {
+		ar_runAccessibilityScan()
+	}
 }
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
 	setTimeout(ar_initializeAndRunMerged, 400)
