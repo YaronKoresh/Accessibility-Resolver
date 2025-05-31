@@ -1439,7 +1439,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.body.classList.toggle(CLASS_READING_MODE, Menu.isReadingModeActive);
 		this._updateButtonActiveState(button, Menu.isReadingModeActive);
 		logAction('Reading mode ' + (Menu.isReadingModeActive ? 'enabled' : 'disabled'), true);
-		this._togglePageStructurePanel(Menu.isReadingModeActive);
+		//this._togglePageStructurePanel(Menu.isReadingModeActive);
 	};
 	Menu._handleReadingMaskAction = function (button) {
 		Menu.isReadingMaskActive = !Menu.isReadingMaskActive;
