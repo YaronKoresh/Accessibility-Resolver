@@ -551,24 +551,20 @@ var AR_CheckModules = AR_CheckModules || {};
 					const newId = ar_generateUniqueElementId(`dup-${ id }-`);
 					ar_setAttributeAndLog(el, 'id', newId, 'Critical', `Duplicate ID "#${ id }". Auto-fixed to "#${ newId }".`, `Original element:`, 'Robust', '4.1.1', 'A');
 					console.warn('    Original element with conflicting ID:', originalElement);
-					document.querySelectorAll(`[aria-labelledby*="${ id }"], [aria-describedby*="${ id }"], label[for="${ id }"]`).forEach(refEl => {
+					document.querySelectorAll(`[aria-controls*="${ id }"], [aria-labelledby*="${ id }"], [aria-describedby*="${ id }"], label[for="${ id }"]`).forEach(refEl => {
 						if (refEl.id === newId)
 							return;
-						let attrToUpdate = '';
-						let oldAttrValue = '';
-						if (refEl.hasAttribute('aria-labelledby')) {
-							attrToUpdate = 'aria-labelledby';
-							oldAttrValue = refEl.getAttribute(attrToUpdate)
-						} else if (refEl.hasAttribute('aria-describedby')) {
-							attrToUpdate = 'aria-describedby';
-							oldAttrValue = refEl.getAttribute(attrToUpdate)
-						} else if (refEl.tagName === 'LABEL' && refEl.htmlFor === id) {
-							attrToUpdate = 'for';
-							oldAttrValue = refEl.htmlFor
+						if (refEl.hasAttribute('aria-controls') && refEl.getAttribute('aria-controls') === id) {
+							refEl.setAttribute('aria-controls', newId);
 						}
-						if (attrToUpdate) {
-							const newAttrValue = oldAttrValue.split(/\s+/).map(refId => refId === id ? newId : refId).join(' ');
-							ar_setAttributeAndLog(refEl, attrToUpdate, newAttrValue, 'Minor', `Updated reference to duplicate ID from "#${ id }" to "#${ newId }".`, 'Ensure all references to the old ID are updated.', 'Robust', '4.1.1', true, 'A')
+						if (refEl.hasAttribute('aria-labelledby') && refEl.getAttribute('aria-labelledby') === id) {
+							refEl.setAttribute('aria-labelledby', newId);
+						}
+						if (refEl.hasAttribute('aria-describedby') && refEl.getAttribute('aria-describedby') === id) {
+							refEl.setAttribute('aria-describedby', newId);
+						}
+						if (refEl.tagName === 'LABEL' && refEl.htmlFor === id) {
+							refEl.htmlFor = newId;
 						}
 					})
 				} else {
