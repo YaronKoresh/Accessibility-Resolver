@@ -137,19 +137,19 @@
 }
 /* Ensure active button text is visible in high contrast (light) */
  body.ar-aaa-high-contrast #aaa-menu-panel button.ar-aaa-menu-btn-active {
-	 color: white !important;
+	 color: white;
 	/* Force white text */
-	 background-color: black !important;
+	 background-color: black;
 	/* Force black background */
-	 border-color: white !important;
+	 border-color: white;
 }
 /* Ensure active button text is visible in high contrast (dark) */
  body.ar-aaa-dark-contrast #aaa-menu-panel button.ar-aaa-menu-btn-active {
-	 color: black !important;
+	 color: black;
 	/* Force black text */
-	 background-color: white !important;
+	 background-color: white;
 	/* Force white background */
-	 border-color: black !important;
+	 border-color: black;
 }
  #aaa-menu-panel button.ar-aaa-fullwidth-btn {
 	 flex-basis: 100% !important;
