@@ -320,11 +320,13 @@
 	 border: 1px solid #fff !important;
 }
  body.ar-aaa-highlight-links a[href] {
-	 background-color: yellow !important;
-	 color: black !important;
-	 outline: 2px solid orange !important;
-	 border-radius: 2px !important;
-	 z-index: 2;
+    background: yellow !important;
+    color: black !important;
+    outline: 2px solid orange !important;
+    border-radius: 1mm !important;
+    z-index: 2;
+    position: relative;
+    outline-offset: 1px;
 }
  body.ar-aaa-enhanced-focus *:focus-visible {
 	 outline: 6px solid #FFD700 !important;
