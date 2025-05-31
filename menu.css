@@ -260,19 +260,13 @@
 	 filter: invert(100%) hue-rotate(180deg) !important;
 	 background-color: #fff !important;
 }
- html.ar-aaa-invert-colors img,
- html.ar-aaa-invert-colors video,
- html.ar-aaa-invert-colors [style*="background-image"] {
+ html.ar-aaa-invert-colors img, html.ar-aaa-invert-colors video, html.ar-aaa-invert-colors [style*="background-image"] {
 	 filter: invert(100%) hue-rotate(180deg) !important;
 }
  html.ar-aaa-invert-colors svg {
 	 isolation: isolate !important;
 }
- html.ar-aaa-invert-colors #aaa-menu-button,
- html.ar-aaa-invert-colors #aaa-menu-panel,
- html.ar-aaa-invert-colors #aaa-menu-panel button[data-action="contrast-invert"],
- html.ar-aaa-invert-colors #aaa-page-structure-panel,
- html.ar-aaa-invert-colors #aaa-page-structure-panel * {
+ html.ar-aaa-invert-colors #aaa-menu-button, html.ar-aaa-invert-colors #aaa-menu-panel, html.ar-aaa-invert-colors #aaa-menu-panel button[data-action="contrast-invert"], html.ar-aaa-invert-colors #aaa-page-structure-panel, html.ar-aaa-invert-colors #aaa-page-structure-panel * {
 	 filter: invert(100%) hue-rotate(180deg) !important;
 }
  body.ar-aaa-high-contrast, body.ar-aaa-high-contrast .ar-text-scaled-by-menu, body.ar-aaa-high-contrast .ar-text-scaled-by-menu * {
@@ -287,8 +281,7 @@
 	 background-color: transparent !important;
 	 text-decoration: underline !important;
 }
- body.ar-aaa-high-contrast svg:not(:has(path ~ path)):not(:has()):not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg),
- body.ar-aaa-high-contrast svg:not(:has(path ~ path)) *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *) {
+ body.ar-aaa-high-contrast svg:not(:has(path ~ path)):not(:has()):not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg), body.ar-aaa-high-contrast svg:not(:has(path ~ path)) *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *) {
 	 background-color: transparent !important;
 	 fill: #000 !important;
 	 stroke: #000 !important;
@@ -303,24 +296,20 @@
 	 color: #fff !important;
 }
  body.ar-aaa-dark-contrast :not(#ar-aaa-menu-title,.ar-aaa-profile-title):is( h1, h2, h3, h4, h5, h6, td, th, label, strong, em, p, span, li, b, i, small, big, sub, sup, div:not(#aaa-menu-button):not(#aaa-menu-button *):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-page-structure-panel):not(#aaa-page-structure-panel *):not([class*="icon"]), ):is( *, [style] )::after {
-    background: black !important;
-    color: #fff;
-    opacity: 1.0 !important;
+	 background: black !important;
+	 color: #fff;
+	 opacity: 1.0 !important;
 }
  body.ar-aaa-dark-contrast a, body.ar-aaa-dark-contrast a[style] {
 	 color: #ADD8E6 !important;
 	 background-color: transparent !important;
 	 text-decoration: underline !important;
 }
- body.ar-aaa-dark-contrast :is(
-	 svg:not(:has(path ~ path)):not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg),
-	 svg:not(:has(path ~ path)) *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *),
-	 :not(svg,path,#aaa-menu-panel,#aaa-menu-panel *)
- ) {
-    background-color: black !important;
-    color: white !important;
-    fill: #fff !important;
-    stroke: #fff !important;
+ body.ar-aaa-dark-contrast :is( svg:not(:has(path ~ path)):not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg), svg:not(:has(path ~ path)) *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *), :not(svg,path,#aaa-menu-panel,#aaa-menu-panel *) ) {
+	 background-color: black !important;
+	 color: white !important;
+	 fill: #fff !important;
+	 stroke: #fff !important;
 }
  body.ar-aaa-dark-contrast button:not(#aaa-menu-button):not(#aaa-menu-panel button):not(#aaa-page-structure-panel button), body.ar-aaa-dark-contrast input, body.ar-aaa-dark-contrast select, body.ar-aaa-dark-contrast textarea {
 	 background-color: #333 !important;
@@ -444,3 +433,4 @@
  .ar-text-scaled-by-menu {
 	 font-size: var(--ar-scaled-font-size, inherit) !important;
 }
+ 
