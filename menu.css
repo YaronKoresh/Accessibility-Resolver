@@ -129,26 +129,19 @@
 	 color: #ffffff !important;
 	 border-color: #000000;
 }
-/* Ensure active button text is visible in inverted colors */
  html.ar-aaa-invert-colors #aaa-menu-panel button.ar-aaa-menu-btn-active {
 	 color: black !important;
 	 background-color: white !important;
 	 border-color: black !important;
 }
-/* Ensure active button text is visible in high contrast (light) */
  body.ar-aaa-high-contrast #aaa-menu-panel button.ar-aaa-menu-btn-active {
 	 color: white;
-	/* Force white text */
 	 background-color: black;
-	/* Force black background */
 	 border-color: white;
 }
-/* Ensure active button text is visible in high contrast (dark) */
  body.ar-aaa-dark-contrast #aaa-menu-panel button.ar-aaa-menu-btn-active {
 	 color: black;
-	/* Force black text */
 	 background-color: white;
-	/* Force white background */
 	 border-color: black;
 }
  #aaa-menu-panel button.ar-aaa-fullwidth-btn {
@@ -168,70 +161,48 @@
 }
  #aaa-page-structure-panel {
 	 display: none;
-	/* Hidden by default, controlled by JS */
 	 position: fixed;
 	 top: 0;
 	 height: 100vh;
-	/* Full height */
 	 width: 250px;
-	/* Fixed width for sidebar */
 	 max-width: 90%;
-	/* Responsive max-width */
 	 overflow-y: auto;
 	 border-radius: 0;
-	/* No rounded corners for sidebar */
 	 box-shadow: 0 0 15px rgba(0,0,0,0.2);
 	 z-index: 2147483645;
-	/* Below main menu, above content */
 	 padding: 15px;
 	 background-color: rgba(255, 255, 255, 0.9);
-	/* Semi-transparent white */
 	 color: #000000;
 	 backdrop-filter: blur(5px);
-	/* Frosted glass effect */
 	 -webkit-backdrop-filter: blur(5px);
-	/* Safari support */
 	 transition: transform 0.3s ease-out;
-	/* Smooth transition for showing/hiding */
 }
-/* Positioning for RTL (right side) and LTR (left side) */
  html[dir="rtl"] #aaa-page-structure-panel {
 	 left: auto;
 	 right: 0;
 	 transform: translateX(100%);
-	/* Start off-screen to the right */
 }
  html[dir="ltr"] #aaa-page-structure-panel {
 	 left: 0;
 	 right: auto;
 	 transform: translateX(-100%);
-	/* Start off-screen to the left */
 }
-/* When reading mode is active, show the panel */
  body.ar-aaa-reading-mode #aaa-page-structure-panel {
 	 display: block;
-	/* Show the panel */
 	 transform: translateX(0);
-	/* Slide into view */
 }
-/* Adjustments for page structure panel in contrast modes */
  body.ar-aaa-high-contrast #aaa-page-structure-panel {
 	 background-color: rgba(255, 255, 255, 0.95) !important;
-	/* More opaque white */
 	 color: #000000;
 }
  body.ar-aaa-dark-contrast #aaa-page-structure-panel {
 	 background-color: rgba(0, 0, 0, 0.95) !important;
-	/* More opaque black */
 	 color: #ffffff !important;
 }
  html.ar-aaa-invert-colors #aaa-page-structure-panel {
 	 filter: invert(100%) hue-rotate(180deg);
-	/* Invert the panel too */
 	 background-color: rgba(255, 255, 255, 0.9) !important;
-	/* Reset background after invert */
 	 color: #000000;
-	/* Reset text color after invert */
 }
  #aaa-page-structure-panel h3#ar-aaa-structure-title {
 	 margin-top: 0 !important;
@@ -295,12 +266,9 @@
  html.ar-aaa-invert-colors svg {
 	 isolation: isolate !important;
 }
-/* Make menu elements immune to the invert filter */
  html.ar-aaa-invert-colors #aaa-menu-button, html.ar-aaa-invert-colors #aaa-menu-button *, html.ar-aaa-invert-colors #aaa-menu-panel, html.ar-aaa-invert-colors #aaa-menu-panel *, html.ar-aaa-invert-colors #aaa-page-structure-panel, html.ar-aaa-invert-colors #aaa-page-structure-panel * {
 	 filter: invert(100%) hue-rotate(180deg) !important;
-	/* Re-invert to cancel out the parent filter */
 }
-/* High Contrast (Light) */
  body.ar-aaa-high-contrast {
 	 background-color: #fff !important;
 	 color: #000 !important;
@@ -324,7 +292,6 @@
 	 color: #000 !important;
 	 border: 1px solid #000 !important;
 }
-/* High Contrast (Dark) - New Mode */
  body.ar-aaa-dark-contrast {
 	 background-color: #000 !important;
 	 color: #fff !important;
@@ -335,7 +302,6 @@
 }
  body.ar-aaa-dark-contrast a, body.ar-aaa-dark-contrast a[style] {
 	 color: #ADD8E6 !important;
-	/* Light blue for links */
 	 background-color: transparent !important;
 	 text-decoration: underline !important;
 }
@@ -356,27 +322,21 @@
 	 border-radius: 2px !important;
 }
  body.ar-aaa-enhanced-focus *:focus-visible {
-	 outline: 4px solid #FFD700 !important;
-	/* Gold color */
+	 outline: 6px solid #FFD700 !important;
 	 outline-offset: 3px !important;
 	 box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.6) !important;
-	/* Larger, more visible shadow */
 	 border-radius: 4px !important;
-	/* Add some rounded corners */
 }
  html.ar-aaa-invert-colors body.ar-aaa-enhanced-focus *:focus-visible {
 	 outline-color: #00FFFF !important;
-	/* Cyan in inverted mode */
 	 box-shadow: 0 0 0 5px rgba(0, 255, 255, 0.6) !important;
 }
  body.ar-aaa-high-contrast.ar-aaa-enhanced-focus *:focus-visible {
 	 outline-color: #00FF00 !important;
-	/* Bright green in high contrast */
 	 box-shadow: 0 0 0 5px rgba(0, 255, 0, 0.6) !important;
 }
  body.ar-aaa-dark-contrast.ar-aaa-enhanced-focus *:focus-visible {
 	 outline-color: #00FF00 !important;
-	/* Bright green in dark contrast */
 	 box-shadow: 0 0 0 5px rgba(0, 255, 0, 0.6) !important;
 }
  body.ar-aaa-animations-stopped *, body.ar-aaa-animations-stopped *::before, body.ar-aaa-animations-stopped *::after {
@@ -391,8 +351,6 @@
  body.ar-aaa-dyslexia-font *:not(script):not(style):not(link):not(code):not(pre):not(kbd):not(samp) {
 	 font-family: inherit !important;
 }
-/* Reading Mode - Adjusted styles */
-/* Hide everything by default except main content and accessibility elements */
  body.ar-aaa-reading-mode > *:not(main):not(article):not([role="main"]):not(#aaa-menu-button):not(#aaa-menu-panel):not(#aaa-page-structure-panel):not(.aaa-reading-mask-top):not(.aaa-reading-mask-bottom):not(.aaa-reading-line) {
 	 display: none !important;
 }
@@ -400,29 +358,20 @@
 	 font-size: 1.1em !important;
 	 line-height: 1.7 !important;
 	 max-width: none !important;
-	/* Remove max-width from body */
 	 margin: 0 !important;
-	/* Remove margin from body */
 	 padding: 0 !important;
-	/* Remove padding from body */
 }
  body.ar-aaa-reading-mode main, body.ar-aaa-reading-mode article, body.ar-aaa-reading-mode .content, body.ar-aaa-reading-mode [role="main"] {
-	/* Added role="main" for broader main content selection */
 	 display: block !important;
-	/* Ensure main content is visible */
 	 width: 90% !important;
 	 max-width: 800px !important;
 	 margin: 20px auto !important;
 	 padding: 10px !important;
 	 background-color: #ffffff !important;
-	/* Ensure content background is white */
 	 color: #000000;
-	/* Ensure content text is black */
 	 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-	/* Add a subtle shadow to content block */
 	 border-radius: 8px;
 }
-/* Reading Mask and Line - Removed !important from display: none */
  .aaa-reading-mask-top, .aaa-reading-mask-bottom {
 	 position: fixed !important;
 	 left: 0 !important;
@@ -431,8 +380,6 @@
 	 z-index: 2147483640 !important;
 	 pointer-events: none !important;
 	 display: none;
-	/* Changed from display: none !important;
-	 */
 }
  .aaa-reading-mask-top {
 	 top: 0 !important;
@@ -449,8 +396,6 @@
 	 z-index: 2147483640 !important;
 	 pointer-events: none !important;
 	 display: none;
-	/* Changed from display: none !important;
-	 */
 }
  #aaa-menu-panel, #aaa-menu-panel *, #aaa-menu-button, #aaa-menu-button * {
 	 font-family: 'Inter', Arial, sans-serif !important;
