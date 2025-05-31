@@ -310,11 +310,15 @@
 	 background-color: transparent !important;
 	 text-decoration: underline !important;
 }
- body.ar-aaa-dark-contrast svg:not(:has(path ~ path)):not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg),
- body.ar-aaa-dark-contrast svg:not(:has(path ~ path)) *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *) {
-	 background-color: transparent !important;
-	 fill: #fff !important;
-	 stroke: #fff !important;
+ body.ar-aaa-dark-contrast :is(
+	 svg:not(:has(path ~ path)):not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg),
+	 svg:not(:has(path ~ path)) *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *),
+	 :not(svg,path,#aaa-menu-panel,#aaa-menu-panel *)
+ ) {
+    background-color: black !important;
+    color: white !important;
+    fill: #fff !important;
+    stroke: #fff !important;
 }
  body.ar-aaa-dark-contrast button:not(#aaa-menu-button):not(#aaa-menu-panel button):not(#aaa-page-structure-panel button), body.ar-aaa-dark-contrast input, body.ar-aaa-dark-contrast select, body.ar-aaa-dark-contrast textarea {
 	 background-color: #333 !important;
