@@ -108,7 +108,7 @@
 	 padding: 10px 12px !important;
 	 font-size: 1em !important;
 	 background-color: #ffffff !important;
-	 color: #000000;
+	 color: #000000 !important;
 	 border: 1px solid #000000 !important;
 	 border-radius: 4px !important;
 	 cursor: pointer !important;
@@ -299,7 +299,7 @@
 }
  body.ar-aaa-dark-contrast p, body.ar-aaa-dark-contrast p[style], body.ar-aaa-dark-contrast span, body.ar-aaa-dark-contrast span[style], body.ar-aaa-dark-contrast div:not(#aaa-menu-button):not(#aaa-menu-button *):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-page-structure-panel):not(#aaa-page-structure-panel *):not([class*="icon"]), body.ar-aaa-dark-contrast div[style]:not(#aaa-menu-button):not(#aaa-menu-button *):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-page-structure-panel):not(#aaa-page-structure-panel *):not([class*="icon"]), body.ar-aaa-dark-contrast li, body.ar-aaa-dark-contrast li[style], body.ar-aaa-dark-contrast h1, body.ar-aaa-dark-contrast h1[style], body.ar-aaa-dark-contrast h2, body.ar-aaa-dark-contrast h2[style], body.ar-aaa-dark-contrast h3:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), body.ar-aaa-dark-contrast h3[style]:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), body.ar-aaa-dark-contrast h4:not(#aaa-page-structure-panel .ar-structure-category h4), body.ar-aaa-dark-contrast h4[style]:not(#aaa-page-structure-panel .ar-structure-category h4), body.ar-aaa-dark-contrast h5, body.ar-aaa-dark-contrast h5[style], body.ar-aaa-dark-contrast h6, body.ar-aaa-dark-contrast h6[style], body.ar-aaa-dark-contrast td, body.ar-aaa-dark-contrast td[style], body.ar-aaa-dark-contrast th, body.ar-aaa-dark-contrast th[style], body.ar-aaa-dark-contrast label, body.ar-aaa-dark-contrast label[style], body.ar-aaa-dark-contrast strong, body.ar-aaa-dark-contrast strong[style], body.ar-aaa-dark-contrast em, body.ar-aaa-dark-contrast em[style], body.ar-aaa-dark-contrast b, body.ar-aaa-dark-contrast b[style], body.ar-aaa-dark-contrast i, body.ar-aaa-dark-contrast i[style], body.ar-aaa-dark-contrast small, body.ar-aaa-dark-contrast small[style], body.ar-aaa-dark-contrast big, body.ar-aaa-dark-contrast big[style], body.ar-aaa-dark-contrast sub, body.ar-aaa-dark-contrast sub[style], body.ar-aaa-dark-contrast sup, body.ar-aaa-dark-contrast sup[style] {
 	 background-color: transparent !important;
-	 color: #fff !important;
+	 color: #fff;
 }
  body.ar-aaa-dark-contrast a, body.ar-aaa-dark-contrast a[style] {
 	 color: #ADD8E6 !important;
