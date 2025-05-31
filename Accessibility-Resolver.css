@@ -334,23 +334,44 @@
     margin: 2mm;
     padding: 2mm;
 }
- body.ar-aaa-enhanced-focus *:focus-visible {
-	 outline: 6px solid #FFD700 !important;
-	 outline-offset: 3px !important;
-	 box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.6) !important;
+html body a:focus-visible,
+html body button:focus-visible,
+html body input:focus-visible,
+html body textarea:focus-visible,
+html body select:focus-visible,
+html body [tabindex]:focus-visible {
+  outline: 3px solid #1976d2 !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(25,118,210,0.15) !important;
+  z-index: 2;
+}
+
+html body a:focus:not(:focus-visible),
+html body button:focus:not(:focus-visible),
+html body input:focus:not(:focus-visible),
+html body textarea:focus:not(:focus-visible),
+html body select:focus:not(:focus-visible),
+html body [tabindex]:focus:not(:focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+ html body.ar-aaa-enhanced-focus :is(a,button,input,textarea,select,[tabindex]):focus-visible {
+	 outline: 12px solid #FFD700 !important;
+	 outline-offset: 6px !important;
+	 box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.8) !important;
 	 border-radius: 4px !important;
 }
  html.ar-aaa-invert-colors body.ar-aaa-enhanced-focus *:focus-visible {
 	 outline-color: #00FFFF !important;
-	 box-shadow: 0 0 0 5px rgba(0, 255, 255, 0.6) !important;
+	 box-shadow: 0 0 0 5px rgba(0, 255, 255, 0.8) !important;
 }
  body.ar-aaa-high-contrast.ar-aaa-enhanced-focus *:focus-visible {
 	 outline-color: #00FF00 !important;
-	 box-shadow: 0 0 0 5px rgba(0, 255, 0, 0.6) !important;
+	 box-shadow: 0 0 0 5px rgba(0, 255, 0, 0.8) !important;
 }
  body.ar-aaa-dark-contrast.ar-aaa-enhanced-focus *:focus-visible {
 	 outline-color: #00FF00 !important;
-	 box-shadow: 0 0 0 5px rgba(0, 255, 0, 0.6) !important;
+	 box-shadow: 0 0 0 5px rgba(0, 255, 0, 0.8) !important;
 }
  body.ar-aaa-animations-stopped *, body.ar-aaa-animations-stopped *::before, body.ar-aaa-animations-stopped *::after {
 	 animation-duration: 0.01ms !important;
@@ -368,7 +389,6 @@
 	 display: none !important;
 }
  body.ar-aaa-reading-mode {
-	 font-size: 1.1em !important;
 	 line-height: 1.7 !important;
 	 max-width: none !important;
 	 margin: 0 !important;
@@ -446,7 +466,4 @@
 }
  body.ar-aaa-reading-mode :is(img, video, svg:not(#aaa-menu-button svg)), body.ar-aaa-reading-mode div:not(:has(:not(div, img, video, svg:not(#aaa-menu-button svg)))) {
     display: none !important;
-}
- body.ar-aaa-reading-mode :is(button,a[href])::after {
-    box-shadow: none !important;
 }
