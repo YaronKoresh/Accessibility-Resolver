@@ -91,7 +91,7 @@ function ar_removeAttributeAndLog(el, attr, sev, msg, rec, princ, guide, level =
 function ar_applyStylesAndLog(el, styles, sev, msg, rec, princ, guide, level = 'A') {
 	try {
 		for (const prop in styles) {
-			el.style.setProperty(prop, styles[prop], 'important');
+			el.style.setProperty(prop, styles[prop]);
 		}
 		ar_logAccessibilityIssue(sev, msg, el, rec, princ, guide, true, level);
 		return 1;
