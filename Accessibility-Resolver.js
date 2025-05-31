@@ -1129,9 +1129,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 		} else {
 			button.focus();
-			if (Menu.isStructurePanelOpen) {
-				this._togglePageStructurePanel(false);
-			}
 		}
 		logAction(`Menu ${ this.isOpen ? 'opened' : 'closed' }`);
 		this._saveSettings();
