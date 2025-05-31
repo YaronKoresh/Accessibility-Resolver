@@ -474,6 +474,100 @@ var AR_CheckModules = AR_CheckModules || {};
 	};
 	AR_CheckModulesProto.checkHoverFocusContent = function () {
 		ar_logSection('Content on Hover/Focus (ARIA Attributes)');
+	
+		const interactiveElements = document.querySelectorAll(
+		    'button, a[href], [role="button"], [role="link"], [role="menuitem"]'
+		);
+	
+		interactiveElements.forEach(el => {
+		    try {
+			if (ar_isVisuallyHidden(el)) return;
+	
+			validateAriaHasPopup(el);
+			validateAriaExpandedAndControls(el);
+		    } catch (error) {
+			console.error('Error in HoverFocusContent Check:', error, el);
+		    }
+		});
+	
+		console.log(
+		    '\n\uD83D\uDCA1 Manual Verification for WCAG 1.4.13 (Content on Hover/Focus) is CRUCIAL: ' +
+		    'Check for Dismissible, Hoverable, Persistent properties of popups.'
+		);
+		console.groupEnd();
+	};
+	function validateAriaHasPopup(el) {
+		const VALID_ARIA_HASPOPUP_VALUES = [
+			'menu', 'listbox', 'tree', 'grid', 'dialog', 'true', 'false'
+		];
+	        const hasPopup = el.hasAttribute('aria-haspopup');
+	        if (hasPopup) {
+	            const popupValue = el.getAttribute('aria-haspopup').toLowerCase();
+	            if (!VALID_ARIA_HASPOPUP_VALUES.includes(popupValue)) {
+	                ar_setAttributeAndLog(
+	                    el,
+	                    'aria-haspopup',
+	                    'true',
+	                    'Moderate',
+	                    `Invalid aria-haspopup value "${popupValue}". Auto-set to "true".`,
+	                    'Use valid values (menu, listbox, tree, grid, dialog, true, false).'
+	                );
+	            }
+	        }
+	}
+	function validateAriaExpandedAndControls(el) {
+	        const controlsId = el.getAttribute('aria-controls');
+	        const isExpanded = el.getAttribute('aria-expanded');
+	
+	        if (controlsId) {
+	            const controlledElement = document.getElementById(controlsId);
+	            if (controlledElement) {
+	                const isControlledElementVisible = !ar_isVisuallyHidden(controlledElement);
+	                if (isExpanded === null) {
+	                    ar_setAttributeAndLog(
+	                        el,
+	                        'aria-expanded',
+	                        String(isControlledElementVisible),
+	                        'Minor',
+	                        `aria-controls present without aria-expanded. Auto-fixed.`,
+	                        'Add and update aria-expanded to reflect the visibility of the controlled element.'
+	                    );
+	                } else if (
+	                    (isExpanded === 'true' && !isControlledElementVisible) ||
+	                    (isExpanded === 'false' && isControlledElementVisible)
+	                ) {
+	                    ar_setAttributeAndLog(
+	                        el,
+	                        'aria-expanded',
+	                        String(isControlledElementVisible),
+	                        'Minor',
+	                        `aria-expanded value mismatch with controlled element visibility. Auto-corrected.`,
+	                        'Ensure aria-expanded reflects controlled element visibility.'
+	                    );
+	                }
+	            } else if (isExpanded !== null) {
+	                ar_logAccessibilityIssue(
+	                    'Moderate',
+	                    `aria-controls points to a non-existent ID "${controlsId}".`,
+	                    el,
+	                    'Ensure aria-controls points to a valid ID of a controlled element.',
+	                    'Robust',
+	                    '4.1.2'
+	                );
+	            }
+	        } else if (isExpanded !== null) {
+	            ar_logAccessibilityIssue(
+	                'Minor',
+	                `aria-expanded present without aria-controls.`,
+	                el,
+	                'Add aria-controls if content is controlled by this element, or remove aria-expanded.',
+	                'Operable',
+	                '4.1.2'
+	            );
+	        }
+	}
+	AR_CheckModulesProto.checkHoverFocusContent = function () {
+		ar_logSection('Content on Hover/Focus (ARIA Attributes)');
 		document.querySelectorAll('button, a[href], [role="button"], [role="link"], [role="menuitem"]').forEach(el => {
 			try {
 				if (ar_isVisuallyHidden(el))
