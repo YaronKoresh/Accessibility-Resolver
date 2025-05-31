@@ -22,14 +22,14 @@
 
 * Link Accessibility-Resolver to your website externally:
 ```
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@cddebfdbc2783b90504fb86ef913e643b2f07d76/config.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@cddebfdbc2783b90504fb86ef913e643b2f07d76/logging.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@cddebfdbc2783b90504fb86ef913e643b2f07d76/dom.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@cddebfdbc2783b90504fb86ef913e643b2f07d76/menu.css">
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@cddebfdbc2783b90504fb86ef913e643b2f07d76/panel.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@cddebfdbc2783b90504fb86ef913e643b2f07d76/action.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@cddebfdbc2783b90504fb86ef913e643b2f07d76/check.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@cddebfdbc2783b90504fb86ef913e643b2f07d76/init.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/config.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/logging.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/dom.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/menu.css">
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/panel.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/action.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/check.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@87b05cb1cd149b41d4980dab3d0eb21f84603801/init.js"></script>
 ```
 
 - - -
