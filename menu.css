@@ -306,7 +306,8 @@
 	 background-color: transparent !important;
 	 text-decoration: underline !important;
 }
- body.ar-aaa-dark-contrast svg:not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg), body.ar-aaa-dark-contrast svg *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *) {
+ body.ar-aaa-dark-contrast svg:not(:has(path ~ path)):not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg),
+ body.ar-aaa-dark-contrast svg:not(:has(path ~ path)) *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *) {
 	 background-color: transparent !important;
 	 fill: #fff !important;
 	 stroke: #fff !important;
