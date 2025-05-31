@@ -56,12 +56,12 @@ async function ar_runAccessibilityScan() {
 	AR_CheckModules.checkTableAccessibility();
 	AR_CheckModules.checkOverlayFocusBlocking();
 	AR_CheckModules.checkInteractiveElementSize();
+	AR_CheckModules.checkAriaMisuse();
 	AR_CheckModules.checkHoverFocusContent();
 	AR_CheckModules.checkAutoFormSubmission();
 	AR_CheckModules.checkDuplicateIds(globalState);
 	AR_CheckModules.checkAccessibleNames();
 	AR_CheckModules.checkTabindexUsage();
-	AR_CheckModules.checkAriaMisuse();
 	AR_CheckModules.checkContrastRatioForAllElements();
 	AR_CheckModules.checkFormFieldLabels();
 	AR_CheckModules.checkFormValidationAria();
