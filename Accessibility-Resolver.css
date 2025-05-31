@@ -301,8 +301,12 @@
 	 opacity: 1.0 !important;
 }
  body.ar-aaa-dark-contrast :is(img, video, svg:has(path ~ path)) {
-	 opacity: 0;
- }
+    opacity: 0;
+    display: none !important;
+}
+ body.ar-aaa-dark-contrast a:has(img, video, svg:has(path ~ path)) {
+	 outline: black !important;
+}
  body.ar-aaa-dark-contrast a, body.ar-aaa-dark-contrast a[style] {
 	 color: #ADD8E6 !important;
 	 background-color: transparent !important;
