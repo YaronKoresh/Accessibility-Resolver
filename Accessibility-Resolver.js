@@ -1770,15 +1770,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			localStorage.removeItem(STORAGE_KEY);
 		}
 	};
-  
-  const MENU_BUTTON_ID = 'aaa-menu-button';
-	const MENU_PANEL_ID = 'aaa-menu-panel';
-	const PAGE_STRUCTURE_PANEL_ID = 'aaa-page-structure-panel';
-	const READING_MASK_TOP_ID = 'aaa-reading-mask-top';
-	const READING_MASK_BOTTOM_ID = 'aaa-reading-mask-bottom';
-	const READING_LINE_ID = 'aaa-reading-line';
-	const CLASS_TEMP_HIGHLIGHT = 'ar-aaa-temp-highlight';
-	function isAccessibilityMenuElement(el) {
+  	function isAccessibilityMenuElement(el) {
 		return el.closest(`#${ MENU_BUTTON_ID }`) || el.closest(`#${ MENU_PANEL_ID }`) || el.closest(`#${ PAGE_STRUCTURE_PANEL_ID }`);
 	}
 	if (typeof Menu._getLocalizedString === 'undefined') {
