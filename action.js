@@ -6,7 +6,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	const READING_MASK_TOP_ID = 'aaa-reading-mask-top';
 	const READING_MASK_BOTTOM_ID = 'aaa-reading-mask-bottom';
 	const READING_LINE_ID = 'aaa-reading-line';
-	const FONT_SIZE_MULTIPLIER = 1.1;
+	const FONT_SIZE_MULTIPLIER = 1.08;
 	const STORAGE_KEY = 'AR_AccessibilityMenu_Settings_v1.4';
 	const EDGE_MARGIN_PX = 38;
 	const CLASS_HIGH_CONTRAST = 'ar-aaa-high-contrast';
@@ -1104,21 +1104,6 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			panel.querySelectorAll('button[data-action]').forEach(btn => {
 				this._updateButtonActiveState(btn, false);
 			});
-		}
-		const menuButton = document.getElementById(MENU_BUTTON_ID);
-		if (menuButton) {
-			menuButton.style.right = '20px';
-			menuButton.style.top = '50%';
-			menuButton.style.transform = 'translateY(-50%)';
-			menuButton.style.left = 'auto';
-			menuButton.style.bottom = 'auto';
-			Menu.buttonWasDragged = false;
-		}
-		if (panel) {
-			Menu.panelWasDragged = false;
-			if (this.isOpen) {
-				this._positionPanelRelativeToButton(menuButton, panel);
-			}
 		}
 		if (!calledByProfile) {
 			logAction('All settings reset.');
