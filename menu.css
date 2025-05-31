@@ -125,9 +125,9 @@
 	 outline: 1px solid #000000 !important;
 }
  #aaa-menu-panel button.ar-aaa-menu-btn-active {
-	 background-color: #000000;
+	 background-color: #000000 !important;
 	 color: #ffffff !important;
-	 border-color: #000000;
+	 border-color: #000000 !important;
 }
  html.ar-aaa-invert-colors #aaa-menu-panel button.ar-aaa-menu-btn-active {
 	 color: black !important;
