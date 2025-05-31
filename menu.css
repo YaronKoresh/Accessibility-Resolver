@@ -269,7 +269,7 @@
  html.ar-aaa-invert-colors #aaa-menu-button, html.ar-aaa-invert-colors #aaa-menu-button *, html.ar-aaa-invert-colors #aaa-menu-panel, html.ar-aaa-invert-colors #aaa-menu-panel *, html.ar-aaa-invert-colors #aaa-page-structure-panel, html.ar-aaa-invert-colors #aaa-page-structure-panel * {
 	 filter: invert(100%) hue-rotate(180deg) !important;
 }
- body.ar-aaa-high-contrast {
+ body.ar-aaa-high-contrast, body.ar-aaa-high-contrast .ar-text-scaled-by-menu, body.ar-aaa-high-contrast .ar-text-scaled-by-menu * {
 	 background-color: #fff !important;
 	 color: #000 !important;
 }
@@ -292,7 +292,7 @@
 	 color: #000 !important;
 	 border: 1px solid #000 !important;
 }
- body.ar-aaa-dark-contrast {
+ body.ar-aaa-dark-contrast, body.ar-aaa-dark-contrast .ar-text-scaled-by-menu, body.ar-aaa-dark-contrast .ar-text-scaled-by-menu * {
 	 background-color: #000 !important;
 	 color: #fff !important;
 }
@@ -431,4 +431,3 @@
  .ar-text-scaled-by-menu {
 	 font-size: var(--ar-scaled-font-size, inherit) !important;
 }
- 
