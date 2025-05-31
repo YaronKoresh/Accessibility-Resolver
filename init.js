@@ -156,7 +156,9 @@ function ar_initializeAndRunMerged() {
 if (document.readyState === 'complete') {
 	ar_initializeAndRunMerged();
 } else {
-	document.addEventListener('load', () => {
-		ar_initializeAndRunMerged()
+	document.addEventListener('readystatechange', () => {
+		if (document.readyState === 'complete') {
+			ar_initializeAndRunMerged();
+		}
 	});
 }
