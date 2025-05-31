@@ -1986,33 +1986,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (!container)
 				return;
 			container.innerHTML = '';
-			let elements = [];
-			if (itemType === 'landmarks') {
-				const landmarkSelectors = [
-					'main',
-					'[role="main"]',
-					'nav',
-					'[role="navigation"]',
-					'header',
-					'[role="banner"]',
-					'footer',
-					'[role="contentinfo"]',
-					'aside',
-					'[role="complementary"]',
-					'form',
-					'[role="form"]',
-					'[role="search"]',
-					'section[aria-label]',
-					'section[aria-labelledby]',
-					'[role="region"][aria-label]',
-					'[role="region"][aria-labelledby]'
-				].join(',');
-				elements = Array.from(document.querySelectorAll(landmarkSelectors));
-			} else if (itemType === 'links') {
-				elements = Array.from(document.querySelectorAll('a[href]:not([href=""]):not([href="#"]):not([href^="javascript:"])'));
-			} else {
-				elements = Array.from(document.querySelectorAll(selector));
-			}
+			let elements = Array.from(document.querySelectorAll(selector));
 			elements = elements.filter(el => !isAccessibilityMenuElement(el));
 			const itemsToAdd = [];
 			elements.forEach(el => {
