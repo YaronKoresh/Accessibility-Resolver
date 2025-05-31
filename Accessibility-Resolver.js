@@ -2067,9 +2067,41 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			}
 		};
 		listedElements.clear();
-		createListSection('h1, h2, h3, h4, h5, h6', 'ar-aaa-structure-headings', 'Heading');
-		createListSection('', 'ar-aaa-structure-landmarks', 'landmarks');
-		createListSection('a[href]', 'ar-aaa-structure-links', 'links');
+		createListSection(
+		  'h1:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *), ' +
+		  'h2:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *), ' +
+		  'h3:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *), ' +
+		  'h4:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *), ' +
+		  'h5:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *), ' +
+		  'h6:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  'ar-aaa-structure-headings',
+		  'Heading'
+		);
+		const landmarkSelectors = [
+		  'main:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  '[role="main"]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  'nav:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  '[role="navigation"]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  'header:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  '[role="banner"]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  'footer:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  '[role="contentinfo"]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  'aside:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  '[role="complementary"]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  'form:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  '[role="form"]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  '[role="search"]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  'section[aria-label]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  'section[aria-labelledby]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  '[role="region"][aria-label]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  '[role="region"][aria-labelledby]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)'
+		].join(', ');
+		createListSection(landmarkSelectors, 'ar-aaa-structure-landmarks', 'Landmarks');
+		createListSection(
+		  'a[href]:not([href=""]):not([href="#"]):not([href^="javascript:"]):not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
+		  'ar-aaa-structure-links',
+		  'Links'
+		);
 	};
 }(AR_AccessibilityMenu));
 
