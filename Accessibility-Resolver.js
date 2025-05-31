@@ -110,7 +110,37 @@ let ar_mainMutationObserverDebounceTimeout;
 const ar_originalElementStylesMap = new Map();
 let ar_activeReadingGuideType = null;
 const ar_loggedIssuesTracker = new Set()
-
+function getDevice(){
+	return [
+		(document.body.classList.contains('tablet') ? 'tablet' : document.body.classList.contains('mobile') ? 'mobile' : 'desktop' ),
+		(document.body.classList.contains('portrait') ? 'portrait' : 'landscape')
+	];
+}
+function _setDeviceOrientation() {
+	const newOrientation = screen.orientation.type;
+	const newAngle = screen.orientation.angle;	
+	document.body.classList.remove('portrait', 'landscape');
+	if (newOrientation.startsWith('portrait')) {
+	    document.body.classList.add('portrait');
+	} else if (newOrientation.startsWith('landscape')) {
+	    document.body.classList.add('landscape');
+	}
+}
+function setDeviceOrientation() {
+	screen.orientation.addEventListener('change', () => _setDeviceOrientation);
+	_setDeviceOrientation();
+}
+function setDeviceType() {
+	const ua = navigator.userAgent;
+	document.body.classList.remove('tablet', 'mobile', 'desktop');
+	if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+		document.body.classList.add( "tablet" );
+	}
+	if ( /Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test( ua )) {
+		document.body.classList.add( "mobile" );
+	}
+	document.body.classList.add( "desktop" );
+}
 function ar_generateUniqueElementId(prefix = 'ar-uid') {
 	let newId;
 	let attempts = 0;
@@ -3914,7 +3944,12 @@ function ar_initializeAndRunMerged() {
 		console.error('AR_CheckModules methods are not defined. Check script loading order for ar_check_modules_part1/2.js.');
 		return
 	}
-	AR_AccessibilityMenu.init();
+	setDeviceOrientation();
+	setDeviceType();
+	const device = getDevice();
+	if(!device.includes('mobile') && !device.includes('portrait')){
+		AR_AccessibilityMenu.init();
+	}
 	ar_runAccessibilityScan();
 }
 
