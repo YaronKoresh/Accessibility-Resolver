@@ -1899,10 +1899,9 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			  'section[aria-labelledby]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
 			  '[role="region"][aria-label]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)',
 			  '[role="region"][aria-labelledby]:not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)'
-		    ].join(', ');,
+		    ].join(', '),
 		    links: 'a[href]:not([href=""]):not([href="#"]):not([href^="javascript:"]):not([aria-hidden="true"]):not(.ar-aaa-visually-hidden):not(#aaa-menu-panel *):not(#aaa-menu-button *)'
 		};
-
 		
 		const listedElements = new Set();
 		const isHiddenOrEmpty = el => {
