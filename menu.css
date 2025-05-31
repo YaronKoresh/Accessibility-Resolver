@@ -15,7 +15,7 @@
  #aaa-menu-button {
 	 position: fixed !important;
 	 z-index: 2147483647 !important;
-	 background-color: #000000 !important;
+	 background-color: #000000;
 	 color: #ffffff !important;
 	 border: 2px solid #ffffff !important;
 	 border-radius: 50% !important;
@@ -33,7 +33,7 @@
 	 transition: none !important;
 }
  #aaa-menu-button:hover {
-	 background-color: #000000 !important;
+	 background-color: #000000;
 }
  #aaa-menu-button:focus-visible {
 	 outline: 2px solid #ffffff !important;
@@ -56,7 +56,7 @@
  #aaa-menu-panel, #aaa-page-structure-panel {
 	 background-color: #ffffff !important;
 	 border: 2px solid #000000 !important;
-	 color: #000000 !important;
+	 color: #000000;
 	 filter: none !important;
 	 font-family: 'Inter', Arial, sans-serif !important;
 }
@@ -76,7 +76,7 @@
 	 margin-top: 0 !important;
 	 margin-bottom: 15px !important;
 	 font-size: 1.2em !important;
-	 color: #000000 !important;
+	 color: #000000;
 	 text-align: center !important;
 	 background-color: transparent !important;
 	 font-family: 'Inter', Arial, sans-serif !important;
@@ -108,7 +108,7 @@
 	 padding: 10px 12px !important;
 	 font-size: 1em !important;
 	 background-color: #ffffff !important;
-	 color: #000000 !important;
+	 color: #000000;
 	 border: 1px solid #000000 !important;
 	 border-radius: 4px !important;
 	 cursor: pointer !important;
@@ -125,9 +125,9 @@
 	 outline: 1px solid #000000 !important;
 }
  #aaa-menu-panel button.ar-aaa-menu-btn-active {
-	 background-color: #000000 !important;
+	 background-color: #000000;
 	 color: #ffffff !important;
-	 border-color: #000000 !important;
+	 border-color: #000000;
 }
 /* Ensure active button text is visible in inverted colors */
  html.ar-aaa-invert-colors #aaa-menu-panel button.ar-aaa-menu-btn-active {
@@ -156,8 +156,8 @@
 }
  #aaa-menu-panel button.ar-aaa-reset-btn {
 	 background-color: #e0e0e0 !important;
-	 border-color: #000000 !important;
-	 color: #000000 !important;
+	 border-color: #000000;
+	 color: #000000;
 }
  #aaa-menu-panel button.ar-aaa-reset-btn:hover {
 	 background-color: #d0d0d0 !important;
@@ -218,7 +218,7 @@
  body.ar-aaa-high-contrast #aaa-page-structure-panel {
 	 background-color: rgba(255, 255, 255, 0.95) !important;
 	/* More opaque white */
-	 color: #000000 !important;
+	 color: #000000;
 }
  body.ar-aaa-dark-contrast #aaa-page-structure-panel {
 	 background-color: rgba(0, 0, 0, 0.95) !important;
@@ -230,20 +230,20 @@
 	/* Invert the panel too */
 	 background-color: rgba(255, 255, 255, 0.9) !important;
 	/* Reset background after invert */
-	 color: #000000 !important;
+	 color: #000000;
 	/* Reset text color after invert */
 }
  #aaa-page-structure-panel h3#ar-aaa-structure-title {
 	 margin-top: 0 !important;
 	 margin-bottom: 15px !important;
 	 font-size: 1.3em !important;
-	 color: #000000 !important;
+	 color: #000000;
 	 background-color: transparent !important;
 }
  #aaa-page-structure-panel .ar-structure-category h4 {
 	 font-size: 1.1em !important;
 	 margin-bottom: 8px !important;
-	 color: #000000 !important;
+	 color: #000000;
 	 border-bottom: 1px solid #cccccc !important;
 	 padding-bottom: 5px !important;
 	 background-color: transparent !important;
@@ -264,7 +264,7 @@
 	 margin-bottom: 5px !important;
 	 cursor: pointer !important;
 	 font-size: 0.9em !important;
-	 color: #000000 !important;
+	 color: #000000;
 	 transition: none !important;
 	 font-family: 'Inter', Arial, sans-serif !important;
 }
@@ -416,7 +416,7 @@
 	 padding: 10px !important;
 	 background-color: #ffffff !important;
 	/* Ensure content background is white */
-	 color: #000000 !important;
+	 color: #000000;
 	/* Ensure content text is black */
 	 box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 	/* Add a subtle shadow to content block */
