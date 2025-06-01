@@ -3089,7 +3089,7 @@ var AR_CheckModules = AR_CheckModules || {};
 				const requiredContrast = isLargeText ? AR_CONFIG.CONTRAST_RATIO_AA_LARGE_TEXT : AR_CONFIG.CONTRAST_RATIO_AA_NORMAL_TEXT;
 				const originalFgColorString = `rgba(${ fgOriginalRgba.join(',') })`;
 				const originalBgColorString = `rgb(${ bgEffectiveRgba.slice(0, 3).join(',') })`;
-				if (currentContrast < requiredContrast) {
+				if (currentContrast < requiredContrast && currentContrast > 1.00) {
 					const initialFailureKey = `${ el.id || el.dataset.arGeneratedId || ar_generateUniqueElementId('contrast-el-') }::CONTRAST_FAILURE_INITIAL::${ originalFgColorString }-${ originalBgColorString }`;
 					if (!ar_loggedIssuesTracker.has(initialFailureKey)) {
 						ar_logAccessibilityIssue('Critical', `Low contrast: ${ currentContrast.toFixed(2) }:1 (Req: ${ requiredContrast }:1).`, el, `Original: ${ originalFgColorString } on ${ originalBgColorString }. Attempting autofix.`, 'Perceivable', '1.4.3 Contrast (Minimum)', false, 'AA')
