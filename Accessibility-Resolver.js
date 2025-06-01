@@ -3946,9 +3946,9 @@ function ar_initializeAndRunMerged() {
 	setDeviceOrientation();
 	setDeviceType();
 	const device = getDevice();
-	if(!device.includes('mobile')){
+	//if(!device.includes('mobile')){
 		AR_AccessibilityMenu.init();
-	}
+	//}
 	ar_runAccessibilityScan();
 }
 
