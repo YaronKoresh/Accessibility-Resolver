@@ -840,6 +840,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const menuPanel = document.getElementById(MENU_PANEL_ID);
 		if (menuButton) {
 			menuButton.addEventListener('click', this._handleMenuButtonClick.bind(this));
+			menuButton.addEventListener('touchend', this._handleMenuButtonClick.bind(this), { passive: false });
 		}
 		if (menuPanel) {
 			menuPanel.addEventListener('click', this._handlePanelActionClick.bind(this));
