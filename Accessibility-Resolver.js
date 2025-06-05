@@ -2286,7 +2286,11 @@ var AR_CheckModules = AR_CheckModules || {};
 		if (img.getAttribute('aria-hidden') === 'true') return;
 		let altText = 'Image (description needed)';
 		const src = (img.src || '').toLowerCase();
-		const className = (img.className || '').toLowerCase();
+		let className = (img.className || '')
+		if(typeof className === "object"){
+			className = className.baseVal;
+		}			
+		className = className.toLowerCase();
 		if (AR_CONFIG.AVATAR_KEYWORDS.some(kw => src.includes(kw) || className.includes(kw))) {
 			altText = 'User avatar'
 		} else {
@@ -2743,7 +2747,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		document.querySelectorAll('[id]').forEach(el => {
 			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
-				const id = el.id;
+				const id = el.getAttribute("id");
 				if (!id || id.trim() === '')
 					return;
 				if (globalState.seenIds.has(id)) {
