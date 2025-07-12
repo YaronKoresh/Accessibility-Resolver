@@ -29,7 +29,7 @@
 	 justify-content: center !important;
 	 padding: 0 !important;
 	 filter: none !important;
-	 font-family: 'Inter', Arial, sans-serif !important;
+	 font-family:  Arial, sans-serif !important;
 	 transition: none !important;
 }
  #aaa-menu-button:hover {
@@ -58,7 +58,7 @@
 	 border: 2px solid #000000 !important;
 	 color: #000000;
 	 filter: none !important;
-	 font-family: 'Inter', Arial, sans-serif !important;
+	 font-family: Arial, sans-serif !important;
 }
  #aaa-menu-panel {
 	 display: none;
@@ -72,6 +72,15 @@
 	 padding: 15px;
 	 cursor: grab;
 }
+ #aaa-menu-panel, #aaa-menu-panel * {
+     background: white !important;
+     color: black !important;
+     text-transform: uppercase !important;
+ }
+ #aaa-menu-panel :is(h1,h2,h3,h4,h5,h6,p,div,span) {
+     font-size: large !important;
+     text-align: center !important;
+ }
  #aaa-menu-panel h3#ar-aaa-menu-title, #aaa-menu-panel .ar-aaa-profile-title {
 	 margin-top: 0 !important;
 	 margin-bottom: 15px !important;
@@ -79,10 +88,9 @@
 	 color: #000000;
 	 text-align: center !important;
 	 background-color: transparent !important;
-	 font-family: 'Inter', Arial, sans-serif !important;
+	 font-family: Arial, sans-serif !important;
 }
  #aaa-menu-panel .ar-aaa-profile-title {
-	 text-align: left !important;
 	 font-weight: bold !important;
 }
  #aaa-menu-panel.ar-aaa-menu-open {
@@ -118,7 +126,7 @@
 	 justify-content: center !important;
 	 gap: 6px !important;
 	 min-height: 40px !important;
-	 font-family: 'Inter', Arial, sans-serif !important;
+	 font-family: Arial, sans-serif !important;
 }
  #aaa-menu-panel button:hover, #aaa-menu-panel button:focus-visible {
 	 background-color: #f0f0f0 !important;
@@ -237,7 +245,7 @@
 	 font-size: 0.9em !important;
 	 color: #000000;
 	 transition: none !important;
-	 font-family: 'Inter', Arial, sans-serif !important;
+	 font-family: Arial, sans-serif !important;
 }
  #aaa-page-structure-panel li button:hover {
 	 background-color: #efefef !important;
@@ -251,7 +259,7 @@
 	 border: 1px solid #000 !important;
 	 border-radius: 4px !important;
 	 cursor: pointer !important;
-	 font-family: 'Inter', Arial, sans-serif !important;
+	 font-family: Arial, sans-serif !important;
 }
  #aaa-page-structure-panel .ar-aaa-structure-close-btn:hover {
 	 background-color: #555 !important;
@@ -273,23 +281,101 @@
 	 background-color: #fff !important;
 	 color: #000 !important;
 }
- body.ar-aaa-high-contrast p, body.ar-aaa-high-contrast p[style], body.ar-aaa-high-contrast span, body.ar-aaa-high-contrast span[style], body.ar-aaa-high-contrast div:not(#aaa-menu-button):not(#aaa-menu-button *):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-page-structure-panel):not(#aaa-page-structure-panel *):not([class*="icon"]), body.ar-aaa-high-contrast div[style]:not(#aaa-menu-button):not(#aaa-menu-button *):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-page-structure-panel):not(#aaa-page-structure-panel *):not([class*="icon"]), body.ar-aaa-high-contrast li, body.ar-aaa-high-contrast li[style], body.ar-aaa-high-contrast h1, body.ar-aaa-high-contrast h1[style], body.ar-aaa-high-contrast h2, body.ar-aaa-high-contrast h2[style], body.ar-aaa-high-contrast h3:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), body.ar-aaa-high-contrast h3[style]:not(#ar-aaa-menu-title):not(#ar-aaa-structure-title):not(.ar-aaa-profile-title), body.ar-aaa-high-contrast h4:not(#aaa-page-structure-panel .ar-structure-category h4), body.ar-aaa-high-contrast h4[style]:not(#aaa-page-structure-panel .ar-structure-category h4), body.ar-aaa-high-contrast h5, body.ar-aaa-high-contrast h5[style], body.ar-aaa-high-contrast h6, body.ar-aaa-high-contrast h6[style], body.ar-aaa-high-contrast td, body.ar-aaa-high-contrast td[style], body.ar-aaa-high-contrast th, body.ar-aaa-high-contrast th[style], body.ar-aaa-high-contrast label, body.ar-aaa-high-contrast label[style], body.ar-aaa-high-contrast strong, body.ar-aaa-high-contrast strong[style], body.ar-aaa-high-contrast em, body.ar-aaa-high-contrast em[style], body.ar-aaa-high-contrast b, body.ar-aaa-high-contrast b[style], body.ar-aaa-high-contrast i, body.ar-aaa-high-contrast i[style], body.ar-aaa-high-contrast small, body.ar-aaa-high-contrast small[style], body.ar-aaa-high-contrast big, body.ar-aaa-high-contrast big[style], body.ar-aaa-high-contrast sub, body.ar-aaa-high-contrast sub[style], body.ar-aaa-high-contrast sup, body.ar-aaa-high-contrast sup[style] {
-	 color: #000 !important;
+body.ar-aaa-high-contrast p,
+body.ar-aaa-high-contrast p[style],
+body.ar-aaa-high-contrast span:not(:has(>svg)),
+body.ar-aaa-high-contrast span:not(:has(>svg))[style],
+body.ar-aaa-high-contrast div:not(#aaa-menu-button, #aaa-menu-button *, #aaa-menu-panel, #aaa-menu-panel *, #aaa-page-structure-panel, #aaa-page-structure-panel *, [class*="icon"]),
+body.ar-aaa-high-contrast div[style]:not(#aaa-menu-button, #aaa-menu-button *, #aaa-menu-panel, #aaa-menu-panel *, #aaa-page-structure-panel, #aaa-page-structure-panel *, [class*="icon"]),
+body.ar-aaa-high-contrast li,
+body.ar-aaa-high-contrast li[style],
+body.ar-aaa-high-contrast h1,
+body.ar-aaa-high-contrast h1[style],
+body.ar-aaa-high-contrast h2,
+body.ar-aaa-high-contrast h2[style],
+body.ar-aaa-high-contrast h3:not(#ar-aaa-menu-title, #ar-aaa-structure-title, .ar-aaa-profile-title),
+body.ar-aaa-high-contrast h3[style]:not(#ar-aaa-menu-title, #ar-aaa-structure-title, .ar-aaa-profile-title),
+body.ar-aaa-high-contrast h4:not(#aaa-page-structure-panel .ar-structure-category h4),
+body.ar-aaa-high-contrast h4[style]:not(#aaa-page-structure-panel .ar-structure-category h4),
+body.ar-aaa-high-contrast h5,
+body.ar-aaa-high-contrast h5[style],
+body.ar-aaa-high-contrast h6,
+body.ar-aaa-high-contrast h6[style],
+body.ar-aaa-high-contrast td,
+body.ar-aaa-high-contrast td[style],
+body.ar-aaa-high-contrast th,
+body.ar-aaa-high-contrast th[style],
+body.ar-aaa-high-contrast strong,
+body.ar-aaa-high-contrast strong[style],
+body.ar-aaa-high-contrast em,
+body.ar-aaa-high-contrast em[style],
+body.ar-aaa-high-contrast b,
+body.ar-aaa-high-contrast b[style],
+body.ar-aaa-high-contrast i,
+body.ar-aaa-high-contrast i[style],
+body.ar-aaa-high-contrast small,
+body.ar-aaa-high-contrast small[style],
+body.ar-aaa-high-contrast big,
+body.ar-aaa-high-contrast big[style],
+body.ar-aaa-high-contrast sub,
+body.ar-aaa-high-contrast sub[style],
+body.ar-aaa-high-contrast sup,
+body.ar-aaa-high-contrast sup[style],
+body.ar-aaa-high-contrast header,
+body.ar-aaa-high-contrast header[style],
+body.ar-aaa-high-contrast header *:not(:has(>svg)),
+body.ar-aaa-high-contrast header[style] *:not(:has(>svg)),
+body.ar-aaa-high-contrast main,
+body.ar-aaa-high-contrast main[style],
+body.ar-aaa-high-contrast main *:not(:has(>svg)),
+body.ar-aaa-high-contrast main[style] *:not(:has(>svg)),
+body.ar-aaa-high-contrast footer,
+body.ar-aaa-high-contrast footer[style],
+body.ar-aaa-high-contrast footer *:not(:has(>svg)),
+body.ar-aaa-high-contrast footer[style] *:not(:has(>svg)),
+body.ar-aaa-high-contrast button:not(:has(img)),
+body.ar-aaa-high-contrast button:not(:has(img))[style],
+body.ar-aaa-high-contrast a.button:not(:has(img)),
+body.ar-aaa-high-contrast a.button:not(:has(img))[style] {
+	 color: black !important;
+     background: white !important;
+     box-shadow: none !important;
+     border-color: black !important;
 }
- body.ar-aaa-high-contrast a, body.ar-aaa-high-contrast a[style] {
+body.ar-aaa-high-contrast span:has(>svg),
+body.ar-aaa-high-contrast span:has(>svg)[style] {
+     background: white !important;
+     background-color: white !important;
+}
+body.ar-aaa-high-contrast svg,
+body.ar-aaa-high-contrast svg[style],
+body.ar-aaa-high-contrast label,
+body.ar-aaa-high-contrast label[style] {
+	 color: black !important;
+     background: transparent !important;
+}
+body.ar-aaa-high-contrast span.ar-aaa-menu-icon {
+	 color: white !important;
+     background: transparent !important;
+}
+body.ar-aaa-high-contrast a,
+body.ar-aaa-high-contrast a[style] {
 	 color: #0000EE !important;
-	 background-color: transparent !important;
+	 background-color: white !important;
 	 text-decoration: underline !important;
 }
- body.ar-aaa-high-contrast svg:not(:has(path ~ path)):not(:has()):not(#aaa-menu-button svg):not(#aaa-menu-panel svg):not(#aaa-page-structure-panel svg), body.ar-aaa-high-contrast svg:not(:has(path ~ path)) *:not(#aaa-menu-button svg *):not(#aaa-menu-panel svg *):not(#aaa-page-structure-panel svg *) {
+body.ar-aaa-high-contrast svg:not(:has(path ~ path), #aaa-menu-button svg, #aaa-menu-panel svg, #aaa-page-structure-panel svg),
+body.ar-aaa-high-contrast svg:not(:has(path ~ path)) *:not(#aaa-menu-button svg *, #aaa-menu-panel svg *, #aaa-page-structure-panel svg *) {
 	 background-color: transparent !important;
 	 fill: #000 !important;
 	 stroke: #000 !important;
 }
- body.ar-aaa-high-contrast button:not(#aaa-menu-button):not(#aaa-menu-panel button):not(#aaa-page-structure-panel button), body.ar-aaa-high-contrast input, body.ar-aaa-high-contrast select, body.ar-aaa-high-contrast textarea {
-	 background-color: #eee !important;
-	 color: #000 !important;
-	 border: 1px solid #000 !important;
+body.ar-aaa-high-contrast button:not(#aaa-menu-button, #aaa-menu-panel button, #aaa-page-structure-panel button),
+body.ar-aaa-high-contrast select {
+    background: transparent !important;
+    color: #000 !important;
+    fill: #000 !important;
+    border: none !important;
 }
  body.ar-aaa-dark-contrast, body.ar-aaa-dark-contrast .ar-text-scaled-by-menu, body.ar-aaa-dark-contrast .ar-text-scaled-by-menu * {
 	 background-color: #000 !important;
@@ -300,7 +386,7 @@
 	 color: #fff;
 	 opacity: 1.0 !important;
 }
- body.ar-aaa-dark-contrast :is(img, video, svg:has(path ~ path)) {
+ :is(body.ar-aaa-dark-contrast,body.ar-aaa-high-contrast) :is(img, video, svg:has(path ~ path)) {
     opacity: 0;
     display: none !important;
 }
@@ -431,7 +517,7 @@ html body [tabindex]:focus:not(:focus-visible) {
 	 display: none;
 }
  #aaa-menu-panel, #aaa-menu-panel *, #aaa-menu-button, #aaa-menu-button * {
-	 font-family: 'Inter', Arial, sans-serif !important;
+	 font-family: Arial, sans-serif !important;
 }
  @media (max-width: 480px) {
 	 #aaa-menu-panel {
@@ -461,7 +547,10 @@ html body [tabindex]:focus:not(:focus-visible) {
 	 background-color: rgba(255,215,0,0.1) !important;
 	 transition: outline 0.2s ease-out, background-color 0.2s ease-out !important;
 }
- .ar-text-scaled-by-menu {
+html > body :is(
+   p, li, span, div:not(#aaa-menu-panel, #aaa-menu-button, [class*="icon"]),
+   h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup
+):not(:has( p, li, span, div, h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup )).ar-text-scaled-by-menu {
 	 font-size: var(--ar-scaled-font-size, inherit) !important;
 }
  body.ar-aaa-reading-mode :is(img, video, svg:not(#aaa-menu-button svg)), body.ar-aaa-reading-mode div:not(:has(:not(div, img, video, svg:not(#aaa-menu-button svg)))) {
