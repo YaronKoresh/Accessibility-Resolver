@@ -73,7 +73,7 @@ const AR_CONFIG = {
 const AR_SELECTOR_STRINGS = {
 	INTERACTIVE_ELEMENTS: 'button, a[href], input:not([type="hidden"]), select, textarea, [role="button"], [role="link"], [role="checkbox"], [role="radio"], [role="option"], [role="menuitem"], [role="tab"], [role="treeitem"], [role="slider"], [role="spinbutton"], [role="switch"], [tabindex]:not([tabindex="-1"])',
 	HEADING_ELEMENTS: 'h1, h2, h3, h4, h5, h6',
-	TEXT_CONTAINER_ELEMENTS_AFFECTED_BY_MENU: `:is(p, li, dt, dd, figcaption, blockquote, pre, code, summary, h1, h2, h3, h4, h5, h6, article, section, main, header, footer, nav, aside, div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }):not([role="toolbar"]):not([role="menubar"]):not([class*="toast"]):not([class*="modal"]):not([class*="popup"]), span:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *), td, th, caption, label, legend, em, strong, b, i, small, sub, sup, mark, ins, del, q, cite):not(:has(:not(span)))`.replace(/\s+/g, ' ').trim(),
+	TEXT_CONTAINER_ELEMENTS_AFFECTED_BY_MENU: `:is(p, li, dt, dd, figcaption, blockquote, pre, code, summary, h1, h2, h3, h4, h5, h6, article, section, main, header, footer, nav, aside, div:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID }):not([role="toolbar"]):not([role="menubar"]):not([class*="toast"]):not([class*="modal"]):not([class*="popup"]), span:not(#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID } *):not(#${ AR_CONFIG.ACCESSIBILITY_MENU_BUTTON_ID } *), td, th, caption, label, legend, em, strong, b, i, small, sub, sup, mark, ins, del, q, cite):not(:has(:not(br)))`.replace(/\s+/g, ' ').trim(),
 	FORM_CONTROL_ELEMENTS: 'input:not([type="hidden"]), select, textarea',
 	LANDMARK_ROLES_ARRAY: [
 		'main',
@@ -1332,7 +1332,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			elements = window.ar_getElementsForMenuTextStyleAdjustments();
 		}
 		if (!elements || elements.length === 0) {
-			elements = Array.from(document.querySelectorAll(':is(p, li, span, div:not(#' + MENU_PANEL_ID + '):not(#' + MENU_BUTTON_ID + '):not([class*="icon"]):not(:empty),' + 'h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup):not(:has(:not(span)))')).filter(el => el.closest(`#${ MENU_PANEL_ID }`) === null && el.closest(`#${ MENU_BUTTON_ID }`) === null);
+			elements = Array.from(document.querySelectorAll('html > body :is(p, li, span, div:not(#' + MENU_PANEL_ID + ', #' + MENU_BUTTON_ID + ', [class*="icon"]),' + 'h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup):not(:has(p, li, span, div, h1, h2, h3, h4, h5, h6, a, label, td, th, caption, strong, em, b, i, small, big, sub, sup))')).filter(el => el.closest(`#${ MENU_PANEL_ID }`) === null && el.closest(`#${ MENU_BUTTON_ID }`) === null);
 		}
 		elements.forEach(el => {
 			if (!document.body.contains(el))
@@ -2088,7 +2088,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	};
 	AR_CheckModulesProto._checkVisualHeadings = function (globalState) {
 		document.querySelectorAll('div, span, p').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el) || el.closest('h1, h2, h3, h4, h5, h6'))
 					return;
@@ -2132,7 +2132,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	};
 	AR_CheckModulesProto._checkPseudoLists = function () {
 		document.querySelectorAll('div, p').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el) || el.closest('ul, ol, dl'))
 					return;
@@ -2175,7 +2175,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	};
 	AR_CheckModulesProto._checkParagraphsWithOnlyImages = function () {
 		document.querySelectorAll('p').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (el.children.length === 1 && el.children[0].tagName === 'IMG') {
 					const img = el.children[0];
@@ -2464,7 +2464,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto.checkOverlayFocusBlocking = function () {
 		ar_logSection('Overlapping Elements (Modals/Popups)');
 		document.querySelectorAll('body > div, body > section, body > aside, [role="dialog"], [role="alertdialog"]').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el))
 					return;
@@ -2539,7 +2539,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto.checkInteractiveElementSize = function () {
 		ar_logSection('Interactive Element Size');
 		document.querySelectorAll(AR_SELECTOR_STRINGS.INTERACTIVE_ELEMENTS).forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el))
 					return;
@@ -2584,7 +2584,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		);
 	
 		interactiveElements.forEach(el => {
-		    if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+		    if (el.getAttribute('aria-hidden') === 'true') return;
 		    try {
 			if (ar_isVisuallyHidden(el)) return;
 	
@@ -2602,7 +2602,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		console.groupEnd();
 	};
 	function validateAriaHasPopup(el) {
-		if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+		if (el.getAttribute('aria-hidden') === 'true') return;
 		const VALID_ARIA_HASPOPUP_VALUES = [
 			'menu', 'listbox', 'tree', 'grid', 'dialog', 'true', 'false'
 		];
@@ -2622,7 +2622,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	        }
 	}
 	function validateAriaExpandedAndControls(el) {
-		if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+		if (el.getAttribute('aria-hidden') === 'true') return;
 	        const controlsId = el.getAttribute('aria-controls');
 	        const isExpanded = el.getAttribute('aria-expanded');
 	
@@ -2676,7 +2676,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto.checkHoverFocusContent = function () {
 		ar_logSection('Content on Hover/Focus (ARIA Attributes)');
 		document.querySelectorAll('button, a[href], [role="button"], [role="link"], [role="menuitem"]').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el))
 					return;
@@ -2723,7 +2723,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto.checkAutoFormSubmission = function () {
 		ar_logSection('Automatic Form Submission');
 		document.querySelectorAll('form, input:not([type="hidden"]), select, textarea').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el))
 					return;
@@ -2745,7 +2745,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto.checkDuplicateIds = function (globalState) {
 		ar_logSection('Duplicate IDs');
 		document.querySelectorAll('[id]').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				const id = el.getAttribute("id");
 				if (!id || id.trim() === '')
@@ -2783,7 +2783,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto.checkAccessibleNames = function () {
 		ar_logSection('Accessible Names for Interactive Elements');
 		document.querySelectorAll(`${ AR_SELECTOR_STRINGS.INTERACTIVE_ELEMENTS }, [role="img"]`).forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el) || ar_hasAccessibleNameForElement(el))
 					return;
@@ -2800,7 +2800,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		console.groupEnd()
 	};
 	AR_CheckModulesProto._generateAccessibleNameCandidate = function (el) {
-		if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+		if (el.getAttribute('aria-hidden') === 'true') return;
 		let label = '';
 		const tagName = el.tagName.toLowerCase();
 		const type = (el.type || '').toLowerCase();
@@ -2884,7 +2884,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto.checkTabindexUsage = function () {
 		ar_logSection('Tabindex Usage');
 		document.querySelectorAll('[tabindex]').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				const tabindexValue = parseInt(el.getAttribute('tabindex'), 10);
 				if (tabindexValue > 0) {
@@ -2942,7 +2942,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	};
 	AR_CheckModulesProto._checkRedundantAriaRoles = function () {
 		document.querySelectorAll('[role]').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				const role = el.getAttribute('role').toLowerCase();
 				const tagName = el.tagName.toLowerCase();
@@ -3027,7 +3027,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	};
 	AR_CheckModulesProto._checkRedundantAriaLabels = function () {
 		document.querySelectorAll('[aria-label], [aria-labelledby]').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				const ariaLabel = el.getAttribute('aria-label');
 				const ariaLabelledby = el.getAttribute('aria-labelledby');
@@ -3056,7 +3056,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			'aria-flowto'
 		].forEach(attr => {
 			document.querySelectorAll(`[${ attr }]`).forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 				try {
 					const raw = el.getAttribute(attr) || "";
 					const idRefs = raw.split(/\s+/).map(id => id.trim()).filter(id => id.length > 0);
@@ -3079,7 +3079,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			ar_logSection('Text Contrast Ratios');
 		const elementsToCheck = targetElement ? [targetElement] : Array.from(document.querySelectorAll(AR_SELECTOR_STRINGS.TEXT_CONTAINER_ELEMENTS_AFFECTED_BY_MENU));
 		elementsToCheck.forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el) || el.textContent.trim().length === 0 || el.offsetWidth === 0 || el.offsetHeight === 0 || el.closest(`#${ AR_CONFIG.ACCESSIBILITY_MENU_PANEL_ID }`))
 					return;
@@ -3119,7 +3119,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			console.groupEnd()
 	};
 	AR_CheckModulesProto._attemptContrastFix = function (el, fgRgba, bgRgba, requiredContrast, origFgCss, origBgCss) {
-		if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+		if (el.getAttribute('aria-hidden') === 'true') return;
 		function clamp(val, min, max) {
 			return Math.max(min, Math.min(max, val));
 		}
@@ -3382,7 +3382,7 @@ var AR_CheckModules = AR_CheckModules || {};
 	AR_CheckModulesProto.checkFormValidationAria = function () {
 		ar_logSection('Form Validation ARIA');
 		document.querySelectorAll('input:not([type="hidden"]), select, textarea').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el))
 					return;
@@ -3395,7 +3395,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		console.groupEnd()
 	};
 	AR_CheckModulesProto._checkRequiredAria = function (el) {
-		if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+		if (el.getAttribute('aria-hidden') === 'true') return;
 		const previousSiblingText = el.previousSibling && el.previousSibling.nodeType === Node.TEXT_NODE ? el.previousSibling.textContent.trim() : '';
 		const parentLabel = el.closest('label');
 		const labelText = parentLabel ? (parentLabel.textContent || '').trim() : '';
@@ -3408,7 +3408,7 @@ var AR_CheckModules = AR_CheckModules || {};
 		}
 	};
 	AR_CheckModulesProto._checkInvalidAria = function (el) {
-		if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+		if (el.getAttribute('aria-hidden') === 'true') return;
 		const ariaInvalid = el.getAttribute('aria-invalid');
 		if (ariaInvalid && ![
 				'true',
@@ -3629,7 +3629,7 @@ var AR_CheckModules = AR_CheckModules || {};
 			ar_logAccessibilityIssue('Info', 'Injected global CSS for :focus-visible. This provides a default focus indicator.', styleTag, 'Review custom focus styles to ensure they are visible and meet WCAG 2.4.7.', 'Operable', '2.4.7 / 2.4.11', true, 'AA')
 		}
 		document.querySelectorAll(AR_SELECTOR_STRINGS.INTERACTIVE_ELEMENTS).forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true' || el.classList.contains('no-a11y') ) return;
+			if (el.getAttribute('aria-hidden') === 'true') return;
 			try {
 				if (ar_isVisuallyHidden(el))
 					return;
@@ -3808,7 +3808,7 @@ function ar_setupMutationObserverForContrast() {
 				mutation.addedNodes.forEach(node => {
 					if (node.nodeType === Node.ELEMENT_NODE) {
 						AR_CheckModules.checkContrastRatioForAllElements(node);
-						node.querySelectorAll(':not(.no-a11y)').forEach(descendant => AR_CheckModules.checkContrastRatioForAllElements(descendant))
+						node.querySelectorAll('*').forEach(descendant => AR_CheckModules.checkContrastRatioForAllElements(descendant))
 					}
 				})
 			}
