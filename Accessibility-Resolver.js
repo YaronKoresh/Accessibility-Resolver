@@ -913,35 +913,51 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			this._positionPanelRelativeToButton(button, panel);
 		}
 	};
-	Menu._positionPanelRelativeToButton = function (button, panel) {
-		if (!button || !panel)
-			return;
-		const buttonRect = button.getBoundingClientRect();
-		const panelRect = panel.getBoundingClientRect();
-		let newTop = buttonRect.top - panelRect.height - 10;
-		let newLeft = buttonRect.left;
-		const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
-		if (docDir === 'rtl') {
-			newLeft = buttonRect.right - panelRect.width;
-		}
-		if (newTop < EDGE_MARGIN_PX) {
-			newTop = Math.max(EDGE_MARGIN_PX, buttonRect.bottom + 10);
-		}
-		if (newTop + panelRect.height > window.innerHeight - EDGE_MARGIN_PX) {
-			newTop = Math.max(EDGE_MARGIN_PX, window.innerHeight - panelRect.height - EDGE_MARGIN_PX);
-		}
-		if (newLeft < EDGE_MARGIN_PX)
-			newLeft = EDGE_MARGIN_PX;
-		if (newLeft + panelRect.width > window.innerWidth - EDGE_MARGIN_PX) {
-			newLeft = Math.max(EDGE_MARGIN_PX, window.innerWidth - panelRect.width - EDGE_MARGIN_PX);
-		}
-		panel.style.top = `${ newTop }px`;
-		panel.style.left = `${ newLeft }px`;
-		panel.style.bottom = 'auto';
-		panel.style.right = 'auto';
-		Menu._panelRelativeOffsetX = newLeft - buttonRect.left;
-		Menu._panelRelativeOffsetY = newTop - buttonRect.top;
-	};
+    Menu._positionPanelRelativeToButton = function (button, panel) {
+        if (!button || !panel) return;
+    
+        const buttonRect = button.getBoundingClientRect();
+        const panelHeight = panel.offsetHeight;
+        const panelWidth = panel.offsetWidth;
+    
+        const spaceAbove = buttonRect.top;
+        const spaceBelow = window.innerHeight - buttonRect.bottom;
+    
+        let newTop;
+    
+        // Decide whether to place the panel above or below the button
+        // Place it where there is more space, but prefer placing it above if space is ample.
+        if (spaceAbove > panelHeight + 10 || spaceAbove > spaceBelow) {
+            // Place above the button
+            newTop = buttonRect.top - panelHeight - 10;
+        } else {
+            // Place below the button
+            newTop = buttonRect.bottom + 10;
+        }
+    
+        // Determine horizontal position based on document direction
+        const docDir = document.documentElement.dir || window.getComputedStyle(document.documentElement).direction;
+        let newLeft;
+        if (docDir === 'rtl') {
+            newLeft = buttonRect.right - panelWidth;
+        } else {
+            newLeft = buttonRect.left;
+        }
+    
+        // Ensure the panel stays within all window boundaries
+        newTop = Math.max(EDGE_MARGIN_PX, Math.min(newTop, window.innerHeight - panelHeight - EDGE_MARGIN_PX));
+        newLeft = Math.max(EDGE_MARGIN_PX, Math.min(newLeft, window.innerWidth - panelWidth - EDGE_MARGIN_PX));
+    
+        // Apply final positions
+        panel.style.top = `${newTop}px`;
+        panel.style.left = `${newLeft}px`;
+        panel.style.bottom = 'auto';
+        panel.style.right = 'auto';
+    
+        // Update the relative offset for dragging logic
+        Menu._panelRelativeOffsetX = newLeft - buttonRect.left;
+        Menu._panelRelativeOffsetY = newTop - buttonRect.top;
+    };
 	Menu._handleMenuButtonClick = function (event) {
 		if (Menu.buttonDragOccurred) {
 			Menu.buttonDragOccurred = false;
@@ -1061,66 +1077,86 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu._handlePanelMouseDown = function (event) {
 		this._startDragging(event, false);
 	};
-	Menu._handleDocumentMouseMove = function (event) {
-		if (!this.isButtonDragging && !this.isPanelDragging)
-			return;
-		const button = document.getElementById(MENU_BUTTON_ID);
-		const panel = document.getElementById(MENU_PANEL_ID);
-		if (!button || !panel)
-			return;
-		if (this.isButtonDragging) {
-			Menu.buttonDragOccurred = true;
-		}
-		const coords = getClientCoords(event);
-		const deltaX = coords.clientX - Menu._initialMouseX;
-		const deltaY = coords.clientY - Menu._initialMouseY;
-		let targetButtonX, targetButtonY;
-		if (this.isButtonDragging) {
-			targetButtonX = Menu._initialButtonX + deltaX;
-			targetButtonY = Menu._initialButtonY + deltaY;
-		} else if (this.isPanelDragging) {
-			const targetPanelX = Menu._initialPanelX + deltaX;
-			const targetPanelY = Menu._initialPanelY + deltaY;
-			targetButtonX = targetPanelX - Menu._panelRelativeOffsetX;
-			targetButtonY = targetPanelY - Menu._panelRelativeOffsetY;
-		}
-		const buttonWidth = button.offsetWidth;
-		const buttonHeight = button.offsetHeight;
-		targetButtonX = Math.max(EDGE_MARGIN_PX, Math.min(targetButtonX, window.innerWidth - buttonWidth - EDGE_MARGIN_PX));
-		targetButtonY = Math.max(EDGE_MARGIN_PX, Math.min(targetButtonY, window.innerHeight - buttonHeight - EDGE_MARGIN_PX));
-		button.style.left = `${ targetButtonX }px`;
-		button.style.top = `${ targetButtonY }px`;
-		button.style.transform = 'none';
-		button.style.right = 'auto';
-		button.style.bottom = 'auto';
-		if (Menu.isOpen) {
-			const panelWidth = panel.offsetWidth;
-			const panelHeight = panel.offsetHeight;
-			let desiredPanelX = targetButtonX + Menu._panelRelativeOffsetX;
-			let desiredPanelY = targetButtonY + Menu._panelRelativeOffsetY;
-			desiredPanelX = Math.max(EDGE_MARGIN_PX, Math.min(desiredPanelX, window.innerWidth - panelWidth - EDGE_MARGIN_PX));
-			desiredPanelY = Math.max(EDGE_MARGIN_PX, Math.min(desiredPanelY, window.innerHeight - panelHeight - EDGE_MARGIN_PX));
-			panel.style.left = `${ desiredPanelX }px`;
-			panel.style.top = `${ desiredPanelY }px`;
-			panel.style.right = 'auto';
-			panel.style.bottom = 'auto';
-			if (this.isButtonDragging) {
-				let adjustedButtonX = desiredPanelX - Menu._panelRelativeOffsetX;
-				let adjustedButtonY = desiredPanelY - Menu._panelRelativeOffsetY;
-				adjustedButtonX = Math.max(EDGE_MARGIN_PX, Math.min(adjustedButtonX, window.innerWidth - buttonWidth - EDGE_MARGIN_PX));
-				adjustedButtonY = Math.max(EDGE_MARGIN_PX, Math.min(adjustedButtonY, window.innerHeight - buttonHeight - EDGE_MARGIN_PX));
-				if (button.style.left !== `${ adjustedButtonX }px` || button.style.top !== `${ adjustedButtonY }px`) {
-					button.style.left = `${ adjustedButtonX }px`;
-					button.style.top = `${ adjustedButtonY }px`;
-				}
-				Menu._panelRelativeOffsetX = desiredPanelX - adjustedButtonX;
-				Menu._panelRelativeOffsetY = desiredPanelY - adjustedButtonY;
-			}
-		}
-		if (event.type === 'touchmove') {
-			event.preventDefault();
-		}
-	};
+    Menu._handleDocumentMouseMove = function(event) {
+        if (!this.isButtonDragging && !this.isPanelDragging) return;
+    
+        const button = document.getElementById(MENU_BUTTON_ID);
+        const panel = document.getElementById(MENU_PANEL_ID);
+        if (!button || !panel) return;
+    
+        event.preventDefault();
+    
+        const coords = getClientCoords(event);
+        const deltaX = coords.clientX - Menu._initialMouseX;
+        const deltaY = coords.clientY - Menu._initialMouseY;
+    
+        if (this.isButtonDragging) {
+            const isDesktop = document.body.classList.contains("desktop");
+            if (isDesktop || (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5)) {
+                Menu.buttonDragOccurred = true;
+            }
+        }
+    
+        const buttonRect = button.getBoundingClientRect();
+        let newButtonX, newButtonY;
+    
+        if (this.isOpen) {
+            // LOGIC FOR WHEN MENU IS OPEN (moves button and panel together)
+            const panelHeight = Menu._panelHeight || panel.offsetHeight;
+            const panelWidth = Menu._panelWidth || panel.offsetWidth;
+            let newPanelX, newPanelY;
+    
+            if (this.isButtonDragging) {
+                newButtonX = Menu._initialButtonX + deltaX;
+                newButtonY = Menu._initialButtonY + deltaY;
+                newPanelX = newButtonX + Menu._panelRelativeOffsetX;
+                newPanelY = newButtonY + Menu._panelRelativeOffsetY;
+    
+                const clampedPanelX = Math.max(EDGE_MARGIN_PX, Math.min(newPanelX, window.innerWidth - panelWidth - EDGE_MARGIN_PX));
+                const clampedPanelY = Math.max(EDGE_MARGIN_PX, Math.min(newPanelY, window.innerHeight - panelHeight - EDGE_MARGIN_PX));
+    
+                if (clampedPanelX !== newPanelX) newButtonX = clampedPanelX - Menu._panelRelativeOffsetX;
+                if (clampedPanelY !== newPanelY) newButtonY = clampedPanelY - Menu._panelRelativeOffsetY;
+    
+                newPanelX = clampedPanelX;
+                newPanelY = clampedPanelY;
+    
+            } else { // isPanelDragging
+                newPanelX = Menu._initialPanelX + deltaX;
+                newPanelY = Menu._initialPanelY + deltaY;
+    
+                newPanelX = Math.max(EDGE_MARGIN_PX, Math.min(newPanelX, window.innerWidth - panelWidth - EDGE_MARGIN_PX));
+                newPanelY = Math.max(EDGE_MARGIN_PX, Math.min(newPanelY, window.innerHeight - panelHeight - EDGE_MARGIN_PX));
+    
+                newButtonX = newPanelX - Menu._panelRelativeOffsetX;
+                newButtonY = newPanelY - Menu._panelRelativeOffsetY;
+            }
+    
+            // Apply panel position and update offset
+            panel.style.left = `${newPanelX}px`;
+            panel.style.top = `${newPanelY}px`;
+            panel.style.right = 'auto';
+            panel.style.bottom = 'auto';
+            Menu._panelRelativeOffsetX = newPanelX - newButtonX;
+            Menu._panelRelativeOffsetY = newPanelY - newButtonY;
+    
+        } else {
+            // SIMPLIFIED LOGIC FOR WHEN MENU IS CLOSED (moves button only)
+            newButtonX = Menu._initialButtonX + deltaX;
+            newButtonY = Menu._initialButtonY + deltaY;
+        }
+    
+        // Always constrain the button's final position
+        newButtonX = Math.max(EDGE_MARGIN_PX, Math.min(newButtonX, window.innerWidth - buttonRect.width - EDGE_MARGIN_PX));
+        newButtonY = Math.max(EDGE_MARGIN_PX, Math.min(newButtonY, window.innerHeight - buttonRect.height - EDGE_MARGIN_PX));
+    
+        // Apply button position
+        button.style.left = `${newButtonX}px`;
+        button.style.top = `${newButtonY}px`;
+        button.style.transform = 'none';
+        button.style.right = 'auto';
+        button.style.bottom = 'auto';
+    };
 	Menu._handleDocumentMouseUp = function () {
 		let settingsChanged = false;
 		if (this.isButtonDragging) {
@@ -1142,29 +1178,34 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		}
 	};
 	Menu.toggleMenu = function () {
-		const panel = document.getElementById(MENU_PANEL_ID);
-		const button = document.getElementById(MENU_BUTTON_ID);
-		if (!panel || !button)
-			return;
-		this.isOpen = !this.isOpen;
-		panel.style.display = this.isOpen ? 'block' : 'none';
-		panel.classList.toggle('ar-aaa-menu-open', this.isOpen);
-		panel.setAttribute('aria-hidden', String(!this.isOpen));
-		button.setAttribute('aria-expanded', String(this.isOpen));
-		if (this.isOpen) {
-			if (!Menu.panelWasDragged || !panel.style.left || !panel.style.top) {
-				this._positionPanelRelativeToButton(button, panel);
-			}
-			const firstFocusableButton = panel.querySelector('button:not([disabled])');
-			if (firstFocusableButton) {
-				firstFocusableButton.focus();
-			}
-		} else {
-			button.focus();
-		}
-		logAction(`Menu ${ this.isOpen ? 'opened' : 'closed' }`);
-		this._saveSettings();
-	};
+        const panel = document.getElementById(MENU_PANEL_ID);
+        const button = document.getElementById(MENU_BUTTON_ID);
+        if (!panel || !button) return;
+    
+        this.isOpen = !this.isOpen;
+        panel.style.display = this.isOpen ? 'block' : 'none';
+        panel.classList.toggle('ar-aaa-menu-open', this.isOpen);
+        panel.setAttribute('aria-hidden', String(!this.isOpen));
+        button.setAttribute('aria-expanded', String(this.isOpen));
+    
+        if (this.isOpen) {
+            // ADDED: Store the panel's true dimensions when it's visible
+            Menu._panelHeight = panel.offsetHeight;
+            Menu._panelWidth = panel.offsetWidth;
+    
+            if (!Menu.panelWasDragged || !panel.style.left || !panel.style.top) {
+                this._positionPanelRelativeToButton(button, panel);
+            }
+            const firstFocusableButton = panel.querySelector('button:not([disabled])');
+            if (firstFocusableButton) {
+                firstFocusableButton.focus();
+            }
+        } else {
+            button.focus();
+        }
+        logAction(`Menu ${this.isOpen ? 'opened' : 'closed'}`);
+        this._saveSettings();
+    };
 	Menu.handleAction = function (action, targetButton) {
 		logAction(`Action: ${ action }`, true);
 		if (action === 'close-menu') {
