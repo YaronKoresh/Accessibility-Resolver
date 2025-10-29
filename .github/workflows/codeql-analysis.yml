@@ -3,16 +3,14 @@ name: "Code scanning - action"
 on:
   push:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
+  security-events: write
 
 jobs:
   CodeQL:
-
-    permissions:
-      contents: read
-      security-events: write
 
     runs-on: ubuntu-latest
 
@@ -24,7 +22,6 @@ jobs:
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
-      # No 'languages' input specified here
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4
