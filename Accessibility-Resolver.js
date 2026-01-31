@@ -561,10 +561,23 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	const CLASS_READING_MODE = 'ar-aaa-reading-mode';
 	const CLASS_TEMP_HIGHLIGHT = 'ar-aaa-temp-highlight';
 	const CLASS_TEXT_SCALED = 'ar-text-scaled-by-menu';
+	const CLASS_LETTER_SPACING = 'ar-aaa-letter-spacing';
+	const CLASS_WORD_SPACING = 'ar-aaa-word-spacing';
+	const CLASS_LINE_HEIGHT = 'ar-aaa-line-height';
+	const CLASS_LARGE_CURSOR = 'ar-aaa-large-cursor';
+	const CLASS_MONOCHROME = 'ar-aaa-monochrome';
+	const CLASS_LOW_SATURATION = 'ar-aaa-low-saturation';
+	const CLASS_HIDE_IMAGES = 'ar-aaa-hide-images';
+	const CLASS_HIGHLIGHT_HEADINGS = 'ar-aaa-highlight-headings';
+	const CLASS_TOOLTIPS = 'ar-aaa-tooltips';
+	const CLASS_TEXT_ALIGN_LEFT = 'ar-aaa-text-left';
+	const CLASS_TEXT_ALIGN_CENTER = 'ar-aaa-text-center';
+	const CLASS_TEXT_ALIGN_RIGHT = 'ar-aaa-text-right';
 	Menu.isOpen = false;
 	Menu.isDyslexiaFontActive = false;
 	Menu.activeContrastMode = 'default';
 	Menu.areLinksHighlighted = false;
+	Menu.areHeadingsHighlighted = false;
 	Menu.isFocusEnhanced = false;
 	Menu.areAnimationsStopped = false;
 	Menu.isReadingAloud = false;
@@ -578,6 +591,15 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 	Menu.buttonDragOccurred = false;
 	Menu.buttonWasDragged = false;
 	Menu.panelWasDragged = false;
+	Menu.isLetterSpacingActive = false;
+	Menu.isWordSpacingActive = false;
+	Menu.isLineHeightActive = false;
+	Menu.isLargeCursorActive = false;
+	Menu.isMonochromeActive = false;
+	Menu.isLowSaturationActive = false;
+	Menu.isHideImagesActive = false;
+	Menu.isTooltipsActive = false;
+	Menu.textAlignment = 'default';
 	Menu._originalFontSizes = new Map();
 	Menu._initialButtonX = 0;
 	Menu._initialButtonY = 0;
@@ -676,7 +698,29 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			form: 'טופס',
 			search: 'חיפוש',
 			region: 'אזור',
-			unlabeled: 'ללא תווית'
+			unlabeled: 'ללא תווית',
+			letterSpacing: 'ריווח אותיות',
+			wordSpacing: 'ריווח מילים',
+			lineHeight: 'גובה שורה',
+			largeCursor: 'סמן גדול',
+			monochrome: 'מונוכרום',
+			lowSaturation: 'רוויה נמוכה',
+			hideImages: 'הסתר תמונות',
+			textSpacing: 'ריווח טקסט',
+			cursorOptions: 'אפשרויות סמן',
+			colorFilters: 'פילטרי צבע',
+			highlightHeadings: 'הדגש כותרות',
+			textAlignLeft: 'יישור לשמאל',
+			textAlignCenter: 'יישור למרכז',
+			textAlignRight: 'יישור לימין',
+			tooltips: 'הצג רמזים',
+			keyboardShortcuts: 'קיצורי מקלדת',
+			screenReaderMode: 'מצב קורא מסך',
+			printFriendly: 'ידידותי להדפסה',
+			textOptions: 'אפשרויות טקסט',
+			visualOptions: 'אפשרויות חזותיות',
+			readingOptions: 'אפשרויות קריאה',
+			navigationOptions: 'אפשרויות ניווט'
 		},
 		'en': {
 			menuTitle: 'Accessibility Tools',
@@ -729,7 +773,29 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			form: 'Form',
 			search: 'Search',
 			region: 'Region',
-			unlabeled: 'Unlabeled'
+			unlabeled: 'Unlabeled',
+			letterSpacing: 'Letter Spacing',
+			wordSpacing: 'Word Spacing',
+			lineHeight: 'Line Height',
+			largeCursor: 'Large Cursor',
+			monochrome: 'Monochrome',
+			lowSaturation: 'Low Saturation',
+			hideImages: 'Hide Images',
+			textSpacing: 'Text Spacing',
+			cursorOptions: 'Cursor Options',
+			colorFilters: 'Color Filters',
+			highlightHeadings: 'Highlight Headings',
+			textAlignLeft: 'Align Left',
+			textAlignCenter: 'Align Center',
+			textAlignRight: 'Align Right',
+			tooltips: 'Show Tooltips',
+			keyboardShortcuts: 'Keyboard Shortcuts',
+			screenReaderMode: 'Screen Reader Mode',
+			printFriendly: 'Print Friendly',
+			textOptions: 'Text Options',
+			visualOptions: 'Visual Options',
+			readingOptions: 'Reading Options',
+			navigationOptions: 'Navigation Options'
 		}
 	};
 	Menu._getLocalizedString = function (key) {
@@ -1234,6 +1300,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			break;
 		case 'highlight-links':
 		case 'enhanced-focus':
+		case 'highlight-headings':
 			this._handleHighlightAction(action, targetButton);
 			break;
 		case 'read-aloud':
@@ -1253,6 +1320,30 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			break;
 		case 'toggle-dyslexia-font':
 			this._handleDyslexiaFontAction(targetButton);
+			break;
+		case 'letter-spacing':
+			this._handleLetterSpacingAction(targetButton);
+			break;
+		case 'word-spacing':
+			this._handleWordSpacingAction(targetButton);
+			break;
+		case 'line-height':
+			this._handleLineHeightAction(targetButton);
+			break;
+		case 'large-cursor':
+			this._handleLargeCursorAction(targetButton);
+			break;
+		case 'monochrome':
+			this._handleMonochromeAction(targetButton);
+			break;
+		case 'low-saturation':
+			this._handleLowSaturationAction(targetButton);
+			break;
+		case 'hide-images':
+			this._handleHideImagesAction(targetButton);
+			break;
+		case 'tooltips':
+			this._handleTooltipsAction(targetButton);
 			break;
 		case 'reset-all':
 			this._resetAllSettings();
@@ -1450,6 +1541,11 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			body.classList.toggle(CLASS_ENHANCED_FOCUS, this.isFocusEnhanced);
 			this._updateButtonActiveState(button, this.isFocusEnhanced);
 			logAction(`Enhanced focus ${ this.isFocusEnhanced ? 'enabled' : 'disabled' }. Class on body: ${ body.classList.contains(CLASS_ENHANCED_FOCUS) }`);
+		} else if (action === 'highlight-headings') {
+			this.areHeadingsHighlighted = !this.areHeadingsHighlighted;
+			body.classList.toggle(CLASS_HIGHLIGHT_HEADINGS, this.areHeadingsHighlighted);
+			this._updateButtonActiveState(button, this.areHeadingsHighlighted);
+			logAction(`Highlight headings ${ this.areHeadingsHighlighted ? 'enabled' : 'disabled' }. Class on body: ${ body.classList.contains(CLASS_HIGHLIGHT_HEADINGS) }`);
 		}
 	};
 	Menu._handleReadAloudAction = function (button) {
@@ -1640,6 +1736,68 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		document.body.classList.toggle(CLASS_DYSLEXIA_FONT, this.isDyslexiaFontActive);
 		this._updateButtonActiveState(button, this.isDyslexiaFontActive);
 	};
+	Menu._handleLetterSpacingAction = function (button) {
+		this.isLetterSpacingActive = !this.isLetterSpacingActive;
+		document.body.classList.toggle(CLASS_LETTER_SPACING, this.isLetterSpacingActive);
+		this._updateButtonActiveState(button, this.isLetterSpacingActive);
+		logAction('Letter spacing ' + (this.isLetterSpacingActive ? 'enabled' : 'disabled'), true);
+	};
+	Menu._handleWordSpacingAction = function (button) {
+		this.isWordSpacingActive = !this.isWordSpacingActive;
+		document.body.classList.toggle(CLASS_WORD_SPACING, this.isWordSpacingActive);
+		this._updateButtonActiveState(button, this.isWordSpacingActive);
+		logAction('Word spacing ' + (this.isWordSpacingActive ? 'enabled' : 'disabled'), true);
+	};
+	Menu._handleLineHeightAction = function (button) {
+		this.isLineHeightActive = !this.isLineHeightActive;
+		document.body.classList.toggle(CLASS_LINE_HEIGHT, this.isLineHeightActive);
+		this._updateButtonActiveState(button, this.isLineHeightActive);
+		logAction('Line height ' + (this.isLineHeightActive ? 'enabled' : 'disabled'), true);
+	};
+	Menu._handleLargeCursorAction = function (button) {
+		this.isLargeCursorActive = !this.isLargeCursorActive;
+		document.body.classList.toggle(CLASS_LARGE_CURSOR, this.isLargeCursorActive);
+		this._updateButtonActiveState(button, this.isLargeCursorActive);
+		logAction('Large cursor ' + (this.isLargeCursorActive ? 'enabled' : 'disabled'), true);
+	};
+	Menu._handleMonochromeAction = function (button) {
+		this.isMonochromeActive = !this.isMonochromeActive;
+		// Turn off low saturation if monochrome is activated
+		if (this.isMonochromeActive && this.isLowSaturationActive) {
+			this.isLowSaturationActive = false;
+			document.body.classList.remove(CLASS_LOW_SATURATION);
+			const lowSatButton = document.querySelector(`#${MENU_PANEL_ID} button[data-action="low-saturation"]`);
+			if (lowSatButton) this._updateButtonActiveState(lowSatButton, false);
+		}
+		document.body.classList.toggle(CLASS_MONOCHROME, this.isMonochromeActive);
+		this._updateButtonActiveState(button, this.isMonochromeActive);
+		logAction('Monochrome ' + (this.isMonochromeActive ? 'enabled' : 'disabled'), true);
+	};
+	Menu._handleLowSaturationAction = function (button) {
+		this.isLowSaturationActive = !this.isLowSaturationActive;
+		// Turn off monochrome if low saturation is activated
+		if (this.isLowSaturationActive && this.isMonochromeActive) {
+			this.isMonochromeActive = false;
+			document.body.classList.remove(CLASS_MONOCHROME);
+			const monoButton = document.querySelector(`#${MENU_PANEL_ID} button[data-action="monochrome"]`);
+			if (monoButton) this._updateButtonActiveState(monoButton, false);
+		}
+		document.body.classList.toggle(CLASS_LOW_SATURATION, this.isLowSaturationActive);
+		this._updateButtonActiveState(button, this.isLowSaturationActive);
+		logAction('Low saturation ' + (this.isLowSaturationActive ? 'enabled' : 'disabled'), true);
+	};
+	Menu._handleHideImagesAction = function (button) {
+		this.isHideImagesActive = !this.isHideImagesActive;
+		document.body.classList.toggle(CLASS_HIDE_IMAGES, this.isHideImagesActive);
+		this._updateButtonActiveState(button, this.isHideImagesActive);
+		logAction('Hide images ' + (this.isHideImagesActive ? 'enabled' : 'disabled'), true);
+	};
+	Menu._handleTooltipsAction = function (button) {
+		this.isTooltipsActive = !this.isTooltipsActive;
+		document.body.classList.toggle(CLASS_TOOLTIPS, this.isTooltipsActive);
+		this._updateButtonActiveState(button, this.isTooltipsActive);
+		logAction('Tooltips ' + (this.isTooltipsActive ? 'enabled' : 'disabled'), true);
+	};
 	Menu._resetAllSettings = function (calledByProfile = false) {
 		Menu.fontScaleLevel = 0;
 		document.querySelectorAll('.' + CLASS_TEXT_SCALED).forEach(el => {
@@ -1669,8 +1827,18 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		this.isFocusEnhanced = false;
 		this.areAnimationsStopped = false;
 		this.isDyslexiaFontActive = false;
+		this.isLetterSpacingActive = false;
+		this.isWordSpacingActive = false;
+		this.isLineHeightActive = false;
+		this.isLargeCursorActive = false;
+		this.isMonochromeActive = false;
+		this.isLowSaturationActive = false;
+		this.isHideImagesActive = false;
+		this.isTooltipsActive = false;
+		this.areHeadingsHighlighted = false;
+		this.textAlignment = 'default';
 		document.documentElement.classList.remove(CLASS_INVERT_COLORS);
-		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_DARK_CONTRAST, CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS, CLASS_ANIMATIONS_STOPPED, CLASS_DYSLEXIA_FONT, CLASS_READING_MODE);
+		document.body.classList.remove(CLASS_HIGH_CONTRAST, CLASS_DARK_CONTRAST, CLASS_HIGHLIGHT_LINKS, CLASS_ENHANCED_FOCUS, CLASS_ANIMATIONS_STOPPED, CLASS_DYSLEXIA_FONT, CLASS_READING_MODE, CLASS_LETTER_SPACING, CLASS_WORD_SPACING, CLASS_LINE_HEIGHT, CLASS_LARGE_CURSOR, CLASS_MONOCHROME, CLASS_LOW_SATURATION, CLASS_HIDE_IMAGES, CLASS_HIGHLIGHT_HEADINGS, CLASS_TOOLTIPS, CLASS_TEXT_ALIGN_LEFT, CLASS_TEXT_ALIGN_CENTER, CLASS_TEXT_ALIGN_RIGHT);
 		if (Menu.readingMaskTop)
 			Menu.readingMaskTop.style.display = 'none';
 		if (Menu.readingMaskBottom)
@@ -1712,6 +1880,7 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 		const settings = {
 			activeContrastMode: Menu.activeContrastMode,
 			areLinksHighlighted: Menu.areLinksHighlighted,
+			areHeadingsHighlighted: Menu.areHeadingsHighlighted,
 			isFocusEnhanced: Menu.isFocusEnhanced,
 			areAnimationsStopped: Menu.areAnimationsStopped,
 			isDyslexiaFontActive: Menu.isDyslexiaFontActive,
@@ -1722,7 +1891,16 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			panelWasDragged: Menu.panelWasDragged,
 			isReadingModeActive: Menu.isReadingModeActive,
 			isReadingMaskActive: Menu.isReadingMaskActive,
-			isReadingLineActive: Menu.isReadingLineActive
+			isReadingLineActive: Menu.isReadingLineActive,
+			isLetterSpacingActive: Menu.isLetterSpacingActive,
+			isWordSpacingActive: Menu.isWordSpacingActive,
+			isLineHeightActive: Menu.isLineHeightActive,
+			isLargeCursorActive: Menu.isLargeCursorActive,
+			isMonochromeActive: Menu.isMonochromeActive,
+			isLowSaturationActive: Menu.isLowSaturationActive,
+			isHideImagesActive: Menu.isHideImagesActive,
+			isTooltipsActive: Menu.isTooltipsActive,
+			textAlignment: Menu.textAlignment
 		};
 		try {
 			localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -1784,6 +1962,33 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			if (Menu.isReadingLineActive && Menu.readingLine) {
 				Menu.readingLine.style.display = 'block';
 			}
+			Menu.isLetterSpacingActive = savedSettings.isLetterSpacingActive || false;
+			if (Menu.isLetterSpacingActive)
+				document.body.classList.add(CLASS_LETTER_SPACING);
+			Menu.isWordSpacingActive = savedSettings.isWordSpacingActive || false;
+			if (Menu.isWordSpacingActive)
+				document.body.classList.add(CLASS_WORD_SPACING);
+			Menu.isLineHeightActive = savedSettings.isLineHeightActive || false;
+			if (Menu.isLineHeightActive)
+				document.body.classList.add(CLASS_LINE_HEIGHT);
+			Menu.isLargeCursorActive = savedSettings.isLargeCursorActive || false;
+			if (Menu.isLargeCursorActive)
+				document.body.classList.add(CLASS_LARGE_CURSOR);
+			Menu.isMonochromeActive = savedSettings.isMonochromeActive || false;
+			if (Menu.isMonochromeActive)
+				document.body.classList.add(CLASS_MONOCHROME);
+			Menu.isLowSaturationActive = savedSettings.isLowSaturationActive || false;
+			if (Menu.isLowSaturationActive)
+				document.body.classList.add(CLASS_LOW_SATURATION);
+			Menu.isHideImagesActive = savedSettings.isHideImagesActive || false;
+			if (Menu.isHideImagesActive)
+				document.body.classList.add(CLASS_HIDE_IMAGES);
+			Menu.isTooltipsActive = savedSettings.isTooltipsActive || false;
+			if (Menu.isTooltipsActive)
+				document.body.classList.add(CLASS_TOOLTIPS);
+			Menu.areHeadingsHighlighted = savedSettings.areHeadingsHighlighted || false;
+			if (Menu.areHeadingsHighlighted)
+				document.body.classList.add(CLASS_HIGHLIGHT_HEADINGS);
 			const button = document.getElementById(MENU_BUTTON_ID);
 			if (button && savedSettings.buttonPosition) {
 				Menu.buttonWasDragged = savedSettings.buttonPosition.wasDragged || false;
@@ -1813,6 +2018,15 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 				this._updateButtonActiveState(panel.querySelector('[data-action="reading-mode"]'), Menu.isReadingModeActive);
 				this._updateButtonActiveState(panel.querySelector('[data-action="reading-mask"]'), Menu.isReadingMaskActive);
 				this._updateButtonActiveState(panel.querySelector('[data-action="reading-line"]'), Menu.isReadingLineActive);
+				this._updateButtonActiveState(panel.querySelector('[data-action="letter-spacing"]'), Menu.isLetterSpacingActive);
+				this._updateButtonActiveState(panel.querySelector('[data-action="word-spacing"]'), Menu.isWordSpacingActive);
+				this._updateButtonActiveState(panel.querySelector('[data-action="line-height"]'), Menu.isLineHeightActive);
+				this._updateButtonActiveState(panel.querySelector('[data-action="large-cursor"]'), Menu.isLargeCursorActive);
+				this._updateButtonActiveState(panel.querySelector('[data-action="monochrome"]'), Menu.isMonochromeActive);
+				this._updateButtonActiveState(panel.querySelector('[data-action="low-saturation"]'), Menu.isLowSaturationActive);
+				this._updateButtonActiveState(panel.querySelector('[data-action="hide-images"]'), Menu.isHideImagesActive);
+				this._updateButtonActiveState(panel.querySelector('[data-action="tooltips"]'), Menu.isTooltipsActive);
+				this._updateButtonActiveState(panel.querySelector('[data-action="highlight-headings"]'), Menu.areHeadingsHighlighted);
 			}
 			Menu.panelWasDragged = savedSettings.panelWasDragged || false;
 			if (savedSettings.isOpen) {
@@ -1923,25 +2137,103 @@ var AR_AccessibilityMenu = AR_AccessibilityMenu || {};
 			animation: Menu.panel._getIconSVG('<path d="M8,5V19L19,12L8,5Z"/>', Menu._getLocalizedString('animation')),
 			fontStyle: Menu.panel._getIconSVG('<path d="M9.25,4V5.5H6.75V4H5.25V5.5H2.75V4H1.25V14.5H2.75V16H5.25V14.5H7.75V16H10.25V14.5H11.75V4H9.25M17.75,4V14.5H19.25V16H21.75V14.5H24.25V4H21.75V5.5H19.25V4H17.75M10.25,7H7.75V13H10.25V7M16.25,7H13.75V13H16.25V7Z"/>', Menu._getLocalizedString('fontStyle')),
 			reset: Menu.panel._getIconSVG('<path d="M12,5V1L7,6L12,11V7A6,6 0 0,1 18,13A6,6 0 0,1 12,19A6,6 0 0,1 6,13H4A8,8 0 0,0 12,21A8,8 0 0,0 20,13A8,8 0 0,0 12,5Z"/>', Menu._getLocalizedString('reset')),
-			close: Menu.panel._getIconSVG('<path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>', Menu._getLocalizedString('closeMenu'))
+			close: Menu.panel._getIconSVG('<path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>', Menu._getLocalizedString('closeMenu')),
+			letterSpacing: Menu.panel._getIconSVG('<path d="M22,10V12H19.85C19.5,16 16.5,19 12.5,19.4V22H10.5V19.4C6.5,19 3.5,16 3.15,12H1V10H3.15C3.5,6 6.5,3 10.5,2.6V0H12.5V2.6C16.5,3 19.5,6 19.85,10H22M5.17,10H7.5V12H5.17C5.5,14.9 7.6,17 10.5,17.33V15H12.5V17.33C15.4,17 17.5,14.9 17.83,12H15.5V10H17.83C17.5,7.1 15.4,5 12.5,4.67V7H10.5V4.67C7.6,5 5.5,7.1 5.17,10Z"/>', Menu._getLocalizedString('letterSpacing')),
+			wordSpacing: Menu.panel._getIconSVG('<path d="M3,5H9V11H3V5M5,7V9H7V7H5M11,7H21V9H11V7M11,15H21V17H11V15M3,13H9V19H3V13M5,15V17H7V15H5Z"/>', Menu._getLocalizedString('wordSpacing')),
+			lineHeight: Menu.panel._getIconSVG('<path d="M10,13H22V11H10M10,19H22V17H10M10,7H22V5H10M6,7H8.5L5,3.5L1.5,7H4V17H1.5L5,20.5L8.5,17H6V7Z"/>', Menu._getLocalizedString('lineHeight')),
+			cursor: Menu.panel._getIconSVG('<path d="M13.64,21.97C13.14,22.21 12.54,22 12.31,21.5L10.13,16.76L7.62,18.78C7.45,18.92 7.24,19 7,19A1,1 0 0,1 6,18V3A1,1 0 0,1 7,2C7.24,2 7.47,2.09 7.64,2.23L7.65,2.22L19.14,11.86C19.57,12.22 19.62,12.85 19.27,13.27C19.12,13.45 18.91,13.57 18.7,13.61L15.54,14.23L17.74,18.96C18,19.46 17.76,20.05 17.26,20.28L13.64,21.97Z"/>', Menu._getLocalizedString('largeCursor')),
+			monochrome: Menu.panel._getIconSVG('<path d="M17.66,7.93L12,2.27L6.34,7.93C3.22,11.05 3.22,16.12 6.34,19.24C7.9,20.8 9.95,21.58 12,21.58C14.05,21.58 16.1,20.8 17.66,19.24C20.78,16.12 20.78,11.05 17.66,7.93M12,19.59C10.07,19.59 8.14,18.89 6.69,17.43C3.83,14.57 3.83,9.86 6.69,7L12,1.69V19.59Z"/>', Menu._getLocalizedString('monochrome')),
+			saturation: Menu.panel._getIconSVG('<path d="M12,3A9,9 0 0,0 3,12A9,9 0 0,0 12,21A9,9 0 0,0 21,12A9,9 0 0,0 12,3M12,19A7,7 0 0,1 5,12A7,7 0 0,1 12,5A7,7 0 0,1 19,12A7,7 0 0,1 12,19M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15Z"/>', Menu._getLocalizedString('lowSaturation')),
+			hideImages: Menu.panel._getIconSVG('<path d="M21,5H3A2,2 0 0,0 1,7V17A2,2 0 0,0 3,19H21A2,2 0 0,0 23,17V7A2,2 0 0,0 21,5M21,17H3V7H21M15,13L12.5,15.5L10.5,14L7,17H17L15,13M8,10A1.5,1.5 0 0,1 9.5,11.5A1.5,1.5 0 0,1 8,13A1.5,1.5 0 0,1 6.5,11.5A1.5,1.5 0 0,1 8,10M2.39,1.73L1.11,3L3,4.89V7H1V17A2,2 0 0,0 3,19H19.11L20.84,20.73L22.11,19.46L2.39,1.73Z"/>', Menu._getLocalizedString('hideImages')),
+			headingHighlight: Menu.panel._getIconSVG('<path d="M3,4H5V10H9V4H11V18H9V12H5V18H3V4M13,8H15.31L15.63,5H17.63L17.31,8H19.31L19.04,10H17.04L16.72,13H18.72L18.45,15H16.45L16.13,18H14.13L14.45,15H12.45L12.13,18H10.13L10.45,15H8.45L8.72,13H10.72L11.04,10H9.04L9.31,8H11.31L11.63,5H13.63L13.31,8M14.18,13L14.5,10H12.5L12.18,13H14.18Z"/>', Menu._getLocalizedString('highlightHeadings')),
+			tooltips: Menu.panel._getIconSVG('<path d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>', Menu._getLocalizedString('tooltips'))
 		};
 		let html = `<h3 id="ar-aaa-menu-title">${ Menu._getLocalizedString('menuTitle') }</h3>`;
-		html += `<div class="ar-aaa-menu-group"><h4 class="ar-aaa-profile-title">${ Menu._getLocalizedString('profilesTitle') }</h4><div class="ar-aaa-button-row">`;
+		
+		// Quick Profiles Section
+		html += `<div class="ar-aaa-menu-group">
+			<div class="ar-aaa-menu-section-header">${ Menu._getLocalizedString('profilesTitle') }</div>
+			<div class="ar-aaa-button-row">`;
 		for (const profileKey in Menu.profiles) {
 			const profile = Menu.profiles[profileKey];
 			html += `<button data-action="profile-${ profileKey }">${ Menu.panel._getIconSVG(profile.iconPath, Menu._getLocalizedString('profileIcon')) } ${ Menu._getLocalizedString(profile.labelKey) }</button>`;
 		}
 		html += `</div></div>`;
-		html += `
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="increase-text">${ ICONS.textSize } ${ Menu._getLocalizedString('increaseText') }</button> <button data-action="decrease-text">${ ICONS.textSize } ${ Menu._getLocalizedString('decreaseText') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="contrast-high">${ ICONS.contrast } ${ Menu._getLocalizedString('highContrast') }</button> <button data-action="contrast-invert">${ ICONS.contrast } ${ Menu._getLocalizedString('invertColors') }</button> <button data-action="contrast-dark">${ ICONS.contrast } ${ Menu._getLocalizedString('darkContrast') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="highlight-links">${ ICONS.highlight } ${ Menu._getLocalizedString('highlightLinks') }</button> <button data-action="enhanced-focus">${ ICONS.highlight } ${ Menu._getLocalizedString('enhancedFocus') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="read-aloud" class="ar-aaa-fullwidth-btn">${ ICONS.readAloud } ${ Menu._getLocalizedString('readAloud') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="reading-mode" class="ar-aaa-fullwidth-btn">${ ICONS.readingMode } ${ Menu._getLocalizedString('readingMode') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="reading-mask">${ ICONS.readingMask } ${ Menu._getLocalizedString('readingMask') }</button> <button data-action="reading-line">${ ICONS.readingLine } ${ Menu._getLocalizedString('readingLine') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="stop-animations" class="ar-aaa-fullwidth-btn">${ ICONS.animation } ${ Menu._getLocalizedString('stopAnimations') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="toggle-dyslexia-font" class="ar-aaa-fullwidth-btn">${ ICONS.fontStyle } ${ Menu._getLocalizedString('dyslexiaFont') }</button> </div></div>
-            <div class="ar-aaa-menu-group"><div class="ar-aaa-button-row"> <button data-action="reset-all" class="ar-aaa-fullwidth-btn ar-aaa-reset-btn">${ ICONS.reset } ${ Menu._getLocalizedString('resetAll') }</button> <button data-action="close-menu" class="ar-aaa-fullwidth-btn">${ ICONS.close } ${ Menu._getLocalizedString('closeMenu') }</button> </div></div>`;
+		
+		// Text Size Section
+		html += `<div class="ar-aaa-menu-group">
+			<div class="ar-aaa-menu-section-header">${ Menu._getLocalizedString('textOptions') }</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="increase-text">${ ICONS.textSize } ${ Menu._getLocalizedString('increaseText') }</button>
+				<button data-action="decrease-text">${ ICONS.textSize } ${ Menu._getLocalizedString('decreaseText') }</button>
+			</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="letter-spacing">${ ICONS.letterSpacing } ${ Menu._getLocalizedString('letterSpacing') }</button>
+				<button data-action="word-spacing">${ ICONS.wordSpacing } ${ Menu._getLocalizedString('wordSpacing') }</button>
+				<button data-action="line-height">${ ICONS.lineHeight } ${ Menu._getLocalizedString('lineHeight') }</button>
+			</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="toggle-dyslexia-font" class="ar-aaa-fullwidth-btn">${ ICONS.fontStyle } ${ Menu._getLocalizedString('dyslexiaFont') }</button>
+			</div>
+		</div>`;
+		
+		// Visual Options Section
+		html += `<div class="ar-aaa-menu-group">
+			<div class="ar-aaa-menu-section-header">${ Menu._getLocalizedString('visualOptions') }</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="contrast-high">${ ICONS.contrast } ${ Menu._getLocalizedString('highContrast') }</button>
+				<button data-action="contrast-invert">${ ICONS.contrast } ${ Menu._getLocalizedString('invertColors') }</button>
+				<button data-action="contrast-dark">${ ICONS.contrast } ${ Menu._getLocalizedString('darkContrast') }</button>
+			</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="monochrome">${ ICONS.monochrome } ${ Menu._getLocalizedString('monochrome') }</button>
+				<button data-action="low-saturation">${ ICONS.saturation } ${ Menu._getLocalizedString('lowSaturation') }</button>
+			</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="highlight-links">${ ICONS.highlight } ${ Menu._getLocalizedString('highlightLinks') }</button>
+				<button data-action="highlight-headings">${ ICONS.headingHighlight } ${ Menu._getLocalizedString('highlightHeadings') }</button>
+			</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="hide-images">${ ICONS.hideImages } ${ Menu._getLocalizedString('hideImages') }</button>
+				<button data-action="tooltips">${ ICONS.tooltips } ${ Menu._getLocalizedString('tooltips') }</button>
+			</div>
+		</div>`;
+		
+		// Navigation & Focus Section
+		html += `<div class="ar-aaa-menu-group">
+			<div class="ar-aaa-menu-section-header">${ Menu._getLocalizedString('navigationOptions') }</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="enhanced-focus">${ ICONS.highlight } ${ Menu._getLocalizedString('enhancedFocus') }</button>
+				<button data-action="large-cursor">${ ICONS.cursor } ${ Menu._getLocalizedString('largeCursor') }</button>
+			</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="stop-animations" class="ar-aaa-fullwidth-btn">${ ICONS.animation } ${ Menu._getLocalizedString('stopAnimations') }</button>
+			</div>
+		</div>`;
+		
+		// Reading Aids Section
+		html += `<div class="ar-aaa-menu-group">
+			<div class="ar-aaa-menu-section-header">${ Menu._getLocalizedString('readingOptions') }</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="read-aloud" class="ar-aaa-fullwidth-btn">${ ICONS.readAloud } ${ Menu._getLocalizedString('readAloud') }</button>
+			</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="reading-mode" class="ar-aaa-fullwidth-btn">${ ICONS.readingMode } ${ Menu._getLocalizedString('readingMode') }</button>
+			</div>
+			<div class="ar-aaa-button-row">
+				<button data-action="reading-mask">${ ICONS.readingMask } ${ Menu._getLocalizedString('readingMask') }</button>
+				<button data-action="reading-line">${ ICONS.readingLine } ${ Menu._getLocalizedString('readingLine') }</button>
+			</div>
+		</div>`;
+		
+		// Reset & Close Section
+		html += `<div class="ar-aaa-menu-group">
+			<div class="ar-aaa-button-row">
+				<button data-action="reset-all" class="ar-aaa-fullwidth-btn ar-aaa-reset-btn">${ ICONS.reset } ${ Menu._getLocalizedString('resetAll') }</button>
+				<button data-action="close-menu" class="ar-aaa-fullwidth-btn">${ ICONS.close } ${ Menu._getLocalizedString('closeMenu') }</button>
+			</div>
+		</div>`;
+		
 		return html;
 	};
 	Menu.panel.populatePageStructurePanel = function (customSelectors) {
@@ -2641,125 +2933,6 @@ var AR_CheckModules = AR_CheckModules || {};
 		    'Check for Dismissible, Hoverable, Persistent properties of popups.'
 		);
 		console.groupEnd();
-	};
-	function validateAriaHasPopup(el) {
-		if (el.getAttribute('aria-hidden') === 'true') return;
-		const VALID_ARIA_HASPOPUP_VALUES = [
-			'menu', 'listbox', 'tree', 'grid', 'dialog', 'true', 'false'
-		];
-	        const hasPopup = el.hasAttribute('aria-haspopup');
-	        if (hasPopup) {
-	            const popupValue = el.getAttribute('aria-haspopup').toLowerCase();
-	            if (!VALID_ARIA_HASPOPUP_VALUES.includes(popupValue)) {
-	                ar_setAttributeAndLog(
-	                    el,
-	                    'aria-haspopup',
-	                    'true',
-	                    'Moderate',
-	                    `Invalid aria-haspopup value "${popupValue}". Auto-set to "true".`,
-	                    'Use valid values (menu, listbox, tree, grid, dialog, true, false).'
-	                );
-	            }
-	        }
-	}
-	function validateAriaExpandedAndControls(el) {
-		if (el.getAttribute('aria-hidden') === 'true') return;
-	        const controlsId = el.getAttribute('aria-controls');
-	        const isExpanded = el.getAttribute('aria-expanded');
-	
-	        if (controlsId && controlsId.trim() !== "") {
-	            const controlledElement = document.getElementById(controlsId);
-	            if (controlledElement) {
-	                const isControlledElementVisible = !ar_isVisuallyHidden(controlledElement);
-	                if (isExpanded === null) {
-	                    ar_setAttributeAndLog(
-	                        el,
-	                        'aria-expanded',
-	                        String(isControlledElementVisible),
-	                        'Minor',
-	                        `aria-controls present without aria-expanded. Auto-fixed.`,
-	                        'Add and update aria-expanded to reflect the visibility of the controlled element.'
-	                    );
-	                } else if (
-	                    (isExpanded === 'true' && !isControlledElementVisible) ||
-	                    (isExpanded === 'false' && isControlledElementVisible)
-	                ) {
-	                    ar_setAttributeAndLog(
-	                        el,
-	                        'aria-expanded',
-	                        String(isControlledElementVisible),
-	                        'Minor',
-	                        `aria-expanded value mismatch with controlled element visibility. Auto-corrected.`,
-	                        'Ensure aria-expanded reflects controlled element visibility.'
-	                    );
-	                }
-	            } else if (isExpanded !== null) {
-	                ar_logAccessibilityIssue(
-	                    'Moderate',
-	                    `aria-controls points to a non-existent ID "${controlsId}".`,
-	                    el,
-	                    'Ensure aria-controls points to a valid ID of a controlled element.',
-	                    'Robust',
-	                    '4.1.2'
-	                );
-	            }
-	        } else if (isExpanded !== null) {
-	            ar_logAccessibilityIssue(
-	                'Minor',
-	                `aria-expanded present without aria-controls.`,
-	                el,
-	                'Add aria-controls if content is controlled by this element, or remove aria-expanded.',
-	                'Operable',
-	                '4.1.2'
-	            );
-	        }
-	}
-	AR_CheckModulesProto.checkHoverFocusContent = function () {
-		ar_logSection('Content on Hover/Focus (ARIA Attributes)');
-		document.querySelectorAll('button, a[href], [role="button"], [role="link"], [role="menuitem"]').forEach(el => {
-			if (el.getAttribute('aria-hidden') === 'true') return;
-			try {
-				if (ar_isVisuallyHidden(el))
-					return;
-				const hasPopup = el.hasAttribute('aria-haspopup');
-				const isExpanded = el.getAttribute('aria-expanded');
-				const controlsId = el.getAttribute('aria-controls');
-				if (hasPopup) {
-					const popupValue = el.getAttribute('aria-haspopup').toLowerCase();
-					const validPopupValues = [
-						'menu',
-						'listbox',
-						'tree',
-						'grid',
-						'dialog',
-						'true',
-						'false'
-					];
-					if (!validPopupValues.includes(popupValue)) {
-						ar_setAttributeAndLog(el, 'aria-haspopup', 'true', 'Moderate', `Invalid aria-haspopup value "${ popupValue }". Auto-set to "true".`, 'Use valid values (menu, listbox, tree, grid, dialog, true, false).', 'Operable', '4.1.2', 'A')
-					}
-				}
-				if (controlsId && controlsId.trim() !== "") {
-					const controlledElement = document.getElementById(controlsId);
-					if (controlledElement) {
-						const isControlledElementVisible = !ar_isVisuallyHidden(controlledElement);
-						if (isExpanded === null) {
-							ar_setAttributeAndLog(el, 'aria-expanded', String(isControlledElementVisible), 'Minor', `aria-controls present without aria-expanded. Auto-fixed.`, 'Add and update aria-expanded to reflect the state of the controlled element.', 'Operable', '4.1.2', 'A')
-						} else if (isExpanded === 'true' && !isControlledElementVisible || isExpanded === 'false' && isControlledElementVisible) {
-							ar_setAttributeAndLog(el, 'aria-expanded', String(isControlledElementVisible), 'Minor', `aria-expanded value mismatch with controlled element visibility. Auto-corrected.`, 'Ensure aria-expanded accurately reflects the visibility state of the controlled element.', 'Operable', '4.1.2', 'A')
-						}
-					} else if (isExpanded !== null) {
-						ar_logAccessibilityIssue('Moderate', `aria-controls points to a non-existent ID "${ controlsId }".`, el, 'Ensure aria-controls points to a valid ID of a controlled element.', 'Robust', '4.1.2', false, 'A')
-					}
-				} else if (isExpanded !== null) {
-					ar_logAccessibilityIssue('Minor', `aria-expanded present without aria-controls.`, el, 'Add aria-controls if content is controlled by this element, or remove aria-expanded.', 'Operable', '4.1.2', false, 'A')
-				}
-			} catch (e) {
-				console.error('Error: HoverFocusContent Check:', e, el)
-			}
-		});
-		console.log('\n\uD83D\uDCA1 Manual Verification for WCAG 1.4.13 (Content on Hover/Focus) is CRUCIAL: Check for Dismissible, Hoverable, Persistent properties of popups.');
-		console.groupEnd()
 	};
 	AR_CheckModulesProto.checkAutoFormSubmission = function () {
 		ar_logSection('Automatic Form Submission');

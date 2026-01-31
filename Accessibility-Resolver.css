@@ -63,14 +63,30 @@
  #aaa-menu-panel {
 	 display: none;
 	 position: fixed;
-	 width: 320px;
-	 max-height: 45vh;
+	 width: 360px;
+	 max-height: 70vh;
 	 overflow-y: auto;
-	 border-radius: 8px;
-	 box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+	 border-radius: 12px;
+	 box-shadow: 0 8px 32px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.1);
 	 z-index: 2147483646;
-	 padding: 15px;
+	 padding: 20px;
 	 cursor: grab;
+	 scrollbar-width: thin;
+	 scrollbar-color: #888 #f0f0f0;
+}
+ #aaa-menu-panel::-webkit-scrollbar {
+	 width: 8px;
+}
+ #aaa-menu-panel::-webkit-scrollbar-track {
+	 background: #f0f0f0;
+	 border-radius: 4px;
+}
+ #aaa-menu-panel::-webkit-scrollbar-thumb {
+	 background: #888;
+	 border-radius: 4px;
+}
+ #aaa-menu-panel::-webkit-scrollbar-thumb:hover {
+	 background: #555;
 }
  #aaa-menu-panel, #aaa-menu-panel * {
      background: white !important;
@@ -83,54 +99,82 @@
  }
  #aaa-menu-panel h3#ar-aaa-menu-title, #aaa-menu-panel .ar-aaa-profile-title {
 	 margin-top: 0 !important;
-	 margin-bottom: 15px !important;
-	 font-size: 1.2em !important;
+	 margin-bottom: 20px !important;
+	 font-size: 1.4em !important;
 	 color: #000000;
 	 text-align: center !important;
 	 background-color: transparent !important;
 	 font-family: Arial, sans-serif !important;
+	 padding-bottom: 10px !important;
+	 border-bottom: 2px solid #333 !important;
 }
  #aaa-menu-panel .ar-aaa-profile-title {
 	 font-weight: bold !important;
+	 border-bottom: none !important;
+	 margin-bottom: 10px !important;
+	 padding-bottom: 0 !important;
 }
  #aaa-menu-panel.ar-aaa-menu-open {
 	 display: block !important;
 }
  #aaa-menu-panel .ar-aaa-menu-group {
-	 margin-bottom: 15px !important;
-	 padding-bottom: 10px !important;
-	 border-bottom: 1px solid #000000 !important;
+	 margin-bottom: 16px !important;
+	 padding-bottom: 12px !important;
+	 border-bottom: 1px solid #e0e0e0 !important;
 }
  #aaa-menu-panel .ar-aaa-menu-group:last-of-type {
 	 margin-bottom: 0 !important;
 	 padding-bottom: 0 !important;
 	 border-bottom: none !important;
 }
+ #aaa-menu-panel .ar-aaa-menu-section-header {
+	 font-size: 0.9em !important;
+	 font-weight: bold !important;
+	 color: #333 !important;
+	 margin-bottom: 8px !important;
+	 text-transform: uppercase !important;
+	 letter-spacing: 0.5px !important;
+}
  #aaa-menu-panel .ar-aaa-button-row {
 	 display: flex !important;
 	 flex-wrap: wrap !important;
-	 gap: 8px !important;
+	 gap: 10px !important;
 }
  #aaa-menu-panel button {
-	 flex: 1 1 calc(50% - 4px) !important;
-	 padding: 10px 12px !important;
-	 font-size: 1em !important;
+	 flex: 1 1 calc(50% - 5px) !important;
+	 padding: 12px 14px !important;
+	 font-size: 0.9em !important;
 	 background-color: #ffffff !important;
 	 color: #000000 !important;
-	 border: 1px solid #000000 !important;
-	 border-radius: 4px !important;
+	 border: 2px solid #333 !important;
+	 border-radius: 8px !important;
 	 cursor: pointer !important;
-	 transition: none !important;
+	 transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
 	 display: flex !important;
 	 align-items: center !important;
 	 justify-content: center !important;
-	 gap: 6px !important;
-	 min-height: 40px !important;
+	 gap: 8px !important;
+	 min-height: 44px !important;
 	 font-family: Arial, sans-serif !important;
+	 text-align: center !important;
+	 font-weight: 500 !important;
 }
- #aaa-menu-panel button:hover, #aaa-menu-panel button:focus-visible {
-	 background-color: #f0f0f0 !important;
-	 outline: 1px solid #000000 !important;
+/* Respect stop animations preference */
+body.ar-aaa-animations-stopped #aaa-menu-panel button {
+	 transition: none !important;
+}
+ #aaa-menu-panel .ar-aaa-button-row + .ar-aaa-button-row {
+	 margin-top: 8px !important;
+}
+ #aaa-menu-panel button:hover {
+	 background-color: #f5f5f5 !important;
+	 border-color: #000 !important;
+	 transform: translateY(-1px) !important;
+	 box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
+}
+ #aaa-menu-panel button:focus-visible {
+	 outline: 3px solid #0066cc !important;
+	 outline-offset: 2px !important;
 }
  #aaa-menu-panel button.ar-aaa-menu-btn-active {
 	 background-color: #000000 !important;
@@ -420,6 +464,47 @@ body.ar-aaa-high-contrast select {
     margin: 2mm;
     padding: 2mm;
 }
+/* Highlight Headings Feature */
+body.ar-aaa-highlight-headings h1,
+body.ar-aaa-highlight-headings h2,
+body.ar-aaa-highlight-headings h3,
+body.ar-aaa-highlight-headings h4,
+body.ar-aaa-highlight-headings h5,
+body.ar-aaa-highlight-headings h6 {
+    background: #fff3cd !important;
+    color: #664d03 !important;
+    border-left: 4px solid #ffc107 !important;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+}
+body.ar-aaa-highlight-headings h1 { border-left-width: 8px !important; }
+body.ar-aaa-highlight-headings h2 { border-left-width: 6px !important; }
+body.ar-aaa-dark-contrast.ar-aaa-highlight-headings h1,
+body.ar-aaa-dark-contrast.ar-aaa-highlight-headings h2,
+body.ar-aaa-dark-contrast.ar-aaa-highlight-headings h3,
+body.ar-aaa-dark-contrast.ar-aaa-highlight-headings h4,
+body.ar-aaa-dark-contrast.ar-aaa-highlight-headings h5,
+body.ar-aaa-dark-contrast.ar-aaa-highlight-headings h6 {
+    background: #1a1a2e !important;
+    color: #ffc107 !important;
+    border-left-color: #ffc107 !important;
+}
+body.ar-aaa-high-contrast.ar-aaa-highlight-headings h1,
+body.ar-aaa-high-contrast.ar-aaa-highlight-headings h2,
+body.ar-aaa-high-contrast.ar-aaa-highlight-headings h3,
+body.ar-aaa-high-contrast.ar-aaa-highlight-headings h4,
+body.ar-aaa-high-contrast.ar-aaa-highlight-headings h5,
+body.ar-aaa-high-contrast.ar-aaa-highlight-headings h6 {
+    background: #fff !important;
+    color: #000 !important;
+    border-left-color: #000 !important;
+    border: 2px solid #000 !important;
+    border-left-width: 4px !important;
+}
+body.ar-aaa-high-contrast.ar-aaa-highlight-headings h1 { border-left-width: 8px !important; }
+body.ar-aaa-high-contrast.ar-aaa-highlight-headings h2 { border-left-width: 6px !important; }
 html body a:focus-visible,
 html body button:focus-visible,
 html body input:focus-visible,
@@ -555,4 +640,235 @@ html > body :is(
 }
  body.ar-aaa-reading-mode :is(img, video, svg:not(#aaa-menu-button svg)), body.ar-aaa-reading-mode div:not(:has(:not(div, img, video, svg:not(#aaa-menu-button svg)))) {
     display: none !important;
+}
+
+/* Letter Spacing Enhancement */
+body.ar-aaa-letter-spacing,
+body.ar-aaa-letter-spacing *:not(script):not(style):not(link):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-menu-button):not(#aaa-menu-button *) {
+    letter-spacing: 0.12em !important;
+}
+
+/* Word Spacing Enhancement */
+body.ar-aaa-word-spacing,
+body.ar-aaa-word-spacing *:not(script):not(style):not(link):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-menu-button):not(#aaa-menu-button *) {
+    word-spacing: 0.16em !important;
+}
+
+/* Line Height Enhancement */
+body.ar-aaa-line-height,
+body.ar-aaa-line-height *:not(script):not(style):not(link):not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-menu-button):not(#aaa-menu-button *) {
+    line-height: 1.8 !important;
+}
+
+/* Large Cursor */
+body.ar-aaa-large-cursor,
+body.ar-aaa-large-cursor * {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="%23000" stroke="%23fff" stroke-width="1" d="M3 3l8 24 4-8 8-4z"/></svg>') 3 3, auto !important;
+}
+
+body.ar-aaa-large-cursor a,
+body.ar-aaa-large-cursor button,
+body.ar-aaa-large-cursor [role="button"],
+body.ar-aaa-large-cursor [role="link"],
+body.ar-aaa-large-cursor input[type="submit"],
+body.ar-aaa-large-cursor input[type="button"],
+body.ar-aaa-large-cursor [onclick] {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path fill="%23000" stroke="%23fff" stroke-width="1" d="M10 3v24l4-4h10l-6-6 6-6H14l-4-4z"/></svg>') 10 3, pointer !important;
+}
+
+/* Reading Guide Cursor */
+body.ar-aaa-reading-guide-cursor {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect fill="%23007bff" opacity="0.3" x="0" y="12" width="32" height="8"/><path fill="%23000" stroke="%23fff" stroke-width="1" d="M3 3l8 24 4-8 8-4z"/></svg>') 3 16, auto !important;
+}
+
+/* Text Alignment Options */
+body.ar-aaa-text-left *:not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-menu-button):not(#aaa-menu-button *) {
+    text-align: left !important;
+}
+
+body.ar-aaa-text-center *:not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-menu-button):not(#aaa-menu-button *) {
+    text-align: center !important;
+}
+
+body.ar-aaa-text-right *:not(#aaa-menu-panel):not(#aaa-menu-panel *):not(#aaa-menu-button):not(#aaa-menu-button *) {
+    text-align: right !important;
+}
+
+/* Hide Images Mode
+ * Note: This mode hides images, SVGs (except common icon libraries), and videos.
+ * Background images set via inline styles will be hidden, but background images
+ * defined in external CSS stylesheets will remain visible. For complete image
+ * hiding, consider using JavaScript-based solutions.
+ * Icon preservation: fa-*, fas, far, fal, fad, fab, glyphicon-*, icon-*, 
+ * material-icons, mdi-*, bi-*, icofont-* classes are preserved.
+ */
+body.ar-aaa-hide-images img:not(#aaa-menu-panel img):not(#aaa-menu-button img),
+body.ar-aaa-hide-images svg:not(#aaa-menu-panel svg):not(#aaa-menu-button svg):not(.fa-solid):not(.fa-regular):not(.fa-light):not(.fa-duotone):not(.fa-brands):not([class*="fa-"]):not([class*="glyphicon-"]):not([class*="icon-"]):not(.material-icons):not([class*="mdi-"]):not([class*="bi-"]):not([class*="icofont-"]),
+body.ar-aaa-hide-images video,
+body.ar-aaa-hide-images [style*="background-image"]:not(#aaa-menu-panel *):not(#aaa-menu-button *) {
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Monochrome Mode */
+body.ar-aaa-monochrome {
+    filter: grayscale(100%) !important;
+}
+
+body.ar-aaa-monochrome #aaa-menu-panel,
+body.ar-aaa-monochrome #aaa-menu-button,
+body.ar-aaa-monochrome #aaa-page-structure-panel {
+    filter: grayscale(0%) !important;
+}
+
+/* Low Saturation Mode */
+body.ar-aaa-low-saturation {
+    filter: saturate(50%) !important;
+}
+
+body.ar-aaa-low-saturation #aaa-menu-panel,
+body.ar-aaa-low-saturation #aaa-menu-button,
+body.ar-aaa-low-saturation #aaa-page-structure-panel {
+    filter: saturate(100%) !important;
+}
+
+/* Tooltip Enhancements */
+body.ar-aaa-tooltips [title]:not(#aaa-menu-panel *):not(#aaa-menu-button *) {
+    position: relative;
+}
+
+body.ar-aaa-tooltips [title]:not(#aaa-menu-panel *):not(#aaa-menu-button *)::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    z-index: 2147483646;
+    pointer-events: none;
+}
+
+body.ar-aaa-tooltips [title]:not(#aaa-menu-panel *):not(#aaa-menu-button *):hover::after,
+body.ar-aaa-tooltips [title]:not(#aaa-menu-panel *):not(#aaa-menu-button *):focus::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Print Styles - Ensure accessibility features don't affect print */
+@media print {
+    #aaa-menu-button,
+    #aaa-menu-panel,
+    #aaa-page-structure-panel,
+    .aaa-reading-mask-top,
+    .aaa-reading-mask-bottom,
+    .aaa-reading-line {
+        display: none !important;
+    }
+    
+    body.ar-aaa-high-contrast,
+    body.ar-aaa-dark-contrast,
+    html.ar-aaa-invert-colors {
+        filter: none !important;
+        background: white !important;
+        color: black !important;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    #aaa-menu-panel,
+    #aaa-page-structure-panel,
+    .ar-aaa-temp-highlight {
+        transition: none !important;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    #aaa-menu-button {
+        border-width: 3px !important;
+    }
+    
+    #aaa-menu-panel button {
+        border-width: 2px !important;
+    }
+}
+
+/* Keyboard Focus Visible Enhancements */
+#aaa-menu-panel button:focus-visible,
+#aaa-page-structure-panel button:focus-visible,
+#aaa-menu-button:focus-visible {
+    outline: 3px solid #FFD700 !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.4) !important;
+}
+
+/* Smooth scrolling for page structure navigation */
+html.ar-smooth-scroll {
+    scroll-behavior: smooth;
+}
+
+/* Better touch targets for mobile */
+@media (pointer: coarse) {
+    #aaa-menu-panel button {
+        min-height: 48px !important;
+        padding: 12px 16px !important;
+    }
+    
+    #aaa-menu-button {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
+
+/* Screen reader only class */
+.ar-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+/* Skip link styles */
+.ar-skip-link {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    z-index: 99999;
+}
+
+.ar-skip-link:focus {
+    position: fixed;
+    left: 10px;
+    top: 10px;
+    width: auto;
+    height: auto;
+    padding: 12px 24px;
+    background: #000;
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 2147483647;
 }
