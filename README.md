@@ -90,20 +90,20 @@ Add the following to your HTML `<head>` section:
 
 ```html
 <!-- Pin to a specific version for production stability -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@v1.0.0/Accessibility-Resolver.css">
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@v1.0.0/Accessibility-Resolver.js" async></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@v1.0.0/dist/index.css">
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@v1.0.0/dist/index.js" defer></script>
 ```
 
 > **Note:** For production, always pin to a specific version or commit hash to avoid unexpected breaking changes. Replace `v1.0.0` with the desired version.
 
 ### Self-Hosted Installation
 
-1. Download both `Accessibility-Resolver.css` and `Accessibility-Resolver.js`
+1. Download both `dist/index.css` and `dist/index.js`
 2. Add them to your project:
 
 ```html
-<link rel="stylesheet" href="/path/to/Accessibility-Resolver.css">
-<script src="/path/to/Accessibility-Resolver.js" async></script>
+<link rel="stylesheet" href="/path/to/index.css">
+<script src="/path/to/index.js" defer></script>
 ```
 
 ### NPM Installation
@@ -115,8 +115,8 @@ npm install accessibility-resolver
 Then import in your JavaScript:
 
 ```javascript
-import 'accessibility-resolver/Accessibility-Resolver.css';
-import 'accessibility-resolver/Accessibility-Resolver.js';
+import 'accessibility-resolver/dist/index.css';
+import 'accessibility-resolver/dist/index.js';
 ```
 
 ---
