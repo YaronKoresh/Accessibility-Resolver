@@ -1,4 +1,4 @@
-name: CI
+name: Check
 
 on:
   push:
@@ -34,7 +34,7 @@ jobs:
         shell: bash
         run: |
           if [ -z "$(git status --porcelain)" ]; then
-            exit 1
+            exit 0
           fi
 
           PREVIOUS_REVIEWS=$(gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER/reviews" --jq '.[] | select(.user.login=="github-actions[bot]") | .id')
@@ -86,10 +86,4 @@ jobs:
             gh api "repos/${{ github.repository }}/pulls/$PR_NUMBER/reviews" --input review.json
           fi
 
-      - run: npm run build
-
-      - if: always()
-        uses: actions/upload-artifact@v6
-        with:
-          name: dist
-          path: dist/
+          exit 1
