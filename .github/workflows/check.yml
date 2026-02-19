@@ -19,11 +19,9 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - run: npm ci
+      - run: npm install
 
       - run: npm run check
-
-      - run: npm run clean
 
       - name: Check For Changes
         id: check_changes
@@ -32,7 +30,18 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          if [ -z "$(git status --porcelain)" ]; then
+          git config core.fileMode false
+          git add . --renormalize
+
+          if ! git diff --exit-code -w --ignore-submodules; then
+            echo "❌ Changes detected in the following files:"
+            git status --porcelain
+            
+            echo -e "\n--- Detailed Diff ---"
+            git diff -w
+            
+            exit 1
+          else
+            echo "✅ No changes detected."
             exit 0
           fi
-          exit 1

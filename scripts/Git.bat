@@ -20,39 +20,41 @@ color 0B
 :MainMenu
 cls
 echo.
-echo  ===========================================================
-echo  ^|                                                         ^|
-echo  ^|              G I T   M A N A G E R                      ^|
-echo  ^|                                                         ^|
-echo  ===========================================================
+echo ===========================================================
+echo                G I T   M A N A G E R
+echo ===========================================================
 echo.
+
 for /f "delims=" %%I in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "CURRENT_BRANCH=%%I"
+
 if defined CURRENT_BRANCH (
-    echo     Current Branch: !CURRENT_BRANCH!
+    echo Current Branch: !CURRENT_BRANCH!
 ) else (
-    echo     Not inside a Git repository
+    echo Status: Not inside a Git repository
 )
+
 echo.
-echo  -----------------------------------------------------------
-echo  ^|  WHAT DO YOU WANT TO DO?                                ^|
-echo  -----------------------------------------------------------
+echo -----------------------------------------------------------
+echo  SELECT AN OPTION
+echo -----------------------------------------------------------
 echo.
-echo     [1]  Quick Actions (common tasks, simplified)
-echo     [2]  First-Time Setup
-echo     [3]  Branches (work on separate copies)
-echo     [4]  Saving Changes (snapshots of your work)
-echo     [5]  Upload and Download (sync with the cloud)
-echo     [6]  View History and Details
-echo     [7]  Combine Work from Different Branches
-echo     [8]  Undo Mistakes
-echo     [9]  Versions and Releases (tags)
-echo     [10] Subprojects (submodules)
-echo     [11] Power-User Tools
+echo  [1]  Quick Actions - Common tasks simplified
+echo  [2]  First Time Setup
+echo  [3]  Branches - Manage separate work areas
+echo  [4]  Saving Changes - Take snapshots of your work
+echo  [5]  Sync - Upload or download from the cloud
+echo  [6]  History - View project details and logs
+echo  [7]  Merging - Combine work from different branches
+echo  [8]  Undo - Fix mistakes or revert changes
+echo  [9]  Versions - Manage tags and releases
+echo [10]  Subprojects - Manage nested repositories
+echo [11]  Advanced - Power user tools
 echo.
-echo     [0]  Exit
+echo  [0]  Exit
 echo.
-echo  -----------------------------------------------------------
-set "CAT=" & set /p "CAT=  Select a category [0-11]: "
+echo -----------------------------------------------------------
+set "CAT="
+set /p "CAT= Enter a number: "
 
 if "!CAT!"=="1" goto CatQuick
 if "!CAT!"=="2" goto CatStart
@@ -66,38 +68,41 @@ if "!CAT!"=="9" goto CatTags
 if "!CAT!"=="10" goto CatSubmodules
 if "!CAT!"=="11" goto CatAdvanced
 if "!CAT!"=="0" goto ExitScript
+
 echo.
-echo  Invalid choice. Press any key to try again...
+echo Invalid choice. Press any key to try again...
 pause >nul
 goto MainMenu
 
 :CatQuick
 cls
 echo.
-echo  ===========================================================
-echo  ^|  QUICK ACTIONS                                          ^|
-echo  ===========================================================
+echo ===========================================================
+echo                 Q U I C K   A C T I O N S
+echo ===========================================================
 echo.
-echo  These combine multiple steps into one easy action.
+echo  These tasks combine multiple steps into one easy action.
 echo.
-echo     [1]  Save my work and upload it to the cloud
-echo     [2]  Get the latest changes from the team
-echo     [3]  Start working on something new (new branch)
-echo     [4]  I'm done with this feature (merge and clean up)
-echo     [5]  See what I've changed
-echo     [6]  Undo everything since my last save
-echo     [7]  Set up my identity (name and email)
-echo     [8]  Save my work locally (without uploading)
-echo     [9]  Create a version/release and upload it
-echo     [10] Download a project for the first time
-echo     [11] I committed something I shouldn't have
-echo     [12] Split my big change into smaller saves
-echo     [13] Create a pull request
-echo     [14] Download and test a pull request
+echo  [1]  Sync - Save work and upload to the cloud
+echo  [2]  Update - Get the latest changes from the team
+echo  [3]  New Task - Start working on a new branch
+echo  [4]  Finish Task - Merge changes and clean up
+echo  [5]  Status - See what has been changed
+echo  [6]  Reset - Undo everything since the last save
+echo  [7]  Identity - Set up your name and email
+echo  [8]  Snapshot - Save work locally without uploading
+echo  [9]  Release - Create a version and upload it
+echo [10]  Download - Get a project for the first time
+echo [11]  Fix Commit - Revert a mistake in your last save
+echo [12]  Split Work - Break a big change into smaller saves
+echo [13]  Request Review - Create a pull request
+echo [14]  Test Review - Download and test a pull request
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "QCH=" & set /p "QCH=  Select an option [0-14]: "
+echo -----------------------------------------------------------
+set "QCH="
+set /p "QCH= Select an option 0-14: "
 
 if "!QCH!"=="1" goto DoQuickSaveUpload
 if "!QCH!"=="2" goto DoQuickGetLatest
@@ -114,6 +119,10 @@ if "!QCH!"=="12" goto DoQuickSplitCommit
 if "!QCH!"=="13" goto DoQuickCreatePR
 if "!QCH!"=="14" goto DoQuickTestPR
 if "!QCH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatQuick
 
 :DoQuickSaveUpload
@@ -239,7 +248,7 @@ if errorlevel 1 (
 echo  [Step 5/6] Uploading the combined work...
 call git push origin "!QFIN_TARGET!"
 echo  [Step 6/6] Cleaning up the feature branch...
-set "QFIN_CLEANUP=" & set /p "QFIN_CLEANUP=  Delete the feature branch '!FEATURE_BRANCH!'? (Y/N): "
+set "QFIN_CLEANUP=" & set /p "QFIN_CLEANUP=  Delete the feature branch '!FEATURE_BRANCH!'? Y or N: "
 if /I "!QFIN_CLEANUP!"=="Y" (
     call git branch -d "!FEATURE_BRANCH!"
     call git push origin --delete "!FEATURE_BRANCH!" 2>nul
@@ -285,7 +294,7 @@ echo.
 echo  Current changes that will be erased:
 call git status --short
 echo.
-set "QUNDO_CONFIRM=" & set /p "QUNDO_CONFIRM=  This CANNOT be undone. Erase all changes? (Y/N): "
+set "QUNDO_CONFIRM=" & set /p "QUNDO_CONFIRM=  This CANNOT be undone. Erase all changes? Y or N: "
 if /I "!QUNDO_CONFIRM!"=="Y" (
     call git restore .
     call git clean -fd
@@ -447,7 +456,7 @@ goto CatQuick
 
 :DoUndoErase
 echo.
-set "QUC_CONFIRM=" & set /p "QUC_CONFIRM=  This will PERMANENTLY erase the commit from history. Continue? (Y/N): "
+set "QUC_CONFIRM=" & set /p "QUC_CONFIRM=  This will PERMANENTLY erase the commit from history. Continue? Y or N: "
 if /I not "!QUC_CONFIRM!"=="Y" (
     echo  Cancelled. Nothing was changed.
     echo.
@@ -501,7 +510,7 @@ echo.
 echo  Files that were in that save:
 call git diff --name-only !QSPLIT_COMMIT!~1 !QSPLIT_COMMIT!
 echo.
-set "QSPLIT_CONFIRM=" & set /p "QSPLIT_CONFIRM=  Undo that save and start splitting? (Y/N): "
+set "QSPLIT_CONFIRM=" & set /p "QSPLIT_CONFIRM=  Undo that save and start splitting? Y or N: "
 if /I not "!QSPLIT_CONFIRM!"=="Y" (
     echo  Cancelled.
     echo.
@@ -542,7 +551,7 @@ echo.
 echo  Currently marked for this save:
 call git diff --cached --name-only
 echo.
-set "QSPLIT_MORE=" & set /p "QSPLIT_MORE=  Add another file to THIS save? (Y/N): "
+set "QSPLIT_MORE=" & set /p "QSPLIT_MORE=  Add another file to THIS save? Y or N: "
 if /I "!QSPLIT_MORE!"=="Y" goto SplitAddFile
 echo.
 set "QSPLIT_MSG=" & set /p "QSPLIT_MSG=  Describe this group of changes: "
@@ -563,7 +572,7 @@ if "!HAS_REMAINING!"=="1" (
 )
 echo  All files have been saved! You're done.
 echo.
-set "QSPLIT_SYNC=" & set /p "QSPLIT_SYNC=  Do you want to upload these split saves and overwrite the cloud? (Y/N): "
+set "QSPLIT_SYNC=" & set /p "QSPLIT_SYNC=  Do you want to upload these split saves and overwrite the cloud? Y or N: "
 if /I "!QSPLIT_SYNC!"=="Y" (
     for /f "delims=" %%I in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "CURRENT_BRANCH=%%I"
     echo  Force-updating the cloud with your split saves...
@@ -588,7 +597,7 @@ echo.
 for /f "delims=" %%I in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "CURRENT_BRANCH=%%I"
 echo  You are on branch: !CURRENT_BRANCH!
 echo.
-set "QPR_SAVE=" & set /p "QPR_SAVE=  Save and upload your latest changes first? (Y/N): "
+set "QPR_SAVE=" & set /p "QPR_SAVE=  Save and upload your latest changes first? Y or N: "
 if /I "!QPR_SAVE!"=="Y" (
     echo.
     set "QPR_MSG=" & set /p "QPR_MSG=  Describe what you changed: "
@@ -658,24 +667,26 @@ goto CatQuick
 :CatStart
 cls
 echo.
-echo  ===========================================================
-echo  ^|  FIRST-TIME SETUP                                       ^|
-echo  ===========================================================
+echo ===========================================================
+echo                F I R S T - T I M E   S E T U P
+echo ===========================================================
 echo.
-echo     [1]  Start a new project from scratch
-echo     [2]  Download an existing project
-echo     [3]  Show what's going on (status)
-echo     [4]  Set my name
-echo     [5]  Set my email
-echo     [6]  Show Git version
-echo     [7]  View this project's settings
-echo     [8]  View computer-wide settings
-echo     [9]  Change a computer-wide setting
-echo     [10] Show project overview
+echo  [1]  New Project - Start a project from scratch
+echo  [2]  Download - Copy an existing project to this folder
+echo  [3]  Status - Check if this folder is a Git project
+echo  [4]  Set Name - Tell Git who you are
+echo  [5]  Set Email - Link your work to your email address
+echo  [6]  Git Version - Check if Git is installed correctly
+echo  [7]  Project Settings - View specific project rules
+echo  [8]  Global Settings - View computer-wide rules
+echo  [9]  Edit Global Settings - Change a computer-wide rule
+echo [10]  Summary - Show a full project overview
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-10]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-10: "
 
 if "!CH!"=="1" goto DoInit
 if "!CH!"=="2" goto DoClone
@@ -688,6 +699,10 @@ if "!CH!"=="8" goto DoConfigGlobal
 if "!CH!"=="9" goto DoConfigGlobalSet
 if "!CH!"=="10" goto DoRepoInfo
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatStart
 
 :DoInit
@@ -822,27 +837,29 @@ goto CatStart
 :CatBranch
 cls
 echo.
-echo  ===========================================================
-echo  ^|  BRANCHES (SEPARATE COPIES OF YOUR PROJECT)             ^|
-echo  ===========================================================
+echo ===========================================================
+echo                        B R A N C H E S
+echo ===========================================================
 echo.
-echo  A 'branch' is like a parallel copy of your project where
-echo  you can work without affecting the main version.
+echo  A branch is a parallel copy of your project where you can 
+echo  work safely without affecting the main version.
 echo.
-echo     [1]  Show all branches
-echo     [2]  Create a new branch
-echo     [3]  Switch to a different branch
-echo     [4]  Rename the current branch
-echo     [5]  Delete a branch
-echo     [6]  Download a branch from the cloud
-echo     [7]  Link current branch to its cloud version
-echo     [8]  Show branches already merged into this one
-echo     [9]  Show branches not yet merged into this one
-echo     [10] Delete a branch from the cloud
+echo  [1]  List Branches - Show all local and cloud branches
+echo  [2]  New Branch - Create a new work area
+echo  [3]  Switch - Move to a different branch
+echo  [4]  Rename - Change the name of your current branch
+echo  [5]  Delete - Remove a local branch you no longer need
+echo  [6]  Fetch Branch - Download a branch from the cloud
+echo  [7]  Link Cloud - Connect this branch to its cloud version
+echo  [8]  Done - Show branches already combined into this one
+echo  [9]  Pending - Show branches with work not yet merged
+echo [10]  Cloud Delete - Remove a branch from the cloud
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-10]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-10: "
 
 if "!CH!"=="1" goto DoBranchList
 if "!CH!"=="2" goto DoBranchCreate
@@ -855,6 +872,10 @@ if "!CH!"=="8" goto DoBranchMerged
 if "!CH!"=="9" goto DoBranchUnmerged
 if "!CH!"=="10" goto DoBranchDeleteRemote
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatBranch
 
 :DoBranchList
@@ -877,7 +898,7 @@ echo.
 echo  --- Create a New Branch ---
 echo.
 set "NEW_BR=" & set /p "NEW_BR=  Enter new branch name: "
-set "SWITCH_BR=" & set /p "SWITCH_BR=  Switch to it now? (Y/N): "
+set "SWITCH_BR=" & set /p "SWITCH_BR=  Switch to it now? Y or N: "
 if /I "!SWITCH_BR!"=="Y" (
     call git checkout -b "!NEW_BR!"
 ) else (
@@ -923,7 +944,7 @@ echo  Available branches:
 call git branch
 echo.
 set "DEL_BR=" & set /p "DEL_BR=  Enter branch name to delete: "
-set "FORCE_DEL=" & set /p "FORCE_DEL=  Force delete? (Y/N): "
+set "FORCE_DEL=" & set /p "FORCE_DEL=  Force delete? Y or N: "
 if /I "!FORCE_DEL!"=="Y" (
     call git branch -D "!DEL_BR!"
 ) else (
@@ -992,7 +1013,7 @@ echo.
 set "RDBR_NAME=" & set /p "RDBR_NAME=  Enter branch name to delete from remote: "
 set "RDBR_REMOTE=origin"
 set "RDBR_REMOTE=" & set /p "RDBR_REMOTE=  Remote name (press Enter for 'origin'): "
-set "RDBR_CONFIRM=" & set /p "RDBR_CONFIRM=  Delete '!RDBR_NAME!' from '!RDBR_REMOTE!'? (Y/N): "
+set "RDBR_CONFIRM=" & set /p "RDBR_CONFIRM=  Delete '!RDBR_NAME!' from '!RDBR_REMOTE!'? Y or N: "
 if /I "!RDBR_CONFIRM!"=="Y" (
     call git push "!RDBR_REMOTE!" --delete "!RDBR_NAME!"
 ) else (
@@ -1005,33 +1026,35 @@ goto CatBranch
 :CatChanges
 cls
 echo.
-echo  ===========================================================
-echo  ^|  SAVING CHANGES (SNAPSHOTS OF YOUR WORK)                ^|
-echo  ===========================================================
+echo ===========================================================
+echo                 S A V I N G   C H A N G E S
+echo ===========================================================
 echo.
-echo  'Staging' = marking files to include in your next save.
-echo  'Committing' = creating a save point of your staged files.
-echo  'Stashing' = setting aside changes temporarily.
+echo  Marking = Choosing files to include in your next save.
+echo  Saving = Creating a permanent snapshot of marked files.
+echo  Set Aside = Temporarily hiding work to clean your folder.
 echo.
-echo     [1]  Mark all changed files for saving
-echo     [2]  Mark a specific file for saving
-echo     [3]  Unmark a file (remove from next save)
-echo     [4]  Create a save point from marked files
-echo     [5]  Mark everything and save at once (quick save)
-echo     [6]  Set aside my changes temporarily
-echo     [7]  Bring back set-aside changes
-echo     [8]  Show list of set-aside changes
-echo     [9]  Throw away changes in a specific file
-echo     [10] Mark parts of a file (choose line by line)
-echo     [11] Preview set-aside changes
-echo     [12] Delete a specific set-aside entry
-echo     [13] Delete all set-aside entries
-echo     [14] Compare changes in a file
-echo     [15] Throw away ALL unsaved changes
+echo  [1]  Mark All - Prepare all changed files for saving
+echo  [2]  Mark File - Choose a specific file to save
+echo  [3]  Unmark - Remove a file from the next save
+echo  [4]  Save Marked - Create a save point for marked files
+echo  [5]  Quick Save - Mark everything and save at once
+echo  [6]  Set Aside - Hide your current changes for later
+echo  [7]  Restore - Bring back your set-aside changes
+echo  [8]  List Hidden - Show all set-aside work
+echo  [9]  Discard File - Delete changes in a specific file
+echo [10]  Mark Parts - Choose specific lines to save
+echo [11]  Preview Hidden - See what is inside a set-aside entry
+echo [12]  Delete Hidden - Remove one set-aside entry
+echo [13]  Clear Hidden - Delete ALL set-aside entries
+echo [14]  Compare - See what changed inside a file
+echo [15]  Reset All - Throw away ALL unsaved changes
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-15]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-15: "
 
 if "!CH!"=="1" goto DoStageAll
 if "!CH!"=="2" goto DoStageFile
@@ -1049,6 +1072,10 @@ if "!CH!"=="13" goto DoStashClear
 if "!CH!"=="14" goto DoDiffFile
 if "!CH!"=="15" goto DoDiscardAll
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatChanges
 
 :DoStageAll
@@ -1165,7 +1192,7 @@ echo  Modified files:
 call git status --short
 echo.
 set "DISCARD_F=" & set /p "DISCARD_F=  Enter file path to discard changes: "
-set "CONFIRM_DISCARD=" & set /p "CONFIRM_DISCARD=  This cannot be undone. Continue? (Y/N): "
+set "CONFIRM_DISCARD=" & set /p "CONFIRM_DISCARD=  This cannot be undone. Continue? Y or N: "
 if /I "!CONFIRM_DISCARD!"=="Y" (
     call git restore "!DISCARD_F!"
     echo  Changes discarded.
@@ -1215,7 +1242,7 @@ echo  Available stashes:
 call git stash list
 echo.
 set "SDROP_IDX=" & set /p "SDROP_IDX=  Enter stash number to drop: "
-set "SDROP_CONFIRM=" & set /p "SDROP_CONFIRM=  This cannot be undone. Continue? (Y/N): "
+set "SDROP_CONFIRM=" & set /p "SDROP_CONFIRM=  This cannot be undone. Continue? Y or N: "
 if /I "!SDROP_CONFIRM!"=="Y" (
     call git stash drop stash@{!SDROP_IDX!}
 ) else (
@@ -1233,7 +1260,7 @@ echo.
 echo  Current stashes:
 call git stash list
 echo.
-set "SCLEAR_CONFIRM=" & set /p "SCLEAR_CONFIRM=  Delete ALL stashes permanently? (Y/N): "
+set "SCLEAR_CONFIRM=" & set /p "SCLEAR_CONFIRM=  Delete ALL stashes permanently? Y or N: "
 if /I "!SCLEAR_CONFIRM!"=="Y" (
     call git stash clear
     echo  All stashes cleared.
@@ -1272,7 +1299,7 @@ echo.
 echo  Current status:
 call git status --short
 echo.
-set "DALL_CONFIRM=" & set /p "DALL_CONFIRM=  This will discard ALL uncommitted changes. Continue? (Y/N): "
+set "DALL_CONFIRM=" & set /p "DALL_CONFIRM=  This will discard ALL uncommitted changes. Continue? Y or N: "
 if /I "!DALL_CONFIRM!"=="Y" (
     call git restore .
     echo  All local changes discarded.
@@ -1286,29 +1313,31 @@ goto CatChanges
 :CatRemote
 cls
 echo.
-echo  ===========================================================
-echo  ^|  UPLOAD AND DOWNLOAD (SYNC WITH THE CLOUD)              ^|
-echo  ===========================================================
+echo ===========================================================
+echo            U P L O A D   A N D   D O W N L O A D
+echo ===========================================================
 echo.
-echo  'Push' = upload your saves to the cloud.
-echo  'Pull' = download other people's saves from the cloud.
-echo  'Remote' = the cloud server your project connects to.
+echo  Push = Upload your saves to the cloud server.
+echo  Pull = Download and apply updates from the team.
+echo  Remote = The internet address where your project lives.
 echo.
-echo     [1]  Upload my saves to the cloud
-echo     [2]  Download updates from the cloud
-echo     [3]  Check for updates (without downloading)
-echo     [4]  Show cloud server addresses
-echo     [5]  Connect to a new cloud server
-echo     [6]  Disconnect from a cloud server
-echo     [7]  Rename a cloud server connection
-echo     [8]  Change a cloud server's address
-echo     [9]  Clean up deleted cloud branches
-echo     [10] Upload all branches to the cloud
-echo     [11] Upload all version tags to the cloud
+echo  [1]  Upload - Send your saves to the cloud
+echo  [2]  Download - Get updates and apply them now
+echo  [3]  Check - Look for updates without applying them
+echo  [4]  List Servers - Show saved cloud addresses
+echo  [5]  Connect - Link to a new cloud server
+echo  [6]  Disconnect - Remove a cloud server connection
+echo  [7]  Rename - Change the name of a server link
+echo  [8]  Update URL - Change a server internet address
+echo  [9]  Cleanup - Remove references to deleted branches
+echo [10]  Upload All - Send all branches to the cloud
+echo [11]  Upload Tags - Send all version marks to the cloud
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-11]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-11: "
 
 if "!CH!"=="1" goto DoPush
 if "!CH!"=="2" goto DoPull
@@ -1322,6 +1351,10 @@ if "!CH!"=="9" goto DoRemotePrune
 if "!CH!"=="10" goto DoPushAll
 if "!CH!"=="11" goto DoPushTags
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatRemote
 
 :DoPush
@@ -1340,10 +1373,10 @@ call git rev-parse --verify --quiet refs/heads/!TARGET_BRANCH! >nul 2>&1
 if errorlevel 1 (
     echo.
     echo  Branch '!TARGET_BRANCH!' does not exist locally.
-    set "CREATE_BRANCH=" & set /p "CREATE_BRANCH=  Create and switch to it? (Y/N): "
+    set "CREATE_BRANCH=" & set /p "CREATE_BRANCH=  Create and switch to it? Y or N: "
     if /I "!CREATE_BRANCH!"=="Y" (
         call git checkout -b "!TARGET_BRANCH!"
-        set "DO_PUBLISH=" & set /p "DO_PUBLISH=  Publish to remote (set upstream)? (Y/N): "
+        set "DO_PUBLISH=" & set /p "DO_PUBLISH=  Publish to remote (set upstream)? Y or N: "
         if /I "!DO_PUBLISH!"=="Y" set "PUBLISH_FLAG=-u"
     ) else (
         echo  Cancelled.
@@ -1357,7 +1390,7 @@ if errorlevel 1 (
 )
 
 echo.
-set "FORCE_PUSH=" & set /p "FORCE_PUSH=  Force push? (Y/N): "
+set "FORCE_PUSH=" & set /p "FORCE_PUSH=  Force push? Y or N: "
 
 if /I not "!FORCE_PUSH!"=="Y" (
     set "FORCE_FLAG="
@@ -1387,7 +1420,7 @@ echo.
 echo Before sharing your work, Git needs to bundle your edited files 
 echo together and save them into the project's local history.
 echo.
-set "WANT_COMMIT=" & set /p "WANT_COMMIT=  Save local work before uploading? (Y/N): "
+set "WANT_COMMIT=" & set /p "WANT_COMMIT=  Save local work before uploading? Y or N: "
 if /I "!WANT_COMMIT!"=="Y" (
     set "PUSH_MSG=" & set /p "PUSH_MSG=  Enter commit message: "
     call git add -A
@@ -1547,28 +1580,30 @@ goto CatRemote
 :CatHistory
 cls
 echo.
-echo  ===========================================================
-echo  ^|  VIEW HISTORY AND DETAILS                               ^|
-echo  ===========================================================
+echo ===========================================================
+echo                H I S T O R Y   A N D   L O G S
+echo ===========================================================
 echo.
-echo     [1]  Show recent save points (detailed)
-echo     [2]  Show recent save points (compact list)
-echo     [3]  Compare current changes
-echo     [4]  Show details of a specific save point
-echo     [5]  Search save points by description
-echo     [6]  See who last changed each line of a file
-echo     [7]  Show history of a specific file
-echo     [8]  Show all recent actions (including undone ones)
-echo     [9]  Show who contributed and how much
-echo     [10] Show a file as it was at a specific save point
-echo     [11] Count total save points
-echo     [12] Compare two save points
-echo     [13] List all files tracked by the project
-echo     [14] Show lines added/removed per save point
+echo  [1]  Full History - Show recent save points with details
+echo  [2]  Compact List - Show recent save points in one line
+echo  [3]  Compare - See what you have changed right now
+echo  [4]  Inspect - Show details of one specific save point
+echo  [5]  Search - Find save points by their description
+echo  [6]  Track Changes - See who wrote each line in a file
+echo  [7]  File History - Show all changes made to one file
+echo  [8]  Action Log - Show all recent actions and undoes
+echo  [9]  Contributors - See who has worked on this project
+echo [10]  Time Travel - View a file as it was in the past
+echo [11]  Total Count - Show the total number of save points
+echo [12]  Compare Points - See differences between two saves
+echo [13]  File List - List every file inside this project
+echo [14]  Statistics - Show lines added or removed per save
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-14]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-14: "
 
 if "!CH!"=="1" goto DoLog
 if "!CH!"=="2" goto DoLogOneline
@@ -1585,6 +1620,10 @@ if "!CH!"=="12" goto DoDiffCommits
 if "!CH!"=="13" goto DoLsFiles
 if "!CH!"=="14" goto DoCommitStats
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatHistory
 
 :DoLog
@@ -1766,29 +1805,31 @@ goto CatHistory
 :CatMerge
 cls
 echo.
-echo  ===========================================================
-echo  ^|  COMBINE WORK FROM DIFFERENT BRANCHES                   ^|
-echo  ===========================================================
+echo ===========================================================
+echo                C O M B I N I N G   W O R K
+echo ===========================================================
 echo.
-echo  'Merge' = bring another branch's work into yours.
-echo  'Rebase' = replay your work on top of another branch.
-echo  'Cherry-pick' = copy one specific save point to here.
+echo  Merge = Bring work from another branch into this one.
+echo  Rebase = Re-stack your work on top of another branch.
+echo  Cherry-pick = Copy a specific save point from elsewhere.
 echo.
-echo     [1]  Bring another branch into this one (merge)
-echo     [2]  Replay my work on top of another branch (rebase)
-echo     [3]  Cancel an ongoing merge
-echo     [4]  Cancel an ongoing rebase
-echo     [5]  Copy a specific save point to here (cherry-pick)
-echo     [6]  Continue a paused rebase
-echo     [7]  Combine last N save points into one
-echo     [8]  Merge (always create a merge save point)
-echo     [9]  Continue a merge after fixing conflicts
-echo     [10] Copy a range of save points to here
-echo     [11] Cancel an ongoing cherry-pick
+echo  [1]  Merge - Bring another branch into this one
+echo  [2]  Rebase - Re-stack your work on another branch
+echo  [3]  Cancel Merge - Stop and return to how it was
+echo  [4]  Cancel Rebase - Stop and return to how it was
+echo  [5]  Pick One - Copy a specific save point to here
+echo  [6]  Resume Rebase - Continue after fixing conflicts
+echo  [7]  Squash - Combine several save points into one
+echo  [8]  Strict Merge - Always create a merge record
+echo  [9]  Resume Merge - Continue after fixing conflicts
+echo [10]  Pick Range - Copy multiple save points to here
+echo [11]  Cancel Pick - Stop the current cherry-pick
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-11]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-11: "
 
 if "!CH!"=="1" goto DoMerge
 if "!CH!"=="2" goto DoRebase
@@ -1802,6 +1843,10 @@ if "!CH!"=="9" goto DoMergeContinue
 if "!CH!"=="10" goto DoCherryPickMulti
 if "!CH!"=="11" goto DoCherryPickAbort
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatMerge
 
 :DoMerge
@@ -1833,7 +1878,7 @@ for /f "delims=" %%I in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "CURRE
 echo  You are on: !CURRENT_BRANCH!
 echo.
 set "REBASE_BR=" & set /p "REBASE_BR=  Branch to rebase onto: "
-set "REBASE_CONFIRM=" & set /p "REBASE_CONFIRM=  This rewrites history. Continue? (Y/N): "
+set "REBASE_CONFIRM=" & set /p "REBASE_CONFIRM=  This rewrites history. Continue? Y or N: "
 if /I not "!REBASE_CONFIRM!"=="Y" (
     echo  Cancelled.
     echo.
@@ -1904,7 +1949,7 @@ echo  Recent commits:
 call git log -10 --oneline
 echo.
 set "SQ_N=" & set /p "SQ_N=  How many commits to squash into one? "
-set "SQ_CONFIRM=" & set /p "SQ_CONFIRM=  This rewrites history. Continue? (Y/N): "
+set "SQ_CONFIRM=" & set /p "SQ_CONFIRM=  This rewrites history. Continue? Y or N: "
 if /I not "!SQ_CONFIRM!"=="Y" (
     echo  Cancelled.
     echo.
@@ -1977,23 +2022,25 @@ goto CatMerge
 :CatUndo
 cls
 echo.
-echo  ===========================================================
-echo  ^|  UNDO MISTAKES                                          ^|
-echo  ===========================================================
+echo ===========================================================
+echo                    U N D O   M I S T A K E S
+echo ===========================================================
 echo.
-echo     [1]  Undo a save point (keep my changes)
-echo     [2]  Undo a save point (erase everything)
-echo     [3]  Create a new save point that reverses an old one
-echo     [4]  Go back to a specific save point
-echo     [5]  Remove untracked files (files Git doesn't know about)
-echo     [6]  Fix the last save point's description
-echo     [7]  Add forgotten files to the last save point
-echo     [8]  Bring back a deleted file from history
-echo     [9]  Recover a lost save point
+echo  [1]  Soft Undo - Undo the last save but keep your work
+echo  [2]  Hard Undo - Erase the last save and all its changes
+echo  [3]  Reverse - Create a new save that cancels an old one
+echo  [4]  Travel Back - Return to a specific save point
+echo  [5]  Cleanup - Remove files that Git is not tracking
+echo  [6]  Fix Message - Change the last save description
+echo  [7]  Update Last - Add forgotten files to the last save
+echo  [8]  Resurrect - Bring back a deleted file from history
+echo  [9]  Emergency - Recover a lost or deleted save point
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-9]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-9: "
 
 if "!CH!"=="1" goto DoSoftReset
 if "!CH!"=="2" goto DoHardResetLast
@@ -2005,6 +2052,10 @@ if "!CH!"=="7" goto DoAmendFiles
 if "!CH!"=="8" goto DoRestoreDeleted
 if "!CH!"=="9" goto DoReflogRecover
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatUndo
 
 :DoSoftReset
@@ -2034,7 +2085,7 @@ call git log -5 --oneline
 echo.
 set "HR_COMMIT=HEAD"
 set "HR_COMMIT=" & set /p "HR_COMMIT=  Enter commit ID to undo (press Enter for last save): "
-set "HR_CONFIRM=" & set /p "HR_CONFIRM=  This will permanently delete changes. Continue? (Y/N): "
+set "HR_CONFIRM=" & set /p "HR_CONFIRM=  This will permanently delete changes. Continue? Y or N: "
 if /I not "!HR_CONFIRM!"=="Y" (
     echo  Cancelled.
     echo.
@@ -2080,7 +2131,7 @@ set "RESET_MODE=" & set /p "RESET_MODE=  Select mode: "
 if "!RESET_MODE!"=="1" call git reset --soft "!RESET_SHA!"
 if "!RESET_MODE!"=="2" call git reset --mixed "!RESET_SHA!"
 if "!RESET_MODE!"=="3" (
-    set "RESET_CONFIRM=" & set /p "RESET_CONFIRM=  Hard reset will discard all changes. Continue? (Y/N): "
+    set "RESET_CONFIRM=" & set /p "RESET_CONFIRM=  Hard reset will discard all changes. Continue? Y or N: "
     if /I "!RESET_CONFIRM!"=="Y" call git reset --hard "!RESET_SHA!"
 )
 call :PromptForcePush
@@ -2096,7 +2147,7 @@ echo.
 echo  Files that would be removed:
 call git clean -n -d
 echo.
-set "CLEAN_CONFIRM=" & set /p "CLEAN_CONFIRM=  Remove these files? (Y/N): "
+set "CLEAN_CONFIRM=" & set /p "CLEAN_CONFIRM=  Remove these files? Y or N: "
 if /I "!CLEAN_CONFIRM!"=="Y" (
     call git clean -f -d
     echo  Untracked files removed.
@@ -2195,26 +2246,28 @@ goto CatUndo
 :CatTags
 cls
 echo.
-echo  ===========================================================
-echo  ^|  VERSIONS AND RELEASES (TAGS)                           ^|
-echo  ===========================================================
+echo ===========================================================
+echo               V E R S I O N S   A N D   T A G S
+echo ===========================================================
 echo.
-echo  A 'tag' marks a specific save point as a named version
-echo  (like v1.0, v2.0). Useful for releases.
+echo  A tag marks a specific save point as a named version, 
+echo  such as v1.0 or v2.0. This is useful for releases.
 echo.
-echo     [1]  List all version tags
-echo     [2]  Create a simple version tag
-echo     [3]  Create a version tag with a description
-echo     [4]  Delete a local version tag
-echo     [5]  Upload a version tag to the cloud
-echo     [6]  Upload all version tags to the cloud
-echo     [7]  Delete a version tag from the cloud
-echo     [8]  Show details of a version tag
-echo     [9]  Tag a specific past save point
+echo  [1]  List Versions - Show all version tags
+echo  [2]  Quick Tag - Create a simple version name
+echo  [3]  Full Tag - Create a version with a description
+echo  [4]  Delete Local - Remove a version tag from this folder
+echo  [5]  Upload One - Send one version tag to the cloud
+echo  [6]  Upload All - Send all version tags to the cloud
+echo  [7]  Cloud Delete - Remove a version tag from the cloud
+echo  [8]  Inspect - Show details of a specific version
+echo  [9]  Past Version - Tag a specific save point from the past
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-9]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-9: "
 
 if "!CH!"=="1" goto DoTagList
 if "!CH!"=="2" goto DoTagLight
@@ -2226,6 +2279,10 @@ if "!CH!"=="7" goto DoTagDeleteRemote
 if "!CH!"=="8" goto DoTagShow
 if "!CH!"=="9" goto DoTagCommit
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatTags
 
 :DoTagList
@@ -2317,7 +2374,7 @@ echo.
 set "TDELR=" & set /p "TDELR=  Enter tag name to delete from remote: "
 set "TDELR_REM=origin"
 set "TDELR_REM=" & set /p "TDELR_REM=  Remote (press Enter for 'origin'): "
-set "TDELR_CONFIRM=" & set /p "TDELR_CONFIRM=  Delete tag '!TDELR!' from '!TDELR_REM!'? (Y/N): "
+set "TDELR_CONFIRM=" & set /p "TDELR_CONFIRM=  Delete tag '!TDELR!' from '!TDELR_REM!'? Y or N: "
 if /I "!TDELR_CONFIRM!"=="Y" (
     call git push "!TDELR_REM!" --delete "!TDELR!"
 ) else (
@@ -2351,7 +2408,7 @@ call git log -10 --oneline
 echo.
 set "TC_SHA=" & set /p "TC_SHA=  Enter commit hash: "
 set "TC_TAG=" & set /p "TC_TAG=  Enter tag name: "
-set "TC_ANN=" & set /p "TC_ANN=  Annotated tag? (Y/N): "
+set "TC_ANN=" & set /p "TC_ANN=  Annotated tag? Y or N: "
 if /I "!TC_ANN!"=="Y" (
     set "TC_MSG=" & set /p "TC_MSG=  Enter tag message: "
     call git tag -a "!TC_TAG!" "!TC_SHA!" -m "!TC_MSG!"
@@ -2365,23 +2422,26 @@ goto CatTags
 :CatSubmodules
 cls
 echo.
-echo  ===========================================================
-echo  ^|  SUBPROJECTS (SUBMODULES)                               ^|
-echo  ===========================================================
+echo ===========================================================
+echo                 S U B P R O J E C T S
+echo ===========================================================
 echo.
-echo  A 'submodule' is a separate project embedded inside yours.
+echo  A subproject is a separate Git project embedded inside
+echo  your own. This is also known as a submodule.
 echo.
-echo     [1]  Add a subproject
-echo     [2]  Set up existing subprojects
-echo     [3]  Update subprojects to latest
-echo     [4]  Show subproject status
-echo     [5]  Remove a subproject
-echo     [6]  Fix subproject URLs
-echo     [7]  Download a project including its subprojects
+echo  [1]  Add - Embed a new subproject inside this one
+echo  [2]  Initialize - Set up existing subprojects
+echo  [3]  Update - Pull the latest changes for subprojects
+echo  [4]  Status - Check the version of each subproject
+echo  [5]  Remove - Safely delete a subproject
+echo  [6]  Repair - Fix subproject internet addresses
+echo  [7]  Deep Download - Copy a project and all its subprojects
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-7]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-7: "
 
 if "!CH!"=="1" goto DoSubAdd
 if "!CH!"=="2" goto DoSubInit
@@ -2391,6 +2451,10 @@ if "!CH!"=="5" goto DoSubDeinit
 if "!CH!"=="6" goto DoSubSync
 if "!CH!"=="7" goto DoSubClone
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatSubmodules
 
 :DoSubAdd
@@ -2422,7 +2486,7 @@ cls
 echo.
 echo  --- Update Submodules ---
 echo.
-set "SUBU_REC=" & set /p "SUBU_REC=  Update recursively? (Y/N): "
+set "SUBU_REC=" & set /p "SUBU_REC=  Update recursively? Y or N: "
 if /I "!SUBU_REC!"=="Y" (
     call git submodule update --init --recursive
 ) else (
@@ -2451,7 +2515,7 @@ echo  Current submodules:
 call git submodule status
 echo.
 set "SUBD_PATH=" & set /p "SUBD_PATH=  Enter submodule path to remove: "
-set "SUBD_CONFIRM=" & set /p "SUBD_CONFIRM=  Remove submodule '!SUBD_PATH!'? (Y/N): "
+set "SUBD_CONFIRM=" & set /p "SUBD_CONFIRM=  Remove submodule '!SUBD_PATH!'? Y or N: "
 if /I "!SUBD_CONFIRM!"=="Y" (
     call git submodule deinit -f "!SUBD_PATH!"
     echo  Submodule deinitialized.
@@ -2493,29 +2557,31 @@ goto CatSubmodules
 :CatAdvanced
 cls
 echo.
-echo  ===========================================================
-echo  ^|  POWER-USER TOOLS                                       ^|
-echo  ===========================================================
+echo ===========================================================
+echo                 A D V A N C E D   T O O L S
+echo ===========================================================
 echo.
-echo     [1]  Search for text in the code
-echo     [2]  Find which save point introduced a bug
-echo     [3]  Export project as a zip/tar file
-echo     [4]  Create a patch file (portable changes)
-echo     [5]  Apply a patch file
-echo     [6]  Work on multiple branches at once (add worktree)
-echo     [7]  List active worktrees
-echo     [8]  Remove a worktree
-echo     [9]  Check if a file is being ignored
-echo     [10] Optimize the repository (garbage collection)
-echo     [11] Check repository for errors
-echo     [12] Show repository size info
-echo     [13] Run a custom git command
-echo     [14] Show the .gitignore file
-echo     [15] List all shortcuts (aliases)
+echo  [1]  Search Code - Find specific text in your project
+echo  [2]  Find Bug - Search history to find where a bug started
+echo  [3]  Export - Save the project as a zip or tar file
+echo  [4]  Create Patch - Make a portable file of your changes
+echo  [5]  Apply Patch - Use a portable change file
+echo  [6]  Multi-Task - Open another branch in a new folder
+echo  [7]  List Folders - Show all active work folders
+echo  [8]  Close Folder - Remove an extra work folder
+echo  [9]  Check Ignored - See if Git is ignoring a file
+echo [10]  Optimize - Clean up and speed up the repository
+echo [11]  Health Check - Scan the repository for errors
+echo [12]  Storage Info - Show how much space the project uses
+echo [13]  Custom Command - Type your own Git command
+echo [14]  View Exclusions - Show the list of ignored files
+echo [15]  Shortcuts - List all your saved Git aliases
 echo.
-echo     [0]  Back to main menu
+echo  [0]  Back to main menu
 echo.
-set "CH=" & set /p "CH=  Select an option [0-15]: "
+echo -----------------------------------------------------------
+set "CH="
+set /p "CH= Enter a number 0-15: "
 
 if "!CH!"=="1" goto DoGrep
 if "!CH!"=="2" goto DoBisect
@@ -2533,6 +2599,10 @@ if "!CH!"=="13" goto DoCustomCmd
 if "!CH!"=="14" goto DoIgnoreRules
 if "!CH!"=="15" goto DoListAliases
 if "!CH!"=="0" goto MainMenu
+
+echo.
+echo Invalid choice. Press any key to try again...
+pause >nul
 goto CatAdvanced
 
 :DoGrep
@@ -2729,196 +2799,257 @@ call git config --get-regexp alias
 echo.
 pause
 goto CatAdvanced
-
 :ResolveConflicts
 echo.
-echo  ===========================================================
-echo  ^|  CONFLICT RESOLUTION                                    ^|
-echo  ===========================================================
+echo ===========================================================
+echo             C O N F L I C T   R E S O L U T I O N
+echo ===========================================================
 echo.
-echo  There are conflicts that need to be resolved. Git found
-echo  places where your changes and the other version overlap.
+echo  Git found places where your changes and the other 
+echo  version overlap. These must be fixed to continue.
 echo.
+
 :ConflictFileLoop
-echo  -----------------------------------------------------------
-echo  Conflicting files:
-echo  -----------------------------------------------------------
+echo -----------------------------------------------------------
+echo  Conflicting Files:
+echo -----------------------------------------------------------
 set "CONF_COUNT=0"
 for /f "tokens=1,*" %%A in ('git status --porcelain 2^>nul') do (
     if "%%A"=="UU" (
         set /a CONF_COUNT+=1
-        echo    - %%B
+        echo  - %%B
     )
     if "%%A"=="AA" (
         set /a CONF_COUNT+=1
-        echo    - %%B [both added]
+        echo  - %%B - Both added
     )
     if "%%A"=="DU" (
         set /a CONF_COUNT+=1
-        echo    - %%B [deleted by you, changed by them]
+        echo  - %%B - Deleted by you, changed by them
     )
     if "%%A"=="UD" (
         set /a CONF_COUNT+=1
-        echo    - %%B [changed by you, deleted by them]
+        echo  - %%B - Changed by you, deleted by them
     )
 )
+
 echo.
 if "!CONF_COUNT!"=="0" (
-    echo  All conflicts are resolved!
+    echo All conflicts are resolved!
     call git add -A
     if not "!RESOLVE_NO_COMMIT!"=="1" call git commit --no-edit
     goto :eof
 )
-echo  For each file, you can:
-echo    [1] Keep YOUR version (discard theirs)
-echo    [2] Keep THEIR version (discard yours)
-echo    [3] View the conflict and edit manually
+
+echo For each file, you can:
+echo  1  Keep YOUR version - Discard their changes
+echo  2  Keep THEIR version - Discard your changes
+echo  3  View and edit manually
 echo.
-set "CONF_FILE=" & set /p "CONF_FILE=  Enter a conflicting file name from the list above: "
+
+set "CONF_FILE="
+set /p "CONF_FILE= Enter the file name from the list above: "
+
+if not defined CONF_FILE goto ConflictFileLoop
+
 echo.
-echo     [1]  Keep MY version of '!CONF_FILE!'
-echo     [2]  Keep THEIR version of '!CONF_FILE!'
-echo     [3]  Show me the conflict so I can decide
+echo  [1]  Keep MY version of '!CONF_FILE!'
+echo  [2]  Keep THEIR version of '!CONF_FILE!'
+echo  [3]  Show me the conflict so I can decide
 echo.
-set "CONF_ACTION=" & set /p "CONF_ACTION=  Select: "
+set "CONF_ACTION="
+set /p "CONF_ACTION= Select: "
+
 if "!CONF_ACTION!"=="1" (
     call git checkout --ours "!CONF_FILE!"
     call git add "!CONF_FILE!"
-    echo  Kept YOUR version of '!CONF_FILE!'.
+    echo Kept YOUR version of '!CONF_FILE!'.
 )
 if "!CONF_ACTION!"=="2" (
     call git checkout --theirs "!CONF_FILE!"
     call git add "!CONF_FILE!"
-    echo  Kept THEIR version of '!CONF_FILE!'.
+    echo Kept THEIR version of '!CONF_FILE!'.
 )
 if "!CONF_ACTION!"=="3" (
     echo.
-    echo  ===========================================================
+    echo ===========================================================
     echo  CONFLICT IN: !CONF_FILE!
-    echo  ===========================================================
+    echo ===========================================================
     echo  Lines between ^<^<^<^<^<^<^< and ======= are YOUR changes.
     echo  Lines between ======= and ^>^>^>^>^>^>^> are THEIR changes.
-    echo  -----------------------------------------------------------
+    echo -----------------------------------------------------------
     type "!CONF_FILE!"
     echo.
-    echo  -----------------------------------------------------------
+    echo -----------------------------------------------------------
     echo.
     echo  What do you want to do?
-    echo     [1]  Keep MY version
-    echo     [2]  Keep THEIR version
-    echo     [3]  I'll edit the file myself, come back when done
+    echo   [1]  Keep MY version
+    echo   [2]  Keep THEIR version
+    echo   [3]  I will edit it myself and come back
     echo.
-    set "CONF_EDIT=" & set /p "CONF_EDIT=  Select: "
+    set "CONF_EDIT="
+    set /p "CONF_EDIT= Select: "
+    
     if "!CONF_EDIT!"=="1" (
         call git checkout --ours "!CONF_FILE!"
         call git add "!CONF_FILE!"
-        echo  Kept YOUR version.
+        echo Kept YOUR version.
     )
     if "!CONF_EDIT!"=="2" (
         call git checkout --theirs "!CONF_FILE!"
         call git add "!CONF_FILE!"
-        echo  Kept THEIR version.
+        echo Kept THEIR version.
     )
     if "!CONF_EDIT!"=="3" (
         echo.
-        echo  Edit the file in your editor to combine both versions.
-        echo  Remove the ^<^<^<^<^<^<^<, =======, and ^>^>^>^>^>^>^> markers.
-        echo  Save the file, then press any key to continue.
+        echo Open the file in your editor to combine both versions.
+        echo Remove the markers like ^<^<^<^<^<^<^< and ^>^>^>^>^>^>^> 
+        echo Save the file, then press any key here to continue.
         pause >nul
         call git add "!CONF_FILE!"
-        echo  File marked as resolved.
+        echo File marked as resolved.
     )
 )
+
 echo.
 goto ConflictFileLoop
 
 :PromptForcePush
 echo.
-set "SYNC_REMOTE=" & set /p "SYNC_REMOTE=  Sync changes to remote? (Y/N): "
+set "SYNC_REMOTE="
+set /p "SYNC_REMOTE= Sync changes to the cloud? Y or N: "
 if /I not "!SYNC_REMOTE!"=="Y" goto :eof
+
 for /f "delims=" %%I in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "CURRENT_BRANCH=%%I"
-echo  Force-updating the cloud (with lease)...
+
+echo Safe-updating the cloud...
 call git push origin "!CURRENT_BRANCH!" --force-with-lease
+
 if not errorlevel 1 (
-    echo  Cloud is now in sync!
+    echo Cloud is now in sync!
     goto :eof
 )
-echo  Force-push with lease failed. The remote may have new changes.
-set "FORCE_RETRY=" & set /p "FORCE_RETRY=  Force push anyway (overwrite remote)? (Y/N): "
+
+echo.
+echo WARNING: The cloud has changes that you do not have locally.
+echo A standard force-push will overwrite those changes forever.
+echo.
+set "FORCE_RETRY="
+set /p "FORCE_RETRY= Overwrite cloud changes anyway? Y or N: "
+
 if /I "!FORCE_RETRY!"=="Y" (
     call git push origin "!CURRENT_BRANCH!" --force
-    echo  Cloud forcefully updated!
+    echo Cloud has been forcefully updated.
 ) else (
-    echo  Push cancelled.
+    echo Push cancelled.
 )
 goto :eof
 
 :PromptForcePushHard
 echo.
-echo  WARNING: This commit may contain sensitive data.
-echo  Syncing to remote is CRITICAL to remove it from the cloud.
-set "SYNC_REMOTE=" & set /p "SYNC_REMOTE=  Force-push to remote now? (Y/N): "
-if /I not "!SYNC_REMOTE!"=="Y" goto :eof
+echo ###########################################################
+echo  IMPORTANT: CLOUD OVERWRITE REQUESTED
+echo ###########################################################
+echo  If you are trying to remove sensitive data or fix a 
+echo  major mistake, a force-push is required to update 
+echo  the cloud version of this project.
+echo.
+echo  WARNING: This will replace the history on the server
+echo  with your local version.
+echo.
+set "SYNC_REMOTE="
+set /p "SYNC_REMOTE= Proceed with the cloud overwrite? Y or N: "
+
+if /I not "!SYNC_REMOTE!"=="Y" (
+    echo.
+    echo Overwrite cancelled.
+    goto :eof
+)
+
 for /f "delims=" %%I in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "CURRENT_BRANCH=%%I"
-echo  FORCE-updating the cloud...
+
+echo.
+echo FORCE-updating the cloud...
 call git push origin "!CURRENT_BRANCH!" --force
-echo  Cloud has been force-updated!
+echo Cloud has been updated and history has been replaced.
 goto :eof
 
 :DropSpecificCommit
 set "DROP_COMMIT=%~1"
 for /f "delims=" %%H in ('git rev-parse HEAD 2^>nul') do set "HEAD_SHA=%%H"
 for /f "delims=" %%T in ('git rev-parse "!DROP_COMMIT!" 2^>nul') do set "DROP_SHA=%%T"
+
 if "!HEAD_SHA!"=="!DROP_SHA!" (
-    echo  This is the latest commit. Performing hard reset...
+    echo This is the latest save point. Performing a hard reset...
     call git reset --hard HEAD~1
-    echo  Done! The commit and all its changes have been erased.
+    echo Done! The save point and all its changes have been erased.
     goto :eof
 )
-echo  Removing commit from the middle of history...
-echo  Preserving all commits that came after it.
+
+echo Removing a save point from the middle of history...
+echo All other save points that came after it will be preserved.
 echo.
-echo  [Attempting auto-resolve...]
+echo Attempting automatic removal...
+
 call git rebase -X theirs --onto !DROP_SHA!~1 !DROP_SHA!
+
 if not errorlevel 1 (
-    echo  Done! The commit has been removed from history.
+    echo Done! The save point has been removed from history.
     goto :eof
 )
-echo  Auto-resolve strategy was not sufficient.
+
+echo.
+echo Automatic removal was not enough to fix the overlaps.
+echo You will need to help resolve the differences manually.
+echo.
+
 call :HandleRebaseConflicts
-echo  Done! The commit has been removed from history.
+
+echo.
+echo Done! The save point has been removed from history.
 goto :eof
 
 :HandleRebaseConflicts
 set "REBASE_ACTIVE=0"
 for /f "delims=" %%X in ('git status 2^>nul ^| findstr /C:"rebase in progress"') do set "REBASE_ACTIVE=1"
+
 if "!REBASE_ACTIVE!"=="0" goto :eof
+
 echo.
-echo  Trying to auto-resolve remaining conflicts...
+echo Attempting to automatically fix remaining overlaps...
 call git checkout --theirs . 2>nul
 call git add -A 2>nul
 call git rebase --continue 2>nul
+
 set "REBASE_ACTIVE=0"
 for /f "delims=" %%X in ('git status 2^>nul ^| findstr /C:"rebase in progress"') do set "REBASE_ACTIVE=1"
+
 if "!REBASE_ACTIVE!"=="0" (
-    echo  Auto-resolve succeeded!
+    echo Automatic fix succeeded!
     goto :eof
 )
-echo  Manual resolution needed.
+
+echo.
+echo Manual help is required for this step.
 set "RESOLVE_NO_COMMIT=1"
 call :ResolveConflicts
 set "RESOLVE_NO_COMMIT="
+
+echo Continuing with the history update...
 call git rebase --continue 2>nul
+
 goto HandleRebaseConflicts
 
 :ExitScript
 cls
 echo.
-echo  ===========================================================
-echo  ^|                                                         ^|
-echo  ^|            Thanks for using Git Manager!                 ^|
-echo  ^|                                                         ^|
-echo  ===========================================================
+echo ===========================================================
+echo.
+echo             Thanks for using Git Manager!
+echo.
+echo ===========================================================
+echo.
+echo  Closing session...
 echo.
 endlocal
 exit /B 0
