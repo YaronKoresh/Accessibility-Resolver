@@ -1,9 +1,16 @@
 @echo off
-cd /d "%~dp0"
+
+if /I NOT "%~dp0"=="%temp%\" (
+    copy /y "%~f0" "%temp%\%~nx0" >nul
+    start "" "%temp%\%~nx0" %~dp0
+    exit /b
+)
+
+cd /d "%~1"
 
 :FindGitRoot
 if exist ".git" goto :FoundGitRoot
-if "%CD%\"=="%~d0\" (
+if "%CD%\"=="%~d1\" (
     echo Error: Could not find a .git folder in this directory tree.
     pause
     exit /b
