@@ -393,11 +393,12 @@ set "QFIN_CLEANUP="
 set /p "QFIN_CLEANUP= Delete the task branch !FEATURE_BRANCH!? Y or N: "
 
 if /I "!QFIN_CLEANUP!"=="Y" (
-    echo Removing local !FEATURE_BRANCH! branch...
-    call git branch -d "!FEATURE_BRANCH!"
     
     echo Removing cloud !FEATURE_BRANCH! branch...
     call git push origin --delete "!FEATURE_BRANCH!" 2>nul
+
+    echo Removing local !FEATURE_BRANCH! branch...
+    call git branch -d "!FEATURE_BRANCH!"
     
     echo.
     echo Cleanup complete.
@@ -3415,12 +3416,13 @@ set "BR_CLEANUP="
 set /p "BR_CLEANUP= Delete the branch !SOURCE_BR!? Y or N: "
 
 if /I "!BR_CLEANUP!"=="Y" (
-    echo Removing local !SOURCE_BR! branch...
-    call git branch -d "!SOURCE_BR!"
 
     echo Removing cloud !SOURCE_BR! branch...
     call git push origin --delete "!SOURCE_BR!" 2>nul
     
+    echo Removing local !SOURCE_BR! branch...
+    call git branch -d "!SOURCE_BR!"
+
     echo.
     echo Cleanup complete.
 ) else (
