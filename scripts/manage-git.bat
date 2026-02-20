@@ -333,19 +333,18 @@ set /p "QFIN_TARGET= Which branch receives the work? Enter for main: "
 :: Ensure we aren't trying to merge a branch into itself
 if "!FEATURE_BRANCH!"=="!QFIN_TARGET!" (
     echo.
-    echo Error: You are already on !QFIN_TARGET!. 
-    echo Switch to your task branch first before finishing it.
+    echo Error: Cannot merge !SOURCE_BR! into itself.
     pause
     goto CatQuick
 )
 
 echo.
-echo  Step 1 of 6 - Saving any remaining work on !FEATURE_BRANCH!...
+echo  Step 1 of 8 - Saving any remaining work on !FEATURE_BRANCH!...
 call git add -A
 :: Only commit if there are actually changes to save
-git diff --cached --quiet || call git commit -m "Final changes for !FEATURE_BRANCH!"
+call git diff --cached --quiet || call git commit -m "Final changes for !FEATURE_BRANCH!"
 
-echo  Step 2 of 6 - Moving to !QFIN_TARGET!...
+echo  Step 2 of 8 - Moving to !QFIN_TARGET!...
 call git checkout "!QFIN_TARGET!"
 if errorlevel 1 (
     echo Error: Could not switch to !QFIN_TARGET!.
@@ -353,10 +352,25 @@ if errorlevel 1 (
     goto CatQuick
 )
 
-echo  Step 3 of 6 - Getting latest updates for !QFIN_TARGET!...
+echo  Step 3 of 8 - Searching for unsaved changes in the local !QFIN_TARGET! branch...
+
+call git add -A
+call git diff --cached --quiet || (
+    set "BR_MSG="
+    set /p "BR_MSG= Describe what you changed in !QFIN_TARGET!: "
+    call git commit -m "!BR_MSG!"
+)
+
+echo  Step 4 of 8 - Getting latest updates from the cloud !QFIN_TARGET!...
 call git pull origin "!QFIN_TARGET!" --no-rebase
 
-echo  Step 4 of 6 - Combining work from !FEATURE_BRANCH!...
+if errorlevel 1 (
+    echo.
+    echo Pull failed - Overlaps found.
+    call :ResolveConflicts
+)
+
+echo  Step 5 of 8 - Combining work from !FEATURE_BRANCH!...
 call git merge --no-ff "!FEATURE_BRANCH!"
 
 if errorlevel 1 (
@@ -365,20 +379,24 @@ if errorlevel 1 (
     call :ResolveConflicts
 )
 
-echo  Step 5 of 6 - Uploading combined work to the cloud...
+echo  Step 6 of 8 - Uploading combined work to the cloud...
 call git push origin "!QFIN_TARGET!"
 
-echo  Step 6 of 6 - Cleaning up...
+echo  Step 7 of 8 - Updating local records of the cloud...
+call git fetch origin --prune
+call git fetch origin !QFIN_TARGET!:!QFIN_TARGET!
+
+echo  Step 8 of 8 - Cleaning up...
 echo.
 echo  Now that the work is combined, the task branch can be removed.
 set "QFIN_CLEANUP="
 set /p "QFIN_CLEANUP= Delete the task branch !FEATURE_BRANCH!? Y or N: "
 
 if /I "!QFIN_CLEANUP!"=="Y" (
-    echo Removing local branch...
+    echo Removing local !FEATURE_BRANCH! branch...
     call git branch -d "!FEATURE_BRANCH!"
     
-    echo Removing cloud branch...
+    echo Removing cloud !FEATURE_BRANCH! branch...
     call git push origin --delete "!FEATURE_BRANCH!" 2>nul
     
     echo.
@@ -3312,28 +3330,69 @@ if "!SOURCE_BR!"=="" (
 
 echo.
 echo  Step 2: Where should this work go?
-set "DEST_BR="
-set /p "DEST_BR= Enter the DESTINATION branch (Press Enter for !CURRENT_BRANCH!): "
-if "!DEST_BR!"=="" set "DEST_BR=!CURRENT_BRANCH!"
 
+set "DEST_BR=main"
+set /p "DEST_BR= Enter the DESTINATION branch (Press Enter for main): "
+
+:: Ensure we aren't trying to merge a branch into itself
+if "!DEST_BR!"=="!SOURCE_BR!" (
+    echo.
+    echo Error: Cannot merge !SOURCE_BR! into itself.
+    pause
+    goto CatMerge
+)
+
+call git add -A
 echo.
 :: Handle the automatic branch switch if necessary
-if /I not "!DEST_BR!"=="!CURRENT_BRANCH!" (
-    echo  Switching you over to '!DEST_BR!' first...
-    call git checkout "!DEST_BR!"
+if /I "!SOURCE_BR!"=="!CURRENT_BRANCH!" (
+    call git diff --cached --quiet || call git commit -m "Final changes for !SOURCE_BR!"
+)
+if /I not "!SOURCE_BR!"=="!CURRENT_BRANCH!" if /I not "!DEST_BR!"=="!CURRENT_BRANCH!" (
+    call git diff --cached --quiet || (
+        set "BR_MSG="
+        set /p "BR_MSG= Describe what you changed in !CURRENT_BRANCH!: "
+        call git commit -m "!BR_MSG!"
+    )
+
+    echo  Switching you over to '!SOURCE_BR!'...
+    call git checkout "!SOURCE_BR!"
     if errorlevel 1 (
-        echo.
-        echo  Error: Could not switch to !DEST_BR!. 
-        echo  Make sure you don't have unsaved changes blocking the move.
+        echo Error: Could not switch to !SOURCE_BR!.
         pause
         goto CatMerge
     )
 )
 
+if /I not "!DEST_BR!"=="!CURRENT_BRANCH!" (
+    echo  Switching you over to '!DEST_BR!'...
+    call git checkout "!DEST_BR!"
+    if errorlevel 1 (
+        echo Error: Could not switch to !DEST_BR!.
+        pause
+        goto CatMerge
+    )
+)
+
+call git add -A
+
+call git diff --cached --quiet || (
+    set "BR_MSG="
+    set /p "BR_MSG= Describe what you changed in !DEST_BR!: "
+    call git commit -m "!BR_MSG!"
+)
+
+call git pull origin "!DEST_BR!" --no-rebase
+if errorlevel 1 (
+    echo.
+    echo Pull failed - Overlaps found.
+    call :ResolveConflicts
+)
+
 echo.
 echo  Merging changes from '!SOURCE_BR!' into '!DEST_BR!'...
 echo -----------------------------------------------------------
-call git merge "!SOURCE_BR!"
+call git merge --no-ff "!SOURCE_BR!"
 
 if errorlevel 1 (
     echo.
@@ -3347,6 +3406,29 @@ if errorlevel 1 (
     echo.
     echo  Success. !SOURCE_BR! has been combined into !DEST_BR!.
 )
+
+call git push origin "!DEST_BR!"
+
+echo.
+echo  Now that the work is combined, the task branch can be removed.
+set "BR_CLEANUP="
+set /p "BR_CLEANUP= Delete the branch !SOURCE_BR!? Y or N: "
+
+if /I "!BR_CLEANUP!"=="Y" (
+    echo Removing local !SOURCE_BR! branch...
+    call git branch -d "!SOURCE_BR!"
+
+    echo Removing cloud !SOURCE_BR! branch...
+    call git push origin --delete "!SOURCE_BR!" 2>nul
+    
+    echo.
+    echo Cleanup complete.
+) else (
+    echo !SOURCE_BR! kept for now.
+)
+
+echo.
+echo Done. Your work is now part of !DEST_BR!.
 
 echo.
 pause
