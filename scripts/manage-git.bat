@@ -174,7 +174,7 @@ call git pull origin "!CURRENT_BRANCH!" --no-rebase 2>nul
 
 if errorlevel 1 (
     echo.
-    echo  Conflicts detected! Please resolve them before uploading.
+    echo  Conflicts detected. Please resolve them before uploading.
     call :ResolveConflicts
 )
 
@@ -183,12 +183,12 @@ call git push origin "!CURRENT_BRANCH!" -u
 
 if errorlevel 1 (
     echo.
-    echo  Upload failed! 
+    echo  Upload failed. 
     echo  This usually happens if someone else pushed changes 
     echo  while you were working. Try the Update action first.
 ) else (
     echo.
-    echo  Done! Your work is saved and successfully uploaded.
+    echo  Done. Your work is saved and successfully uploaded.
 )
 
 echo.
@@ -245,7 +245,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo  Done! Your project is now up to date.
+echo  Done. Your project is now up to date.
 echo.
 pause
 goto CatQuick
@@ -303,7 +303,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo  Done! You are now working on !QFEAT_NAME!.
+echo  Done. You are now working on !QFEAT_NAME!.
 echo  Your main code is safe. When finished, use the
 echo  Finish Task option from the Quick Actions menu.
 echo.
@@ -388,7 +388,7 @@ if /I "!QFIN_CLEANUP!"=="Y" (
 )
 
 echo.
-echo Done! Your work is now part of !QFIN_TARGET!.
+echo Done. Your work is now part of !QFIN_TARGET!.
 echo.
 pause
 goto CatQuick
@@ -449,7 +449,7 @@ if /I "!QUNDO_CONFIRM!"=="Y" (
     call git clean -fd
     
     echo.
-    echo  Done! Your project is back to how it was at your last save.
+    echo  Done. Your project is back to how it was at your last save.
 ) else (
     echo.
     echo  Cancelled. Your changes are still safe.
@@ -503,7 +503,7 @@ if "!QID_SCOPE!"=="2" (
 )
 
 echo.
-echo  Done! Your identity is now: !QID_NAME! ^<!QID_EMAIL!^>
+echo  Done. Your identity is now: !QID_NAME! ^<!QID_EMAIL!^>
 echo.
 pause
 goto CatQuick
@@ -540,7 +540,7 @@ echo  Step 2 of 2 - Creating local save point...
 call git commit -m "!QLOCAL_MSG!"
 
 echo.
-echo  Done! Your work is saved on this computer.
+echo  Done. Your work is saved on this computer.
 echo  Remember to use the Upload option later to share it.
 echo.
 pause
@@ -585,7 +585,7 @@ if errorlevel 1 (
     echo  Check your internet connection and try Upload One in Tags.
 ) else (
     echo.
-    echo  Done! Version !QREL_VER! is created and uploaded.
+    echo  Done. Version !QREL_VER! is created and uploaded.
 )
 
 echo.
@@ -632,7 +632,7 @@ if errorlevel 1 (
     echo  Check the URL and your internet connection.
 ) else (
     echo.
-    echo  Done! The project has been downloaded successfully.
+    echo  Done. The project has been downloaded successfully.
     if not "!QDLDIR!"=="" (
         echo  It is located in the folder: !QDLDIR!
     )
@@ -686,7 +686,7 @@ echo  Step 1 of 1 - Undoing the save point...
 call git reset --soft !QUC_COMMIT!~1
 
 echo.
-echo  Done! The save point is undone. Your work is still here
+echo  Done. The save point is undone. Your work is still here
 echo  and marked for saving. You can now:
 echo  - Unmark files you do not want in the Saving Changes menu.
 echo  - Create a new save point with a better description.
@@ -752,7 +752,7 @@ echo  Step 3 of 3 - Re-saving remaining work...
 call git commit -m "!QSAVE_MSG!"
 
 echo.
-echo  Done! !QUC_FILE! has been removed from the save point.
+echo  Done. !QUC_FILE! has been removed from the save point.
 echo  The file still exists on your computer, but it is no 
 echo  longer included in that specific save.
 echo.
@@ -949,7 +949,7 @@ echo  Opening the review page in your browser...
 start "" "!QPR_URL!"
 
 echo.
-echo  Done! If the browser did not open, you can visit:
+echo  Done. If the browser did not open, you can visit:
 echo  !QPR_URL!
 echo.
 pause
@@ -993,7 +993,7 @@ echo  Step 2 of 2 - Switching to the PR branch...
 call git checkout pr-!QTPR_NUM!
 
 echo.
-echo  Success!
+echo  Success.
 echo.
 echo  You are now on a local copy of pull request !QTPR_NUM!.
 echo  Test the changes now. When you are finished:
@@ -1058,7 +1058,7 @@ call git init
 call git checkout -b main 2>nul
 
 echo.
-echo  Success! This folder is now a Git project.
+echo  Success. This folder is now a Git project.
 echo  The default branch has been set to main.
 echo.
 pause
@@ -1101,7 +1101,7 @@ if errorlevel 1 (
     echo  Download failed. Please check the URL and your connection.
 ) else (
     echo.
-    echo  Success! The project has been downloaded.
+    echo  Success. The project has been downloaded.
 )
 
 echo.
@@ -1154,7 +1154,7 @@ if "!UNAME!"=="" (
 call git config user.name "!UNAME!"
 
 echo.
-echo Success! Name set to: !UNAME!
+echo Success. Name set to: !UNAME!
 echo.
 pause
 goto CatStart
@@ -1182,7 +1182,7 @@ if "!UEMAIL!"=="" (
 call git config user.email "!UEMAIL!"
 
 echo.
-echo Success! Email set to: !UEMAIL!
+echo Success. Email set to: !UEMAIL!
 echo.
 pause
 goto CatStart
@@ -1262,7 +1262,7 @@ if "!GCFG_KEY!"=="" (
 call git config --global "!GCFG_KEY!" "!GCFG_VAL!"
 
 echo.
-echo Success! Global setting updated:
+echo Success. Global setting updated:
 echo !GCFG_KEY! is now set to !GCFG_VAL!
 echo.
 pause
@@ -1400,7 +1400,7 @@ if /I "!SWITCH_BR!"=="Y" (
 )
 
 echo.
-echo  Success! The branch !NEW_BR! has been created.
+echo  Success. The branch !NEW_BR! has been created.
 echo.
 pause
 goto CatBranch
@@ -1478,7 +1478,7 @@ echo  Step 3 of 3 - Uploading the new name to the cloud...
 call git push origin -u "!CURRENT_BRANCH!"
 
 echo.
-echo  Success! The branch is now named !CURRENT_BRANCH! 
+echo  Success. The branch is now named !CURRENT_BRANCH! 
 echo  on both your computer and the cloud server.
 echo.
 pause
@@ -1535,7 +1535,7 @@ if /I "!REMOTE_DEL!"=="Y" (
 )
 
 echo.
-echo  Done! Cleanup complete.
+echo  Done. Cleanup complete.
 echo.
 pause
 goto CatBranch
@@ -1608,7 +1608,7 @@ if errorlevel 1 (
     echo  You may need to use Upload Work first to create it there.
 ) else (
     echo.
-    echo  Success! This branch is now linked to !UPS_BR!.
+    echo  Success. This branch is now linked to !UPS_BR!.
 )
 
 echo.
@@ -1695,7 +1695,7 @@ if /I "!RDBR_CONFIRM!"=="Y" (
         echo  or you might not have permission to delete it.
     ) else (
         echo.
-        echo  Success! The cloud branch has been removed.
+        echo  Success. The cloud branch has been removed.
     )
 ) else (
     echo.
@@ -1773,7 +1773,7 @@ echo.
 
 call git add -A
 
-echo  Success! All changes are now marked and ready for a save point.
+echo  Success. All changes are now marked and ready for a save point.
 echo.
 pause
 goto CatChanges
@@ -1802,7 +1802,7 @@ if "!STAGE_F!"=="" (
 call git add "!STAGE_F!"
 
 echo.
-echo  Done! !STAGE_F! is now marked for saving.
+echo  Done. !STAGE_F! is now marked for saving.
 echo.
 pause
 goto CatChanges
@@ -1834,7 +1834,7 @@ echo  Unmarking !UNSTAGE_F!...
 call git restore --staged "!UNSTAGE_F!" 2>nul || call git reset HEAD "!UNSTAGE_F!" 2>nul
 
 echo.
-echo  Done! The file has been unmarked. 
+echo  Done. The file has been unmarked. 
 echo  Your work is still on your computer, just not in the next save.
 echo.
 pause
@@ -1870,7 +1870,7 @@ if errorlevel 1 (
     echo  your files first.
 ) else (
     echo.
-    echo  Success! Your work has been saved locally.
+    echo  Success. Your work has been saved locally.
 )
 
 echo.
@@ -1905,7 +1905,7 @@ echo  Step 2 of 2 - Creating save point...
 call git commit -m "!QC_MSG!"
 
 echo.
-echo  Done! Your changes are now saved to your local history.
+echo  Done. Your changes are now saved to your local history.
 echo.
 pause
 goto CatChanges
@@ -1932,7 +1932,7 @@ if "!STASH_MSG!"=="" (
 )
 
 echo.
-echo  Done! Your changes have been moved to the shelf.
+echo  Done. Your changes have been moved to the shelf.
 echo.
 pause
 goto CatChanges
@@ -2138,7 +2138,7 @@ set /p "SCLEAR_CONFIRM= Delete EVERY item on the shelf permanently? Y or N: "
 if /I "!SCLEAR_CONFIRM!"=="Y" (
     call git stash clear
     echo.
-    echo Success! The shelf is now empty.
+    echo Success. The shelf is now empty.
 ) else (
     echo.
     echo Cancelled.
@@ -2209,7 +2209,7 @@ if /I "!DALL_CONFIRM!"=="Y" (
     call git clean -fd
     
     echo.
-    echo  Success! All local changes have been wiped.
+    echo  Success. All local changes have been wiped.
 ) else (
     echo.
     echo  Cancelled. Your work is safe.
@@ -2375,7 +2375,7 @@ if not defined FORCE_FLAG (
                 goto CatRemote
             )
             echo.
-            echo  Conflicts resolved! Proceeding with upload...
+            echo  Conflicts resolved. Proceeding with upload...
         )
     )
 )
@@ -2391,7 +2391,7 @@ if errorlevel 1 (
     echo  or your permissions for this repository.
 ) else (
     echo.
-    echo  Success! Your work is now on the cloud.
+    echo  Success. Your work is now on the cloud.
 )
 
 echo.
@@ -2441,14 +2441,14 @@ call git pull origin "!PULL_BR!" --no-rebase
 
 if errorlevel 1 (
     echo.
-    echo  Update stopped! There is a conflict between your 
+    echo  Update stopped. There is a conflict between your 
     echo  work and the cloud version.
     echo.
     pause
     call :ResolveConflicts
 ) else (
     echo.
-    echo  Success! Your project is now up to date.
+    echo  Success. Your project is now up to date.
 )
 
 echo.
@@ -2523,7 +2523,7 @@ if errorlevel 1 (
     echo.
     echo  Failed to add link. Check if the name already exists.
 ) else (
-    echo  Success! Downloading cloud information...
+    echo  Success. Downloading cloud information...
     call git fetch "!REM_NAME!"
     echo.
     echo  The cloud link is ready to use.
@@ -2596,7 +2596,7 @@ if errorlevel 1 (
     echo.
     echo  Rename failed. Make sure the current name is correct.
 ) else (
-    echo  Success! The link has been renamed.
+    echo  Success. The link has been renamed.
 )
 
 echo.
@@ -2635,7 +2635,7 @@ if errorlevel 1 (
     echo.
     echo  Update failed. Check the connection name and try again.
 ) else (
-    echo  Success! The URL has been updated.
+    echo  Success. The URL has been updated.
 )
 
 echo.
@@ -2691,7 +2691,7 @@ if errorlevel 1 (
     echo  permissions for this repository.
 ) else (
     echo.
-    echo  Success! All your branches are now on the cloud.
+    echo  Success. All your branches are now on the cloud.
 )
 
 echo.
@@ -2721,7 +2721,7 @@ if errorlevel 1 (
     echo  Upload failed.
 ) else (
     echo.
-    echo  Success! All version tags have been shared.
+    echo  Success. All version tags have been shared.
 )
 
 echo.
@@ -3243,7 +3243,7 @@ if exist ".git\CHERRY_PICK_HEAD" set "STUCK_TYPE=CHERRY-PICK"
 
 if defined STUCK_TYPE (
     echo.
-    echo  !!! ATTENTION: You are in the middle of a !STUCK_TYPE! !!!
+    echo  ATTENTION: You are in the middle of a !STUCK_TYPE!
     echo  The following files have overlaps that need fixing:
     echo -----------------------------------------------------------
     :: This line finds files marked as "Unmerged" (the ones with conflicts)
@@ -3345,7 +3345,7 @@ if errorlevel 1 (
     call :ResolveConflicts
 ) else (
     echo.
-    echo  Success! !SOURCE_BR! has been combined into !DEST_BR!.
+    echo  Success. !SOURCE_BR! has been combined into !DEST_BR!.
 )
 
 echo.
@@ -3411,7 +3411,7 @@ if errorlevel 1 (
     call :HandleRebaseConflicts
 ) else (
     echo.
-    echo  Success! Your work has been relocated.
+    echo  Success. Your work has been relocated.
 )
 
 call :PromptForcePush
@@ -3479,7 +3479,7 @@ if errorlevel 1 (
     call :ResolveConflicts
 ) else (
     echo.
-    echo  Success! A new merge milestone was created in '!DEST_BR!'.
+    echo  Success. A new merge milestone was created in '!DEST_BR!'.
 )
 
 echo.
@@ -3518,7 +3518,7 @@ if "!REBASE_ACTIVE!"=="1" (
 )
 
 if "!COUNT!"=="0" (
-    echo  Everything looks normal! No stuck merges or rebases found.
+    echo  Everything looks normal. No stuck merges or rebases found.
     echo.
     pause
     goto CatMerge
@@ -3572,7 +3572,7 @@ if exist ".git\rebase-apply" set "RESUME_CMD=rebase --continue"
 if exist ".git\CHERRY_PICK_HEAD" set "RESUME_CMD=cherry-pick --continue"
 
 if not defined RESUME_CMD (
-    echo  Nothing to resume! Everything looks like it is already finished.
+    echo  Nothing to resume. Everything looks like it is already finished.
     pause
     goto CatMerge
 )
@@ -3589,7 +3589,7 @@ if not errorlevel 1 (
 )
 
 echo.
-echo  All clear! Finalizing the !RESUME_CMD!...
+echo  All clear. Finalizing the !RESUME_CMD!...
 echo.
 
 :: Execute the specific continue command
@@ -3602,7 +3602,7 @@ if errorlevel 1 (
     echo  Check the menu again for new conflicting files.
 ) else (
     echo.
-    echo  Success! The process has been completed.
+    echo  Success. The process has been completed.
 )
 
 echo.
@@ -3646,7 +3646,7 @@ if errorlevel 1 (
     echo  -----------------------------------------------------------
 ) else (
     echo.
-    echo  Success! The change has been copied to your current branch.
+    echo  Success. The change has been copied to your current branch.
 )
 
 echo.
@@ -3707,7 +3707,7 @@ if "!SQ_MSG!"=="" set "SQ_MSG=Combined save point"
 call git commit -m "!SQ_MSG!"
 
 echo.
-echo  Success! !SQ_N! saves have been condensed into one.
+echo  Success. !SQ_N! saves have been condensed into one.
 echo.
 
 :: Since history was rewritten, a force-push is needed if they push later
@@ -3755,7 +3755,7 @@ if errorlevel 1 (
     echo  -----------------------------------------------------------
 ) else (
     echo.
-    echo  Success! The range of changes has been copied.
+    echo  Success. The range of changes has been copied.
 )
 
 echo.
@@ -3787,7 +3787,7 @@ call git cherry-pick --abort
 if errorlevel 1 (
     echo  No active copy process was found to cancel.
 ) else (
-    echo  Success! The copy process has been cancelled.
+    echo  Success. The copy process has been cancelled.
 )
 
 echo.
@@ -3856,7 +3856,7 @@ echo  Un-saving !SR_COMMIT!...
 call git reset --soft !SR_COMMIT!~1
 
 echo.
-echo  Success! The save point is gone, but your work is still 
+echo  Success. The save point is gone, but your work is still 
 echo  here. You can find your files in the 'Waiting Area'.
 echo.
 
@@ -3883,11 +3883,10 @@ set /p "HR_COMMIT= Enter the ID to erase (Press Enter for the last save): "
 if "!HR_COMMIT!"=="" set "HR_COMMIT=HEAD"
 
 echo.
-echo  !!!!!!!!!!!!!!!!!!! DANGER !!!!!!!!!!!!!!!!!!!
+echo  ===== DANGER =====
 echo  This will PERMANENTLY DELETE the work inside 
 echo  this save point and any unsaved changes.
 echo  You cannot "Undo" this delete easily.
-echo  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 echo.
 
 set "HR_CONFIRM="
@@ -3949,7 +3948,7 @@ if errorlevel 1 (
     echo  depend on the code you are trying to reverse.
 ) else (
     echo.
-    echo  Success! A new "Undo" save point has been created.
+    echo  Success. A new "Undo" save point has been created.
 )
 
 echo.
@@ -3999,7 +3998,7 @@ if "!RESET_MODE!"=="2" (
 )
 if "!RESET_MODE!"=="3" (
     echo.
-    echo  !!!!!!!!!! WARNING: DESTRUCTIVE ACTION !!!!!!!!!!
+    echo  WARNING: DESTRUCTIVE ACTION
     echo  This will erase every change made since !RESET_SHA!.
     set "RESET_CONFIRM="
     set /p "RESET_CONFIRM= Are you sure? Type Y to ERASE: "
@@ -4074,7 +4073,7 @@ echo  Updating description...
 call git commit --amend -m "!AMEND_MSG!"
 
 echo.
-echo  Success! The last save point now has the new message.
+echo  Success. The last save point now has the new message.
 echo.
 
 :: Since this changes the 'ID Number' of the save, force-push is needed
@@ -4123,7 +4122,7 @@ echo  Merging files into the last save...
 call git commit --amend --no-edit
 
 echo.
-echo  Success! The last save point has been updated.
+echo  Success. The last save point has been updated.
 echo.
 
 call :PromptForcePush
@@ -4170,7 +4169,7 @@ if "!RDEL_SHA!"=="" (
 )
 
 echo.
-echo  Success! Check your folder; the file should be back.
+echo  Success. Check your folder; the file should be back.
 echo.
 pause
 goto CatUndo
@@ -4219,7 +4218,7 @@ if "!RREC_MODE!"=="1" (
     echo  Creating branch and switching you over...
     call git checkout -b "!RREC_BR!" "!RREC_SHA!"
     echo.
-    echo  Success! You are now standing on branch '!RREC_BR!'.
+    echo  Success. You are now standing on branch '!RREC_BR!'.
 )
 
 if "!RREC_MODE!"=="2" (
@@ -4316,7 +4315,7 @@ echo  Applying label '!TLIGHT!'...
 call git tag "!TLIGHT!"
 
 echo.
-echo  Success! Version '!TLIGHT!' has been marked.
+echo  Success. Version '!TLIGHT!' has been marked.
 echo.
 pause
 goto CatTags
@@ -4348,7 +4347,7 @@ echo  Creating official release '!TANN!'...
 call git tag -a "!TANN!" -m "!TANN_MSG!"
 
 echo.
-echo  Success! Official milestone '!TANN!' created.
+echo  Success. Official milestone '!TANN!' created.
 echo.
 pause
 goto CatTags
@@ -4438,7 +4437,7 @@ echo  Syncing all versions to !TPALL_REM!...
 call git push "!TPALL_REM!" --tags
 
 echo.
-echo  Success! All your milestones are now visible on the Cloud.
+echo  Success. All your milestones are now visible on the Cloud.
 echo.
 pause
 goto CatTags
@@ -4469,7 +4468,7 @@ set /p "TDELR_REM= From which Remote? (Press Enter for 'origin'): "
 if "!TDELR_REM!"=="" set "TDELR_REM=origin"
 
 echo.
-echo  !!! WARNING: This will remove '!TDELR!' for everyone else too !!!
+echo  WARNING: This will remove '!TDELR!' for everyone else too
 set "TDELR_CONFIRM="
 set /p "TDELR_CONFIRM= Are you sure you want to delete it? Y or N: "
 
@@ -4548,7 +4547,7 @@ if /I "!TC_ANN!"=="Y" (
 )
 
 echo.
-echo  Success! !TC_TAG! has been attached to save point !TC_SHA!.
+echo  Success. !TC_TAG! has been attached to save point !TC_SHA!.
 echo.
 pause
 goto CatTags
@@ -4623,7 +4622,7 @@ echo  Downloading and linking external project...
 call git submodule add "!SUBA_URL!" "!SUBA_PATH!"
 
 echo.
-echo  Success! The external project is now linked at '!SUBA_PATH!'.
+echo  Success. The external project is now linked at '!SUBA_PATH!'.
 echo  Note: Don't forget to SAVE (Commit) this change!
 echo.
 pause
@@ -4757,7 +4756,7 @@ echo.
 call git submodule sync --recursive
 
 echo.
-echo  Success! Connections have been refreshed.
+echo  Success. Connections have been refreshed.
 echo.
 pause
 goto CatSubmodules
@@ -4794,7 +4793,7 @@ if "!SUBC_DIR!"=="" (
 )
 
 echo.
-echo  Success! Everything has been downloaded.
+echo  Success. Everything has been downloaded.
 echo.
 pause
 goto CatSubmodules
@@ -4968,7 +4967,7 @@ echo  Creating !ARC_FMT! archive named !ARC_NAME!...
 call git archive --format="!ARC_FMT!" --output="!ARC_NAME!" HEAD
 
 echo.
-echo  Success! Archive created: !ARC_NAME!
+echo  Success. Archive created: !ARC_NAME!
 echo.
 pause
 goto CatAdvanced
@@ -4998,7 +4997,7 @@ echo  Creating patch files...
 call git format-patch -!PAT_N!
 
 echo.
-echo  Success! Look for '.patch' files in your project folder.
+echo  Success. Look for '.patch' files in your project folder.
 echo.
 pause
 goto CatAdvanced
@@ -5032,9 +5031,9 @@ if errorlevel 1 (
     echo  STOP: This patch doesn't fit your current code version.
     echo  It might be meant for a different branch.
 ) else (
-    echo  Patch looks good! Applying changes...
+    echo  Patch looks good. Applying changes...
     call git apply "!PAT_FILE!"
-    echo  Success! The changes have been added to your files.
+    echo  Success. The changes have been added to your files.
 )
 
 echo.
@@ -5065,7 +5064,7 @@ echo  Creating separate workspace...
 call git worktree add "!WT_PATH!" "!WT_BR!"
 
 echo.
-echo  Success! You now have a second copy of your project 
+echo  Success. You now have a second copy of your project 
 echo  at !WT_PATH! running the '!WT_BR!' branch.
 echo.
 pause
@@ -5180,7 +5179,7 @@ echo.
 call git gc --prune=now --aggressive
 
 echo.
-echo  Success! Your project database has been optimized.
+echo  Success. Your project database has been optimized.
 echo.
 pause
 goto CatAdvanced
@@ -5347,7 +5346,7 @@ if "!CONF_COUNT!"=="0" (
     call git add -A
     if not "!RESOLVE_NO_COMMIT!"=="1" call git commit --no-edit
     echo.
-    echo  Success! Everything is back in sync.
+    echo  Success. Everything is back in sync.
     pause
     goto :eof
 )
@@ -5516,7 +5515,7 @@ for /f "delims=" %%T in ('git rev-parse "!DROP_COMMIT!" 2^>nul') do set "DROP_SH
 if "!HEAD_SHA!"=="!DROP_SHA!" (
     echo This is the latest save point. Performing a hard reset...
     call git reset --hard HEAD~1
-    echo Done! The save point and all its changes have been erased.
+    echo Done. The save point and all its changes have been erased.
     goto :eof
 )
 
@@ -5528,7 +5527,7 @@ echo Attempting automatic removal...
 call git rebase -X theirs --onto !DROP_SHA!~1 !DROP_SHA!
 
 if not errorlevel 1 (
-    echo Done! The save point has been removed from history.
+    echo Done. The save point has been removed from history.
     goto :eof
 )
 
@@ -5540,7 +5539,7 @@ echo.
 call :HandleRebaseConflicts
 
 echo.
-echo Done! The save point has been removed from history.
+echo Done. The save point has been removed from history.
 goto :eof
 
 :HandleRebaseConflicts
