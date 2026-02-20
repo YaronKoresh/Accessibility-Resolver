@@ -336,7 +336,7 @@ echo.
 echo  Step 1 of 6 - Saving any remaining work on !FEATURE_BRANCH!...
 call git add -A
 :: Only commit if there are actually changes to save
-call git diff --cached --quiet || call git commit -m "Final changes for !FEATURE_BRANCH!"
+git diff --cached --quiet || call git commit -m "Final changes for !FEATURE_BRANCH!"
 
 echo  Step 2 of 6 - Moving to !QFIN_TARGET!...
 call git checkout "!QFIN_TARGET!"
@@ -350,7 +350,7 @@ echo  Step 3 of 6 - Getting latest updates for !QFIN_TARGET!...
 call git pull origin "!QFIN_TARGET!" --no-rebase
 
 echo  Step 4 of 6 - Combining work from !FEATURE_BRANCH!...
-call git merge --no-ff "!FEATURE_BRANCH!" --no-edit
+call git merge --no-ff "!FEATURE_BRANCH!"
 
 if errorlevel 1 (
     echo.
@@ -5342,7 +5342,7 @@ if "!CONF_COUNT!"=="0" (
     echo.
     echo  Success! Everything is back in sync.
     pause
-    exit /b
+    goto :eof
 )
 
 echo  Options:
@@ -5357,7 +5357,7 @@ if /I "!FILE_NUM!"=="ABORT" (
     echo  Cancelling merge...
     call git merge --abort
     pause
-    exit /b
+    goto :eof
 )
 
 :: Map the number back to the filename
@@ -5445,7 +5445,7 @@ goto ConflictFileLoop
 echo.
 set "SYNC_REMOTE="
 set /p "SYNC_REMOTE= Sync changes to the cloud? Y or N: "
-if /I not "!SYNC_REMOTE!"=="Y" exit /b
+if /I not "!SYNC_REMOTE!"=="Y" goto :eof
 
 for /f "delims=" %%I in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "CURRENT_BRANCH=%%I"
 
@@ -5454,7 +5454,7 @@ call git push origin "!CURRENT_BRANCH!" --force-with-lease
 
 if not errorlevel 1 (
     echo Cloud is now in sync!
-    exit /b
+    goto :eof
 )
 
 echo.
@@ -5470,7 +5470,7 @@ if /I "!FORCE_RETRY!"=="Y" (
 ) else (
     echo Push cancelled.
 )
-exit /b
+goto :eof
 
 :PromptForcePushHard
 echo.
@@ -5490,7 +5490,7 @@ set /p "SYNC_REMOTE= Proceed with the cloud overwrite? Y or N: "
 if /I not "!SYNC_REMOTE!"=="Y" (
     echo.
     echo Overwrite cancelled.
-    exit /b
+    goto :eof
 )
 
 for /f "delims=" %%I in ('git rev-parse --abbrev-ref HEAD 2^>nul') do set "CURRENT_BRANCH=%%I"
@@ -5499,7 +5499,7 @@ echo.
 echo FORCE-updating the cloud...
 call git push origin "!CURRENT_BRANCH!" --force
 echo Cloud has been updated and history has been replaced.
-exit /b
+goto :eof
 
 :DropSpecificCommit
 set "DROP_COMMIT=%~1"
@@ -5510,7 +5510,7 @@ if "!HEAD_SHA!"=="!DROP_SHA!" (
     echo This is the latest save point. Performing a hard reset...
     call git reset --hard HEAD~1
     echo Done! The save point and all its changes have been erased.
-    exit /b
+    goto :eof
 )
 
 echo Removing a save point from the middle of history...
@@ -5522,7 +5522,7 @@ call git rebase -X theirs --onto !DROP_SHA!~1 !DROP_SHA!
 
 if not errorlevel 1 (
     echo Done! The save point has been removed from history.
-    exit /b
+    goto :eof
 )
 
 echo.
@@ -5534,13 +5534,13 @@ call :HandleRebaseConflicts
 
 echo.
 echo Done! The save point has been removed from history.
-exit /b
+goto :eof
 
 :HandleRebaseConflicts
 set "REBASE_ACTIVE=0"
 for /f "delims=" %%X in ('git status 2^>nul ^| findstr /C:"rebase in progress"') do set "REBASE_ACTIVE=1"
 
-if "!REBASE_ACTIVE!"=="0" exit /b
+if "!REBASE_ACTIVE!"=="0" goto :eof
 
 echo.
 echo Attempting to automatically fix remaining overlaps...
@@ -5553,7 +5553,7 @@ for /f "delims=" %%X in ('git status 2^>nul ^| findstr /C:"rebase in progress"')
 
 if "!REBASE_ACTIVE!"=="0" (
     echo Automatic fix succeeded!
-    exit /b
+    goto :eof
 )
 
 echo.
