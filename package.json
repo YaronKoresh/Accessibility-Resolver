@@ -70,13 +70,15 @@
     "@eslint/js": "npm:@eslint/js@10.0.1",
     "@types/node": "npm:@types/node@25.2.0",
     "@vitest/coverage-v8": "npm:@vitest/coverage-v8@4.0.18",
+    "ajv": "file:./shim/ajv-shim",
     "axios": "npm:axios@1.13.5",
-    "eslint": "npm:eslint@9.39.2",
+    "eslint": "npm:eslint@10.0.1",
     "eslint-config-prettier": "npm:eslint-config-prettier@10.1.8",
     "eslint-plugin-import-x": "npm:eslint-plugin-import-x@4.16.1",
     "eslint-plugin-n": "npm:eslint-plugin-n@17.23.2",
     "eslint-plugin-promise": "npm:eslint-plugin-promise@7.2.1",
     "eslint-plugin-security": "npm:eslint-plugin-security@3.0.1",
+    "glob": "npm:glob@13.0.6",
     "globals": "npm:globals@17.3.0",
     "husky": "npm:husky@9.1.7",
     "jsonc-eslint-parser": "npm:jsonc-eslint-parser@2.4.2",
@@ -91,5 +93,27 @@
     "typescript": "npm:typescript@5.9.3",
     "typescript-eslint": "npm:typescript-eslint@8.54.0",
     "vitest": "npm:vitest@4.0.18"
+  },
+  "overrides": {
+    "eslint": {
+      "ajv": "file:./shim/ajv-shim"
+    },
+    "@ts-morph/common": {
+      "minimatch": "file:./shim/minimatch-shim"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "file:./shim/minimatch-shim"
+    },
+    "readdir-glob": {
+      "minimatch": "file:./shim/minimatch-shim"
+    },
+    "glob": {
+      "minimatch": "file:./shim/minimatch-shim"
+    },
+    "archiver-utils": {
+      "glob": {
+        "minimatch": "file:./shim/minimatch-shim"
+      }
+    }
   }
 }
