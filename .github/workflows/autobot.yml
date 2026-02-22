@@ -21,13 +21,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Apply File/Branch Labels
-        if: github.event_name == 'pull_request'
-        uses: actions/labeler@v6
-        with:
-          repo-token: "${{ secrets.GITHUB_TOKEN }}"
-          sync-labels: false
-
       # ─────────────────────────────────────────────────────────────
       # PHASE 1 — Collect raw changes (diff + file metadata)
       # ─────────────────────────────────────────────────────────────
@@ -431,11 +424,6 @@ jobs:
                   `**Applied labels:** ${appliedLabels}`,
                   '',
                   'Labels were determined by AI analysis of the code diff — not the PR title or description.',
-                  '',
-                  '</details>',
-                  '',
-                  '<details>',
-                  '<summary><strong>ℹ️ About this analysis</strong></summary>',
                   '',
                   '</details>'
                 ].join('\n');
