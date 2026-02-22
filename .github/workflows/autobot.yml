@@ -382,7 +382,7 @@ jobs:
             // ═══════════════════════════════════════════
 
             if (['opened', 'synchronize', 'reopened'].includes(payload.action)) {
-              const aiSummary = process.env.AI_SUMMARY || '';
+              const aiSummary = (process.env.AI_SUMMARY || '').replace(/```markdown\s*/gi, '').replace(/```\s*/gi, '').trim();
               const aiLabelsRaw = process.env.AI_LABELS_RAW || '';
 
               // ── Parse & apply AI-classified labels (PRs only) ──
