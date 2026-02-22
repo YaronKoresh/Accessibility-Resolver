@@ -52,6 +52,7 @@ jobs:
               '',
               'CRITICAL OUTPUT CONSTRAINTS:',
               '- Output MUST be valid Markdown.',
+              '- Do NOT wrap the report in triple backticks. No ``` blocks anywhere.',
               '- Output MUST be BETWEEN 2500 and 12000 characters total.',
               '- Mention EVERY changed file in the "Changed Files Breakdown" section (even if brief).',
               '- If the diff contains "[…truncated — file diff too large…]" you MUST say which files may be partially analyzed.',
@@ -146,6 +147,7 @@ jobs:
         with:
           model: openai/gpt-4.1
           prompt-file: /tmp/summary_prompt.txt
+          max-tokens: 4000
       - name: Build Label Prompt
         if: steps.collect.outputs.has_changes == 'true'
         id: label-prompt
@@ -246,6 +248,7 @@ jobs:
         with:
           model: openai/gpt-4.1-mini
           prompt-file: /tmp/label_prompt.txt
+          max-tokens: 400
       - name: Manage Project
         env:
           AI_SUMMARY: ${{ steps.ai-summary.outputs.response }}
@@ -373,8 +376,7 @@ jobs:
               else await github.rest.issues.createComment({ owner, repo, issue_number: issueNumber, body: fullBody });
             }
             if (['opened', 'synchronize', 'reopened'].includes(payload.action)) {
-              const aiSummaryRaw = (process.env.AI_SUMMARY || '');
-              const aiSummary = aiSummaryRaw.replace(/```markdown\s*/gi, '').replace(/```\s*/gi, '').trim();
+              const aiSummary = (process.env.AI_SUMMARY || '').replace(/\nEND_OF_REPORT\s*$/m, '').trim();
               const aiLabelsRaw = process.env.AI_LABELS_RAW || '';
               const aiSummaryForComment = aiSummary.replace(/\nEND_OF_REPORT\s*$/m, '').trim();
               let labelsToAdd = [];
