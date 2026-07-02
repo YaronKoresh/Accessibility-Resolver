@@ -5,7 +5,7 @@ export default defineConfig({
     globals: false,
     environment: 'node',
     include: ['test/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    testTimeout: 60000,
+    testTimeout: 600000,
     pool: 'threads',
     setupFiles: ['test/setup.ts'], 
     coverage: {

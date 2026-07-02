@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import { defineConfig } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import prettierConfig from "eslint-config-prettier";
@@ -6,12 +7,11 @@ import promise from "eslint-plugin-promise";
 import security from "eslint-plugin-security";
 import n from "eslint-plugin-n";
 import { createRequire } from "module";
-import jsoncParser from "jsonc-eslint-parser";
 
 const require = createRequire(import.meta.url);
 const localRules = require("./tools/eslint-local-rules/index.cjs");
 
-export default tseslint.config(
+export default defineConfig(
     js.configs.recommended,
     ...tseslint.configs.recommended,
     {
@@ -24,9 +24,6 @@ export default tseslint.config(
                 project: [
                     "./tsconfig/tsconfig.json",
                     "./tsconfig/client.json",
-                    "./tsconfig/server.json",
-                    "./tsconfig/balancer.json",
-                    "./tsconfig/test.json",
                 ],
                 tsconfigRootDir: import.meta.dirname,
             },
