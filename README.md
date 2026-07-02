@@ -90,11 +90,11 @@ Add the following to your HTML `<head>` section:
 
 ```html
 <!-- Pin to a specific version for production stability -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@v1.0.0/dist/index.css">
-<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@v1.0.0/dist/index.js" defer></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@v1.0.1/dist/index.css">
+<script src="https://cdn.jsdelivr.net/gh/YaronKoresh/Accessibility-Resolver@v1.0.1/dist/index.js" defer></script>
 ```
 
-> **Note:** For production, always pin to a specific version or commit hash to avoid unexpected breaking changes. Replace `v1.0.0` with the desired version.
+> **Note:** For production, always pin to a specific version or commit hash to avoid unexpected breaking changes. Replace `v1.0.1` with the desired version.
 
 ### Self-Hosted Installation
 

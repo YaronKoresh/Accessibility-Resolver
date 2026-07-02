@@ -146,7 +146,7 @@ export const exportIssues: () => AccessibilityIssue[] = _exportIssues;
 
 export type { ScanReport, ScannerOptions } from "./core/scanner";
 
-export const VERSION = "2.0.0" as const;
+export const VERSION = "1.0.1" as const;
 
 export const init = (): void => {
   console.log(

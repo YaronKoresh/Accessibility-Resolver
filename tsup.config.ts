@@ -1,10 +1,10 @@
-import { defineConfig } from 'tsup';
-import { builtinModules } from 'node:module';
 import fs from 'node:fs/promises';
+import { builtinModules } from 'node:module';
 import path from 'node:path';
 import process from 'node:process';
 import postcss from 'postcss';
 import postcssModules from 'postcss-modules';
+import { defineConfig } from 'tsup';
 
 export default defineConfig([{
     name: 'client',

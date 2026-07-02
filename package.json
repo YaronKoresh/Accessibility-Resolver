@@ -1,6 +1,6 @@
 {
   "name": "accessibility-resolver",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A comprehensive, real-time browser library for automated web accessibility checks, auto-fixes, and user-controlled accessibility enhancements.",
   "type": "module",
   "main": "./dist/index.global.js",
@@ -85,7 +85,6 @@
     "glob": "npm:glob@13.0.6",
     "globals": "npm:globals@17.3.0",
     "husky": "npm:husky@9.1.7",
-    "jsonc-eslint-parser": "npm:jsonc-eslint-parser@2.4.2",
     "lint-staged": "npm:lint-staged@17.0.8",
     "postcss": "npm:postcss@8.5.16",
     "postcss-modules": "npm:postcss-modules@9.0.0",
