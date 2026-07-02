@@ -20,6 +20,7 @@
   ],
   "scripts": {
     "check": "npm run fix-deps && npm run fix-code && npm run build",
+    "check:pre-commit": "npm run lint:check && npm run format:check && npm run test",
     "clean": "node -e \"import { execSync } from 'child_process'; import fs from 'fs'; const paths = ['./node_modules']; paths.forEach(p => fs.rmSync(p, { recursive: true, force: true })); execSync('npm cache clean --force', { stdio: 'inherit' })\"",
     "fix-deps": "(node tools/fix-deps.js && npm install --ignore-scripts || (cd .))",
     "fix-code": "npm run generate-types && npm run lint:fix && npm run lint:check && npm run format:fix && npm run format:check && npm run test",
@@ -35,11 +36,13 @@
     "lint:fix": "(eslint src/ test/ tools/ --fix || (cd .))",
     "format:fix": "(prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"dist_config/**/*.*\" \"tools/**/*.*\" || (cd .))",
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"dist_config/**/*.*\" \"tools/**/*.*\"",
-    "generate-types": "(tsx tools/generate-types.ts || (cd .))"
+    "generate-types": "(tsx tools/generate-types.ts || (cd .))",
+    "autobot:preview": "node scripts/print_autobot_regression_fixture.cjs",
+    "autobot:random": "node scripts/run_autobot_scenario_lanes.cjs"
   },
   "lint-staged": {
     "**/*": [
-      "node -e \"require('child_process').spawn('npm', ['run', 'check'], { shell: true, stdio: 'inherit' })\""
+      "node -e \"require('child_process').spawn('npm', ['run', 'check:pre-commit'], { shell: true, stdio: 'inherit' })\""
     ]
   },
   "keywords": [
@@ -69,10 +72,11 @@
   "devDependencies": {
     "@eslint/js": "npm:@eslint/js@10.0.1",
     "@types/node": "npm:@types/node@25.2.0",
-    "@vitest/coverage-v8": "npm:@vitest/coverage-v8@4.0.18",
+    "@typescript-eslint/utils": "npm:@typescript-eslint/utils@8.62.1",
+    "@vitest/coverage-v8": "npm:@vitest/coverage-v8@4.1.9",
     "ajv": "file:./shim/ajv-shim",
-    "axios": "npm:axios@1.13.5",
-    "eslint": "npm:eslint@10.0.1",
+    "esbuild": "npm:esbuild@0.28.1",
+    "eslint": "npm:eslint@10.6.0",
     "eslint-config-prettier": "npm:eslint-config-prettier@10.1.8",
     "eslint-plugin-import-x": "npm:eslint-plugin-import-x@4.16.1",
     "eslint-plugin-n": "npm:eslint-plugin-n@17.23.2",
@@ -82,17 +86,17 @@
     "globals": "npm:globals@17.3.0",
     "husky": "npm:husky@9.1.7",
     "jsonc-eslint-parser": "npm:jsonc-eslint-parser@2.4.2",
-    "lint-staged": "npm:lint-staged@16.2.7",
-    "postcss": "npm:postcss@8.5.6",
-    "postcss-modules": "npm:postcss-modules@6.0.1",
-    "prettier": "npm:prettier@3.8.1",
+    "lint-staged": "npm:lint-staged@17.0.8",
+    "postcss": "npm:postcss@8.5.16",
+    "postcss-modules": "npm:postcss-modules@9.0.0",
+    "prettier": "npm:prettier@3.9.4",
     "ts-morph": "npm:ts-morph@24.0.0",
     "tslib": "npm:tslib@2.8.1",
     "tsup": "npm:tsup@8.5.1",
     "tsx": "npm:tsx@4.21.0",
-    "typescript": "npm:typescript@5.9.3",
-    "typescript-eslint": "npm:typescript-eslint@8.54.0",
-    "vitest": "npm:vitest@4.0.18"
+    "typescript": "npm:typescript@6.0.3",
+    "typescript-eslint": "npm:typescript-eslint@8.62.1",
+    "vitest": "npm:vitest@4.1.9"
   },
   "overrides": {
     "eslint": {
@@ -110,10 +114,27 @@
     "glob": {
       "minimatch": "file:./shim/minimatch-shim"
     },
-    "archiver-utils": {
-      "glob": {
-        "minimatch": "file:./shim/minimatch-shim"
+    "vite": [
+      "8.1.3",
+      {
+        "tsx": {
+          "esbuild": "0.28.1"
+        }
       }
+    ],
+    "archiver-utils": {
+      "glob": [
+        "13.0.6",
+        {
+          "minimatch": "file:./shim/minimatch-shim"
+        }
+      ]
+    },
+    "tsup": {
+      "esbuild": "0.28.1"
+    },
+    "tsx": {
+      "esbuild": "0.28.1"
     }
   }
 }
