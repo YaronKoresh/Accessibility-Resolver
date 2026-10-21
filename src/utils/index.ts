@@ -126,7 +126,7 @@ export const getEffectiveBackgroundColorOfElement = (
   let currentElement: Element | null = element;
   let resultBg: RGBAColor = [255, 255, 255, 1];
 
-  while (currentElement && currentElement !== document.documentElement) {
+  while (currentElement) {
     const style: CSSStyleDeclaration = window.getComputedStyle(currentElement);
     const bg: RGBAColor = parseCssColorString(style.backgroundColor);
 
@@ -134,7 +134,16 @@ export const getEffectiveBackgroundColorOfElement = (
       resultBg = blendColors(bg, resultBg);
       if (bg[3] >= 1) break;
     }
-    currentElement = currentElement.parentElement;
+
+    if (currentElement.parentElement) {
+      currentElement = currentElement.parentElement;
+    } else {
+      const rootNode: Node = currentElement.getRootNode();
+      currentElement =
+        typeof ShadowRoot !== "undefined" && rootNode instanceof ShadowRoot
+          ? rootNode.host
+          : null;
+    }
   }
 
   return resultBg;
