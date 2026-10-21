@@ -260,10 +260,24 @@ export const hasAriaLabelledby = (el: Element): boolean => {
   });
 };
 
+const BUTTON_LIKE_INPUT_TYPES: ReadonlySet<string> = new Set<string>([
+  "button",
+  "submit",
+  "reset",
+]);
+
 export const hasTextOrValue = (el: Element): boolean => {
-  const text: string = el.textContent?.trim() || "";
-  const value: string = (el as HTMLInputElement).value?.trim() || "";
-  return text.length > 0 || value.length > 0;
+  const tag: string = el.tagName.toLowerCase();
+
+  if (tag === "input") {
+    const type: string = (el.getAttribute("type") ?? "text").toLowerCase();
+    if (!BUTTON_LIKE_INPUT_TYPES.has(type)) return false;
+    return ((el as HTMLInputElement).value?.trim() || "").length > 0;
+  }
+
+  if (tag === "select" || tag === "textarea") return false;
+
+  return (el.textContent?.trim() || "").length > 0;
 };
 
 export const hasImageWithAltInAnchor = (el: Element): boolean => {
