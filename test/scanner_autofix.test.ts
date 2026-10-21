@@ -34,7 +34,8 @@ afterAll((): void => {
 
 const buildPage = (): HTMLButtonElement => {
   document.head.innerHTML = "";
-  document.body.innerHTML = '<button id="small-button">Go</button>';
+  document.body.innerHTML =
+    '<button id="small-button">Go</button><button id="next-button">Next</button>';
   return document.getElementById("small-button") as HTMLButtonElement;
 };
 
@@ -57,8 +58,8 @@ describe("AccessibilityScanner autoFix option", () => {
     });
     const report: ScanReport = await scanner.scan();
 
-    expect(report.totalIssues).toBe(2);
-    expect(report.autoFixedCount).toBe(2);
+    expect(report.totalIssues).toBe(4);
+    expect(report.autoFixedCount).toBe(4);
     expect(report.unresolvedCount).toBe(0);
     expect(button.style.minWidth).toBe("24px");
     expect(button.style.minHeight).toBe("24px");
@@ -73,9 +74,9 @@ describe("AccessibilityScanner autoFix option", () => {
     });
     const report: ScanReport = await scanner.scan();
 
-    expect(report.totalIssues).toBe(2);
+    expect(report.totalIssues).toBe(4);
     expect(report.autoFixedCount).toBe(0);
-    expect(report.unresolvedCount).toBe(2);
+    expect(report.unresolvedCount).toBe(4);
     expect(button.getAttribute("style")).toBeNull();
     expect(button.hasAttribute("data-ar-focus-fix")).toBe(false);
     expect(document.getElementById("ar-focus-appearance-fix")).toBeNull();
@@ -89,9 +90,9 @@ describe("AccessibilityScanner autoFix option", () => {
 
     autoFixWCAG22Results(results);
 
-    expect(failedBefore).toBe(2);
+    expect(failedBefore).toBe(4);
     expect(results.filter((r): boolean => r.isAutofixed === true)).toHaveLength(
-      2,
+      4,
     );
   });
 });

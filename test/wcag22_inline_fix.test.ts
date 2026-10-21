@@ -34,7 +34,7 @@ beforeEach((): void => {
 
 describe("autoFixTargetSize and the display of the target", (): void => {
   it("makes an inline link inline-block so the minimum size applies", (): void => {
-    document.body.innerHTML = '<a id="l" href="#">x</a>';
+    document.body.innerHTML = '<a id="l" href="#">x</a><button>y</button>';
     const link: HTMLElement = document.getElementById("l")!;
 
     expect(autoFixTargetSize(link)).toBe(true);
@@ -45,7 +45,8 @@ describe("autoFixTargetSize and the display of the target", (): void => {
   });
 
   it("keeps the display of a block level target", (): void => {
-    document.body.innerHTML = '<button id="b" style="display:block">x</button>';
+    document.body.innerHTML =
+      '<button id="b" style="display:block">x</button><button>y</button>';
     const button: HTMLElement = document.getElementById("b")!;
 
     expect(autoFixTargetSize(button)).toBe(true);
@@ -56,7 +57,7 @@ describe("autoFixTargetSize and the display of the target", (): void => {
 
   it("keeps an inline-flex target as it is", (): void => {
     document.body.innerHTML =
-      '<span id="s" role="button" tabindex="0" style="display:inline-flex">x</span>';
+      '<span id="s" role="button" tabindex="0" style="display:inline-flex">x</span><button>y</button>';
     const target: HTMLElement = document.getElementById("s")!;
 
     expect(autoFixTargetSize(target)).toBe(true);

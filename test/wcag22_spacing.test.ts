@@ -83,3 +83,33 @@ describe("checkTargetSize spacing", (): void => {
     expect(result.measurements?.spacing).toBe(5);
   });
 });
+
+describe("checkTargetSize neighbours outside the parent", (): void => {
+  it("passes a small target that has no neighbours at all", (): void => {
+    document.body.innerHTML = "<div><button id='t'>a</button></div>";
+    place("t", 0, 0, 10, 10);
+    const result = checkTargetSize(document.getElementById("t")!);
+    expect(result.passed).toBe(true);
+    expect(result.measurements?.spacing).toBeGreaterThanOrEqual(24);
+  });
+
+  it("measures a neighbour that lives in another parent", (): void => {
+    document.body.innerHTML =
+      "<div><button id='t'>a</button></div><div><button id='n'>b</button></div>";
+    place("t", 0, 0, 10, 10);
+    place("n", 18, 0, 10, 10);
+    const result = checkTargetSize(document.getElementById("t")!);
+    expect(result.measurements?.spacing).toBe(8);
+    expect(result.passed).toBe(true);
+  });
+
+  it("fails a small target touching a neighbour in another parent", (): void => {
+    document.body.innerHTML =
+      "<div><button id='t'>a</button></div><div><button id='n'>b</button></div>";
+    place("t", 0, 0, 10, 10);
+    place("n", 10, 0, 10, 10);
+    const result = checkTargetSize(document.getElementById("t")!);
+    expect(result.passed).toBe(false);
+    expect(result.measurements?.spacing).toBe(0);
+  });
+});

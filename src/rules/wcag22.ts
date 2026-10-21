@@ -78,9 +78,10 @@ export const checkTargetSize = (element: Element): TargetSizeCheckResult => {
   const meetsHeight: boolean = height >= minSize;
   const passesSize: boolean = meetsWidth && meetsHeight;
 
+  const spacing: number = calculateTargetSpacing(element);
+
   let hasAdequateSpacing: boolean = false;
   if (!passesSize) {
-    const spacing: number = calculateTargetSpacing(element);
     const widthWithSpacing: number = width + spacing * 2;
     const heightWithSpacing: number = height + spacing * 2;
     hasAdequateSpacing =
@@ -109,24 +110,29 @@ export const checkTargetSize = (element: Element): TargetSizeCheckResult => {
       minRequired: minSize,
       area,
       isCircular,
-      spacing: calculateTargetSpacing(element),
+      spacing,
     },
   };
 };
+
+const TARGET_NEIGHBOUR_SELECTOR =
+  'button, a[href], input:not([type="hidden"]), select, textarea, [role="button"], [role="link"], [role="checkbox"], [role="radio"], [tabindex]:not([tabindex="-1"])' as const;
 
 const calculateTargetSpacing = (element: Element): number => {
   const rect: DOMRect = element.getBoundingClientRect();
   let minSpacing: number = Infinity;
 
-  const parent: HTMLElement = element.parentElement;
-  if (!parent) return 0;
+  const root: Node = element.getRootNode?.() ?? document;
+  const scope: ParentNode =
+    typeof (root as ParentNode).querySelectorAll === "function"
+      ? (root as ParentNode)
+      : document;
 
-  const siblings: NodeListOf<Element> = parent.querySelectorAll(
-    'button, a[href], input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])',
-  );
-
-  for (const sibling of siblings) {
+  for (const sibling of Array.from(
+    scope.querySelectorAll(TARGET_NEIGHBOUR_SELECTOR),
+  )) {
     if (sibling === element) continue;
+    if (sibling.contains(element) || element.contains(sibling)) continue;
 
     const siblingRect: DOMRect = sibling.getBoundingClientRect();
 
@@ -144,7 +150,9 @@ const calculateTargetSpacing = (element: Element): number => {
     minSpacing = Math.min(minSpacing, Math.hypot(horizontalGap, verticalGap));
   }
 
-  return minSpacing === Infinity ? 0 : minSpacing;
+  return minSpacing === Infinity
+    ? AR_CONFIG.WCAG_22_MIN_TARGET_SIZE_PX
+    : minSpacing;
 };
 
 const isInlineTarget = (element: Element): boolean => {
