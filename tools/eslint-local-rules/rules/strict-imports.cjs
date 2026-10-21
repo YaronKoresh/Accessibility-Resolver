@@ -1,5 +1,7 @@
 const { builtinModules } = require("node:module");
 
+const MAX_LINE_WIDTH = 80;
+
 const normalize = (str) => {
   return str.replace(/\r\n/g, "\n").trim();
 };
@@ -79,7 +81,13 @@ const generateStatement = (data, maxNamed, newline, indent, quote) => {
       return `${typePrefix}${spec.imported}${alias}`;
     });
 
-    if (specifiers.length > maxNamed) {
+    const singleLine = `{ ${specifiers.join(", ")} }`;
+    const statementPrefix = `import ${topLevelTypePrefix}${parts.length > 0 ? `${parts.join(", ")}, ` : ""}`;
+    const statementSuffix = ` from ${quote}${source}${quote}${attributes || ""};`;
+    const tooWide =
+      statementPrefix.length + singleLine.length + statementSuffix.length >
+      MAX_LINE_WIDTH;
+    if (specifiers.length > maxNamed || tooWide) {
       parts.push(
         `{${newline}${indent}${specifiers.join(`,${newline}${indent}`)},${newline}}`,
       );
@@ -118,8 +126,12 @@ const generateCJSStatement = (data, maxNamed, newline, indent, quote) => {
         : spec.imported;
     });
 
+    const singleLineDestructuring = `{ ${specifiers.join(", ")} }`;
+    const tooWide =
+      `const ${singleLineDestructuring} = require(${quote}${source}${quote});`
+        .length > MAX_LINE_WIDTH;
     const destructuring =
-      specifiers.length > maxNamed
+      specifiers.length > maxNamed || tooWide
         ? `{${newline}${indent}${specifiers.join(`,${newline}${indent}`)},${newline}}`
         : `{ ${specifiers.join(", ")} }`;
     output += `const ${destructuring} = require(${quote}${source}${quote});`;
