@@ -133,14 +133,15 @@ const calculateTargetSpacing = (element: Element): number => {
     const horizontalGap: number = Math.max(
       siblingRect.left - rect.right,
       rect.left - siblingRect.right,
+      0,
     );
     const verticalGap: number = Math.max(
       siblingRect.top - rect.bottom,
       rect.top - siblingRect.bottom,
+      0,
     );
 
-    if (horizontalGap > 0) minSpacing = Math.min(minSpacing, horizontalGap);
-    if (verticalGap > 0) minSpacing = Math.min(minSpacing, verticalGap);
+    minSpacing = Math.min(minSpacing, Math.hypot(horizontalGap, verticalGap));
   }
 
   return minSpacing === Infinity ? 0 : minSpacing;
