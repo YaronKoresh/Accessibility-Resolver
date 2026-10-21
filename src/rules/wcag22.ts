@@ -282,7 +282,18 @@ export const autoFixFocusAppearance = (element: Element): boolean => {
   try {
     htmlElement.setAttribute("data-ar-focus-fix", "true");
 
-    if (!document.getElementById("ar-focus-appearance-fix")) {
+    const root: Node = htmlElement.getRootNode?.() ?? document;
+    const inShadowRoot: boolean =
+      typeof ShadowRoot !== "undefined" && root instanceof ShadowRoot;
+    const styleParent: ParentNode = inShadowRoot
+      ? (root as ShadowRoot)
+      : document.head;
+
+    const alreadyAdded: boolean = inShadowRoot
+      ? !!(root as ShadowRoot).querySelector("#ar-focus-appearance-fix")
+      : !!document.getElementById("ar-focus-appearance-fix");
+
+    if (!alreadyAdded) {
       const style: HTMLStyleElement = document.createElement("style");
       style.id = "ar-focus-appearance-fix";
       style.textContent = `
@@ -292,7 +303,7 @@ export const autoFixFocusAppearance = (element: Element): boolean => {
           box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.25) !important;
         }
       `;
-      document.head.appendChild(style);
+      styleParent.appendChild(style);
     }
 
     return true;
