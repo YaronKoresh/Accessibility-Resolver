@@ -1,5 +1,6 @@
 import { AR_CONFIG } from "../config";
 import {
+  autoFixWCAG22Results,
   convertToAccessibilityIssues,
   getWCAG22Summary,
   runWCAG22Checks,
@@ -231,6 +232,9 @@ export class AccessibilityScanner {
     }
 
     report.wcag22Results = runWCAG22Checks(root, this.options.includeShadowDOM);
+    if (this.options.autoFix) {
+      autoFixWCAG22Results(report.wcag22Results);
+    }
     const wcag22Issues: Array<AccessibilityIssue> =
       convertToAccessibilityIssues(report.wcag22Results);
 

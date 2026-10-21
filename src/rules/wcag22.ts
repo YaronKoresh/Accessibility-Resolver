@@ -288,6 +288,27 @@ export const autoFixFocusAppearance = (element: Element): boolean => {
   }
 };
 
+export const autoFixWCAG22Results = (
+  results: WCAG22CheckResult[],
+): WCAG22CheckResult[] => {
+  for (const result of results) {
+    if (result.passed || result.isAutofixed) continue;
+
+    let fixed: boolean = false;
+    if (result.wcagGuideline === "2.5.8") {
+      fixed = autoFixTargetSize(result.element);
+    } else if (result.wcagGuideline === "2.4.11") {
+      fixed = autoFixFocusAppearance(result.element);
+    }
+
+    if (fixed) {
+      result.isAutofixed = true;
+    }
+  }
+
+  return results;
+};
+
 export const runWCAG22Checks = (
   root: Element | Document = document,
   includeShadowDOM: boolean = true,

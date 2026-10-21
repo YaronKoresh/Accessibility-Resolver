@@ -82,6 +82,7 @@ export type {
 export {
   autoFixFocusAppearance,
   autoFixTargetSize,
+  autoFixWCAG22Results,
   checkFocusAppearance,
   checkTargetSize,
   convertToAccessibilityIssues,
