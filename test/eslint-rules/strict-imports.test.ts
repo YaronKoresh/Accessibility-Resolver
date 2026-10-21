@@ -41,4 +41,25 @@ describe("strict-imports rule", () => {
       invalid: [],
     });
   });
+
+  test("keeps imports of many short names on one line like prettier", () => {
+    ruleTester.run("strict-imports", rule, {
+      valid: [
+        {
+          code: 'import { afterAll, beforeAll, describe, expect, it } from "vitest";',
+        },
+        {
+          code: 'import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";',
+        },
+      ],
+      invalid: [
+        {
+          code: 'import {\n  afterAll,\n  beforeAll,\n  describe,\n  expect,\n  it,\n} from "vitest";',
+          output:
+            'import { afterAll, beforeAll, describe, expect, it } from "vitest";',
+          errors: [{ message: /Imports must be strictly sorted/ }],
+        },
+      ],
+    });
+  });
 });

@@ -1,6 +1,7 @@
 const { builtinModules } = require("node:module");
 
 const MAX_LINE_WIDTH = 80;
+const DEFAULT_MAX_NAMED = 1000;
 
 const normalize = (str) => {
   return str.replace(/\r\n/g, "\n").trim();
@@ -497,7 +498,7 @@ module.exports = {
           },
           maxNamedImportsPerLine: {
             type: "number",
-            default: 4,
+            default: DEFAULT_MAX_NAMED,
           },
         },
         additionalProperties: false,
@@ -522,7 +523,7 @@ module.exports = {
     ];
 
     const aliases = options.aliases || ["@/", "~/", "#/"];
-    const maxNamed = options.maxNamedImportsPerLine ?? 4;
+    const maxNamed = options.maxNamedImportsPerLine ?? DEFAULT_MAX_NAMED;
     const sourceCode = context.sourceCode || context.getSourceCode();
 
     const quote = '"';
