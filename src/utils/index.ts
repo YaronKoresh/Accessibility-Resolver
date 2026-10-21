@@ -260,7 +260,14 @@ export const hasFigcaption = (el: Element): boolean => {
 export const hasExplicitLabel = (el: Element): boolean => {
   const id: string = el.id;
   if (!id) return false;
-  return !!document.querySelector(`label[for="${id}"]`);
+  const root: Node = el.getRootNode?.() ?? document;
+  const scope: ParentNode =
+    typeof (root as ParentNode).querySelectorAll === "function"
+      ? (root as ParentNode)
+      : document;
+  return Array.from(scope.querySelectorAll("label[for]")).some(
+    (label: Element): boolean => label.getAttribute("for") === id,
+  );
 };
 
 export const hasParentLabel = (el: Element): boolean => {
