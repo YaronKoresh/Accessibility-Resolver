@@ -18,6 +18,7 @@ export const ARIA_ID_REFERENCE_ATTRIBUTES = [
 export const ARIA_MULTI_ID_REFERENCE_ATTRIBUTES = [
   "aria-controls",
   "aria-describedby",
+  "aria-details",
   "aria-flowto",
   "aria-labelledby",
   "aria-owns",
