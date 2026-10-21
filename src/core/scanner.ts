@@ -60,7 +60,6 @@ const defaultOptions: Required<ScannerOptions> = {
 
 let issuesLog: AccessibilityIssue[] = [];
 let autoFixedCount: number = 0;
-let mutationDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const logIssue = (
   severity: IssueSeverity,
@@ -167,6 +166,7 @@ export const getIssues = (): AccessibilityIssue[] => {
 export class AccessibilityScanner {
   private options: Required<ScannerOptions>;
   private mutationObserver: MutationObserver | null = null;
+  private mutationDebounceTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(options: ScannerOptions = {}) {
     this.options = { ...defaultOptions, ...options };
@@ -379,17 +379,24 @@ export class AccessibilityScanner {
     }
   }
 
+  private clearMutationDebounce(): void {
+    if (this.mutationDebounceTimeout) {
+      clearTimeout(this.mutationDebounceTimeout);
+      this.mutationDebounceTimeout = null;
+    }
+  }
+
   setupMutationObserver(callback?: (report: ScanReport) => void): void {
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
     }
+    this.clearMutationDebounce();
 
     this.mutationObserver = new MutationObserver((): void => {
-      if (mutationDebounceTimeout) {
-        clearTimeout(mutationDebounceTimeout);
-      }
+      this.clearMutationDebounce();
 
-      mutationDebounceTimeout = setTimeout(async (): Promise<void> => {
+      this.mutationDebounceTimeout = setTimeout(async (): Promise<void> => {
+        this.mutationDebounceTimeout = null;
         console.warn(
           "%cDOM has changed. Re-running accessibility scan...",
           "color:orange;font-weight:bold;",
@@ -426,6 +433,7 @@ export class AccessibilityScanner {
   }
 
   disconnectMutationObserver(): void {
+    this.clearMutationDebounce();
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
       this.mutationObserver = null;
