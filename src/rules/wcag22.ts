@@ -251,6 +251,9 @@ export const autoFixTargetSize = (element: Element): boolean => {
   if (!measurements) return false;
 
   try {
+    if (window.getComputedStyle(htmlElement).display === "inline") {
+      htmlElement.style.display = "inline-block";
+    }
     if (measurements.width < minSize) {
       htmlElement.style.minWidth = `${minSize}px`;
     }
