@@ -334,10 +334,13 @@ export const getDeviceType = (): "tablet" | "mobile" | "desktop" => {
 };
 
 export const getDeviceOrientation = (): "portrait" | "landscape" => {
-  if (screen.orientation.type.includes("portrait")) {
-    return "portrait";
+  const type: string | undefined = screen?.orientation?.type;
+  if (typeof type === "string") {
+    return type.includes("portrait") ? "portrait" : "landscape";
   }
-  return "landscape";
+  const width: number = screen?.width ?? 0;
+  const height: number = screen?.height ?? 0;
+  return height > width ? "portrait" : "landscape";
 };
 
 export const originalElementStylesMap: Map<
