@@ -46,6 +46,188 @@ export const isVisuallyHidden = (element: Element | null): boolean => {
   );
 };
 
+const MODERN_COLOR_PATTERN: RegExp =
+  /^(color|lab|lch|oklab|oklch)\(\s*([^)]*?)\s*\)$/i;
+
+const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
+
+const encodeSrgbChannel = (linear: number): number => {
+  const value: number = clamp01(linear);
+  const encoded: number =
+    value <= 0.0031308
+      ? 12.92 * value
+      : 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
+  return Math.round(clamp01(encoded) * 255);
+};
+
+const decodeSrgbChannel = (encoded: number): number => {
+  const sign: number = encoded < 0 ? -1 : 1;
+  const value: number = Math.abs(encoded);
+  return (
+    sign *
+    (value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4))
+  );
+};
+
+const multiplyMatrix = (
+  matrix: readonly number[],
+  [x, y, z]: readonly [number, number, number],
+): [number, number, number] => [
+  matrix[0] * x + matrix[1] * y + matrix[2] * z,
+  matrix[3] * x + matrix[4] * y + matrix[5] * z,
+  matrix[6] * x + matrix[7] * y + matrix[8] * z,
+];
+
+const XYZ_D65_TO_LINEAR_SRGB: readonly number[] = [
+  3.2409699419, -1.5373831776, -0.4986107603, -0.9692436363, 1.8759675015,
+  0.0415550574, 0.0556300797, -0.2039769589, 1.0569715142,
+];
+
+const XYZ_D50_TO_LINEAR_SRGB: readonly number[] = [
+  3.1338561, -1.6168667, -0.4906146, -0.9787684, 1.9161415, 0.033454, 0.0719453,
+  -0.2289914, 1.4052427,
+];
+
+const LINEAR_P3_TO_XYZ_D65: readonly number[] = [
+  0.4865709486, 0.2656676932, 0.1982172852, 0.2289745641, 0.6917385218,
+  0.0792869141, 0, 0.0451133819, 1.0439443689,
+];
+
+const parseColorComponent = (
+  token: string,
+  percentScale: number,
+): number | null => {
+  if (token === "none") return 0;
+  const match: RegExpMatchArray | null = token.match(
+    /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)(%|deg)?$/i,
+  );
+  if (!match) return null;
+  const value: number = parseFloat(match[1]);
+  return match[2] === "%" ? (value / 100) * percentScale : value;
+};
+
+type LinearRgb = [number, number, number];
+
+const parseComponents = (
+  tokens: string[],
+  scales: [number, number, number],
+): LinearRgb | null => {
+  const parts: Array<number | null> = tokens.map(
+    (t: string, i: number): number | null => parseColorComponent(t, scales[i]),
+  );
+  return parts.some((v: number | null): boolean => v === null)
+    ? null
+    : (parts as LinearRgb);
+};
+
+const polarToRectangular = (
+  space: string,
+  [light, second, third]: LinearRgb,
+): LinearRgb => {
+  if (space === "lab" || space === "oklab") return [light, second, third];
+  const radians: number = (third * Math.PI) / 180;
+  return [light, second * Math.cos(radians), second * Math.sin(radians)];
+};
+
+const linearFromRgbSpace = (
+  space: string,
+  tokens: string[],
+): LinearRgb | null => {
+  const parts: LinearRgb | null = parseComponents(tokens, [1, 1, 1]);
+  if (!parts) return null;
+  if (space === "srgb-linear") return parts;
+  const linear: LinearRgb = [
+    decodeSrgbChannel(parts[0]),
+    decodeSrgbChannel(parts[1]),
+    decodeSrgbChannel(parts[2]),
+  ];
+  if (space === "srgb") return linear;
+  return multiplyMatrix(
+    XYZ_D65_TO_LINEAR_SRGB,
+    multiplyMatrix(LINEAR_P3_TO_XYZ_D65, linear),
+  );
+};
+
+const linearFromLab = (space: string, tokens: string[]): LinearRgb | null => {
+  const parts: LinearRgb | null = parseComponents(
+    tokens,
+    space === "lab" ? [100, 125, 125] : [100, 150, 360],
+  );
+  if (!parts) return null;
+  const [light, a, b] = polarToRectangular(space, parts);
+  const fy: number = (light + 16) / 116;
+  const fx: number = fy + a / 500;
+  const fz: number = fy - b / 200;
+  const inverse = (t: number): number =>
+    t ** 3 > 216 / 24389 ? t ** 3 : (116 * t - 16) / (24389 / 27);
+  const y: number = light > 8 ? fy ** 3 : light / (24389 / 27);
+  return multiplyMatrix(XYZ_D50_TO_LINEAR_SRGB, [
+    inverse(fx) * 0.96422,
+    y,
+    inverse(fz) * 0.82521,
+  ]);
+};
+
+const linearFromOklab = (space: string, tokens: string[]): LinearRgb | null => {
+  const parts: LinearRgb | null = parseComponents(
+    tokens,
+    space === "oklab" ? [1, 0.4, 0.4] : [1, 0.4, 360],
+  );
+  if (!parts) return null;
+  const [light, a, b] = polarToRectangular(space, parts);
+  const l: number = (light + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m: number = (light - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s: number = (light - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+};
+
+const parseModernCssColor = (colorString: string): RGBAColor | null => {
+  const match: RegExpMatchArray | null = colorString
+    .trim()
+    .match(MODERN_COLOR_PATTERN);
+  if (!match) return null;
+
+  const fn: string = match[1].toLowerCase();
+  const [body, alphaToken] = match[2]
+    .split("/")
+    .map((p: string): string => p.trim());
+  const tokens: string[] = body.toLowerCase().split(/\s+/).filter(Boolean);
+
+  const space: string = fn === "color" ? (tokens.shift() ?? "") : fn;
+  if (tokens.length !== 3) return null;
+
+  let alpha: number = 1;
+  if (alphaToken !== undefined) {
+    const parsedAlpha: number | null = parseColorComponent(
+      alphaToken.toLowerCase(),
+      1,
+    );
+    if (parsedAlpha === null) return null;
+    alpha = clamp01(parsedAlpha);
+  }
+
+  let linear: LinearRgb | null = null;
+  if (space === "srgb" || space === "srgb-linear" || space === "display-p3") {
+    linear = linearFromRgbSpace(space, tokens);
+  } else if (space === "lab" || space === "lch") {
+    linear = linearFromLab(space, tokens);
+  } else if (space === "oklab" || space === "oklch") {
+    linear = linearFromOklab(space, tokens);
+  }
+  if (!linear) return null;
+
+  return [
+    encodeSrgbChannel(linear[0]),
+    encodeSrgbChannel(linear[1]),
+    encodeSrgbChannel(linear[2]),
+    alpha,
+  ];
+};
+
 export const parseCssColorString = (colorString: string): RGBAColor => {
   if (!colorString || typeof colorString !== "string") {
     return [0, 0, 0, 0];
@@ -74,6 +256,8 @@ export const parseCssColorString = (colorString: string): RGBAColor => {
         match[4] !== undefined ? parseFloat(match[4]) : 1,
       ];
     }
+    const modern: RGBAColor | null = parseModernCssColor(compColor);
+    if (modern) return modern;
   } catch (err) {
     console.error(err);
   } finally {
