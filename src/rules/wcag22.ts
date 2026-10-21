@@ -133,6 +133,7 @@ const calculateTargetSpacing = (element: Element): number => {
   )) {
     if (sibling === element) continue;
     if (sibling.contains(element) || element.contains(sibling)) continue;
+    if (!isElementRendered(sibling)) continue;
 
     const siblingRect: DOMRect = sibling.getBoundingClientRect();
 
@@ -337,7 +338,10 @@ const isElementRendered = (element: Element): boolean => {
       node = node.parentElement;
     } else {
       const rootNode: Node = node.getRootNode();
-      node = rootNode instanceof ShadowRoot ? rootNode.host : null;
+      node =
+        typeof ShadowRoot !== "undefined" && rootNode instanceof ShadowRoot
+          ? rootNode.host
+          : null;
     }
   }
 
