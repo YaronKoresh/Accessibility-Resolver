@@ -230,9 +230,19 @@ export const hasAriaLabelledby = (el: Element): boolean => {
   const labelledby: string = el.getAttribute("aria-labelledby");
   if (!labelledby) return false;
 
-  return labelledby.split(/\s+/).some((id: string): string => {
-    const labelEl: HTMLElement = document.getElementById(id);
-    return labelEl && labelEl.textContent?.trim();
+  const root: Node = el.getRootNode?.() ?? document;
+  const findById = (id: string): HTMLElement | null => {
+    const scoped: Element | null =
+      typeof (root as Document | ShadowRoot).getElementById === "function"
+        ? (root as Document | ShadowRoot).getElementById(id)
+        : null;
+    return (scoped ?? document.getElementById(id)) as HTMLElement | null;
+  };
+
+  return labelledby.split(/\s+/).some((id: string): boolean => {
+    if (!id) return false;
+    const labelEl: HTMLElement | null = findById(id);
+    return !!labelEl && !!labelEl.textContent?.trim();
   });
 };
 
