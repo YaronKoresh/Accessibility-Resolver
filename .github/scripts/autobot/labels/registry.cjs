@@ -15,6 +15,8 @@ const {
   matchesTechnicalExpectation
 } = require("./index.cjs");
 
+const labelNormalizationCache = { aliases: null };
+
 class AutobotLabelRegistry {
   static LABEL_GUIDANCE = Object.freeze({
     "breaking-change": "Use when consumers must adapt because of an incompatible API, contract, config, or behavior change.",
@@ -284,11 +286,7 @@ class AutobotLabelRegistry {
 
   static normalizeLabelName(label) {
     const normalized = String(label || "").trim().toLowerCase();
-    const LABEL_NORMALIZATION_ALIASES = Object.freeze(
-      Object.fromEntries(
-        Object.keys(AutobotLabelRegistry.LABEL_DEFINITIONS).flatMap((label) => getNormalizationEntries(label, label))
-      )
-    );
+    const LABEL_NORMALIZATION_ALIASES = getLabelNormalizationAliases(AutobotLabelRegistry.LABEL_DEFINITIONS);
     return LABEL_NORMALIZATION_ALIASES[normalized] || AutobotLabelRegistry.VERSION_LABEL_ALIASES[normalized] || normalized;
   }
 
@@ -547,6 +545,17 @@ function sortTechnicalLabels(labels) {
 
 function technicalLabelsOnly(labels, options) {
   return AutobotLabelRegistry.technicalLabelsOnly(labels, options);
+}
+
+function getLabelNormalizationAliases(labelDefinitions) {
+  if (!labelNormalizationCache.aliases) {
+    labelNormalizationCache.aliases = Object.freeze(
+      Object.fromEntries(
+        Object.keys(labelDefinitions).flatMap((label) => getNormalizationEntries(label, label))
+      )
+    );
+  }
+  return labelNormalizationCache.aliases;
 }
 
 function getNormalizationEntries(sourceLabel, targetLabel) {
