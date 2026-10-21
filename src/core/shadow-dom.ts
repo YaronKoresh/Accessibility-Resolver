@@ -56,16 +56,14 @@ export const traverseShadowDOM = (
 
     result.maxDepthReached = Math.max(result.maxDepthReached, depth);
 
-    const elements: Array<Element> = selector
-      ? Array.from(node.querySelectorAll(selector))
-      : Array.from(node.querySelectorAll("*"));
+    for (const element of Array.from(node.querySelectorAll("*"))) {
+      if (!selector || element.matches(selector)) {
+        result.elements.push(element);
+        result.shadowContextMap.set(element, shadowRoot);
 
-    for (const element of elements) {
-      result.elements.push(element);
-      result.shadowContextMap.set(element, shadowRoot);
-
-      if (callback) {
-        callback(element, shadowRoot, depth);
+        if (callback) {
+          callback(element, shadowRoot, depth);
+        }
       }
 
       const nestedShadowRoot: ShadowRoot = getShadowRoot(element);
