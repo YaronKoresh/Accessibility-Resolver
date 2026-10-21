@@ -309,6 +309,29 @@ export const autoFixWCAG22Results = (
   return results;
 };
 
+const isElementRendered = (element: Element): boolean => {
+  const ownStyle: CSSStyleDeclaration = window.getComputedStyle(element);
+  if (ownStyle.visibility === "hidden" || ownStyle.visibility === "collapse") {
+    return false;
+  }
+
+  let node: Element | null = element;
+  while (node) {
+    if (window.getComputedStyle(node).display === "none") {
+      return false;
+    }
+
+    if (node.parentElement) {
+      node = node.parentElement;
+    } else {
+      const rootNode: Node = node.getRootNode();
+      node = rootNode instanceof ShadowRoot ? rootNode.host : null;
+    }
+  }
+
+  return true;
+};
+
 export const runWCAG22Checks = (
   root: Element | Document = document,
   includeShadowDOM: boolean = true,
@@ -327,8 +350,7 @@ export const runWCAG22Checks = (
       );
 
   for (const element of elements) {
-    const style: CSSStyleDeclaration = window.getComputedStyle(element);
-    if (style.display === "none" || style.visibility === "hidden") {
+    if (!isElementRendered(element)) {
       continue;
     }
 
