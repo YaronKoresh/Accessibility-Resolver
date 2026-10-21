@@ -124,14 +124,14 @@ export const getEffectiveBackgroundColorOfElement = (
   element: Element,
 ): RGBAColor => {
   let currentElement: Element | null = element;
-  let resultBg: RGBAColor = [255, 255, 255, 1];
+  const layers: RGBAColor[] = [];
 
   while (currentElement) {
     const style: CSSStyleDeclaration = window.getComputedStyle(currentElement);
     const bg: RGBAColor = parseCssColorString(style.backgroundColor);
 
     if (bg[3] > 0) {
-      resultBg = blendColors(bg, resultBg);
+      layers.push(bg);
       if (bg[3] >= 1) break;
     }
 
@@ -144,6 +144,11 @@ export const getEffectiveBackgroundColorOfElement = (
           ? rootNode.host
           : null;
     }
+  }
+
+  let resultBg: RGBAColor = [255, 255, 255, 1];
+  for (let i: number = layers.length - 1; i >= 0; i--) {
+    resultBg = blendColors(layers[i], resultBg);
   }
 
   return resultBg;

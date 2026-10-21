@@ -77,4 +77,22 @@ describe("getEffectiveBackgroundColorOfElement", (): void => {
       255, 255, 255, 1,
     ]);
   });
+
+  it("blends a translucent layer over an opaque parent", (): void => {
+    document.body.style.backgroundColor = "rgb(0, 0, 255)";
+    document.body.innerHTML =
+      "<div id='d' style='background-color: rgba(255, 0, 0, 0.5)'>x</div>";
+    expect(
+      getEffectiveBackgroundColorOfElement(document.getElementById("d")!),
+    ).toEqual([128, 0, 128, 1]);
+    document.body.removeAttribute("style");
+  });
+
+  it("blends two translucent layers over the white default", (): void => {
+    document.body.innerHTML =
+      "<div style='background-color: rgba(0, 0, 0, 0.5)'><p id='p' style='background-color: rgba(255, 0, 0, 0.5)'>x</p></div>";
+    expect(
+      getEffectiveBackgroundColorOfElement(document.getElementById("p")!),
+    ).toEqual([192, 64, 64, 1]);
+  });
 });
