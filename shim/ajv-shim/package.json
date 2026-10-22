@@ -4,7 +4,7 @@
   "description": "Shim to bridge ESLint (ajv v6 expectations) with Ajv v8",
   "type": "module",
   "dependencies": {
-    "ajv": "npm:ajv@8.18.0"
+    "ajv": "8.20.0"
   },
   "main": "./index.cjs",
   "exports": {

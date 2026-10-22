@@ -2,7 +2,7 @@
 
 cd %~dp0..
 
-call npm run fix-deps
+call npm run check
 
 pause
 exit /B 0
