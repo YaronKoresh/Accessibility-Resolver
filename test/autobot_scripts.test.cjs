@@ -2397,3 +2397,86 @@ test("smart-link source ignores non-security repository dispatch events", async 
   assert.equal(core.outputs.get("ready"), "false");
   assert.equal(core.outputs.get("reason"), "unsupported-dispatch-source");
 });
+
+function buildSingleFileSnapshot({ title, filename, patch, additions = 2, deletions = 2 }) {
+  return {
+    pullRequest: {
+      number: 41,
+      title,
+      body: "",
+      headRef: "regression/single-file"
+    },
+    totals: {
+      filesChanged: 1,
+      additions,
+      deletions,
+      totalChanges: additions + deletions
+    },
+    files: [
+      {
+        filename,
+        status: "modified",
+        additions,
+        deletions,
+        patch: patch.join("\n"),
+        rawPatchAvailable: true
+      }
+    ]
+  };
+}
+
+test("third-party action bump in a workflow is labelled action pin only", () => {
+  const outputs = analyzePullRequestSnapshotData(buildSingleFileSnapshot({
+    title: "Bump github/codeql-action from 3.28.0 to 3.29.0",
+    filename: ".github/workflows/codeql.yml",
+    patch: [
+      "@@ -20,7 +20,7 @@ jobs:",
+      "       - name: Initialize CodeQL",
+      "-        uses: github/codeql-action/init@v3.28.0",
+      "+        uses: github/codeql-action/init@v3.29.0",
+      "       - name: Perform CodeQL Analysis",
+      "-        uses: github/codeql-action/analyze@v3.28.0",
+      "+        uses: github/codeql-action/analyze@v3.29.0"
+    ]
+  }));
+
+  assert.deepEqual(JSON.parse(outputs.deterministic_labels_json), ["action pin"]);
+  assert.equal(outputs.release_relevant, "false");
+});
+
+test("workflow change that runs pytest still earns test job", () => {
+  const outputs = analyzePullRequestSnapshotData(buildSingleFileSnapshot({
+    title: "Run the Python suite in CI",
+    filename: ".github/workflows/ci.yml",
+    additions: 2,
+    deletions: 0,
+    patch: [
+      "@@ -10,3 +10,5 @@ jobs:",
+      "+      - name: Run suite",
+      "+        run: python -m pytest -q"
+    ]
+  }));
+
+  assert.ok(hasExpectedLabel(JSON.parse(outputs.deterministic_labels_json), "test job"));
+});
+
+test("test label patterns match whole words, not fragments like plane or exceeded", () => {
+  const outputs = analyzePullRequestSnapshotData(buildSingleFileSnapshot({
+    title: "Cover plane routing limits",
+    filename: "test/routing.test.js",
+    additions: 3,
+    deletions: 0,
+    patch: [
+      "+test(\"plane routing rejects exceeded quota\", () => {",
+      "+  expect(() => route(\"seedless\")).toThrow();",
+      "+});"
+    ]
+  }));
+  const labels = [
+    ...JSON.parse(outputs.deterministic_labels_json),
+    ...JSON.parse(outputs.candidate_labels_json)
+  ];
+
+  assert.ok(!labels.includes("scenario lane"));
+  assert.ok(!labels.includes("replay seed"));
+});

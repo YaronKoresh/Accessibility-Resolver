@@ -15,7 +15,19 @@ const {
   matchesTechnicalExpectation
 } = require("./index.cjs");
 
-const labelNormalizationCache = { aliases: null };
+// Built lazily: module-level code cannot read AutobotLabelRegistry while its
+// static initializers are still running (TDZ), so callers pass the definitions in.
+let labelNormalizationAliases = null;
+const normalizedLabelNameCache = new Map();
+
+function getLabelNormalizationAliases(labelDefinitions) {
+  if (labelNormalizationAliases === null) {
+    labelNormalizationAliases = new Map(
+      Object.keys(labelDefinitions).flatMap((label) => getNormalizationEntries(label, label))
+    );
+  }
+  return labelNormalizationAliases;
+}
 
 class AutobotLabelRegistry {
   static LABEL_GUIDANCE = Object.freeze({
@@ -286,8 +298,14 @@ class AutobotLabelRegistry {
 
   static normalizeLabelName(label) {
     const normalized = String(label || "").trim().toLowerCase();
-    const LABEL_NORMALIZATION_ALIASES = getLabelNormalizationAliases(AutobotLabelRegistry.LABEL_DEFINITIONS);
-    return LABEL_NORMALIZATION_ALIASES[normalized] || AutobotLabelRegistry.VERSION_LABEL_ALIASES[normalized] || normalized;
+    const cached = normalizedLabelNameCache.get(normalized);
+    if (cached !== undefined) {
+      return cached;
+    }
+    const aliases = getLabelNormalizationAliases(AutobotLabelRegistry.LABEL_DEFINITIONS);
+    const result = aliases.get(normalized) || AutobotLabelRegistry.VERSION_LABEL_ALIASES[normalized] || normalized;
+    normalizedLabelNameCache.set(normalized, result);
+    return result;
   }
 
   static getLabelMetadata(label) {
@@ -545,17 +563,6 @@ function sortTechnicalLabels(labels) {
 
 function technicalLabelsOnly(labels, options) {
   return AutobotLabelRegistry.technicalLabelsOnly(labels, options);
-}
-
-function getLabelNormalizationAliases(labelDefinitions) {
-  if (!labelNormalizationCache.aliases) {
-    labelNormalizationCache.aliases = Object.freeze(
-      Object.fromEntries(
-        Object.keys(labelDefinitions).flatMap((label) => getNormalizationEntries(label, label))
-      )
-    );
-  }
-  return labelNormalizationCache.aliases;
 }
 
 function getNormalizationEntries(sourceLabel, targetLabel) {

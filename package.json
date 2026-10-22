@@ -37,7 +37,7 @@
     "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"dist_config/**/*.*\" \"tools/**/*.*\"",
     "generate-types": "(tsx tools/generate-types.ts || (cd .))",
     "autobot:preview": "node scripts/print_autobot_regression_fixture.cjs",
-    "autobot:random": "node scripts/run_autobot_scenario_lanes.cjs"
+    "autobot:random": "node --env-file=autobot.env scripts/run_autobot_scenario_lanes.cjs"
   },
   "lint-staged": {
     "**/*": [
@@ -68,6 +68,10 @@
   "engines": {
     "node": ">=24.0.0"
   },
+  "dependencies": {
+    "dotenv": "17.2.3",
+    "minimatch": "file:./shim/minimatch-shim"
+  },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "25.2.0",
@@ -95,6 +99,7 @@
     "tsx": "4.21.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.62.1",
+    "vite": "8.3.4",
     "vitest": "5.0.5"
   },
   "overrides": {

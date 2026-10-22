@@ -539,7 +539,44 @@ function matchesWorkflowScriptPath(normalizedPath) {
 function isAutobotClassificationInfrastructure(normalizedPath) {
   return /^\.github\/scripts\/(?:(?:autobot|smart_link)[^/]*|(?:autobot|smart_link)\/.+)\.(cjs|mjs|js|ts)$/.test(normalizedPath)
     || /^\.github\/workflows\/(autobot|smart-link)\.ya?ml$/.test(normalizedPath)
-    || /^(test|tests)\/(?:(test_)?autobot[^/]*|smart_link[^/]*|test_smart_link[^/]*|deterministic_scenario_engine|javascript_test_harness)(\.test)?\.(cjs|mjs|js|ts|py)$/.test(normalizedPath);
+    || /^(test|tests)\/(?:(test_)?autobot[^/]*|smart_link[^/]*|test_smart_link[^/]*|deterministic_scenario_[a-z_]+|javascript_test_harness)(\.test)?\.(cjs|mjs|js|ts|py)$/.test(normalizedPath);
+}
+
+const ACTION_PIN_LINE_PATTERN = /^\s*-?\s*uses:\s*[a-z0-9_.-]+\/[a-z0-9_.\/-]+@\S+/m;
+const WORKFLOW_TEST_COMMAND_PATTERN = /\b(?:pytest|unittest|tox|jest|vitest|mocha)\b|\bnode\s+--test\b|\b(?:npm|yarn|pnpm|bun)\s+(?:run\s+)?test\b|\bpoe\s+test\b|\b(?:go|cargo)\s+test\b|^\s*-?\s*name:.*\btests?\b/m;
+
+function hasActionPinEvidence(text) {
+  return ACTION_PIN_LINE_PATTERN.test(String(text || "").toLowerCase());
+}
+
+function hasWorkflowTestExecutionEvidence(filesWithContext) {
+  return (filesWithContext || []).some((file) => {
+    const normalizedPath = String(file.filename || "").toLowerCase();
+    if (!matchesWorkflowFilePath(normalizedPath)) {
+      return false;
+    }
+    return changedPatchBodyLines(String(file.patch || "").toLowerCase())
+      .some((line) => WORKFLOW_TEST_COMMAND_PATTERN.test(line));
+  });
+}
+
+function isActionPinOnlyChange(filesWithContext) {
+  let sawActionPin = false;
+  for (const file of filesWithContext || []) {
+    const normalizedPath = String(file.filename || "").toLowerCase();
+    if (!matchesWorkflowFilePath(normalizedPath)) {
+      return false;
+    }
+    const changedLines = changedPatchBodyLines(String(file.patch || "").toLowerCase())
+      .filter((line) => line.trim().length > 0);
+    for (const line of changedLines) {
+      if (!ACTION_PIN_LINE_PATTERN.test(line)) {
+        return false;
+      }
+      sawActionPin = true;
+    }
+  }
+  return sawActionPin;
 }
 
 function hasWorkflowTextEvidence(text) {
@@ -1284,7 +1321,7 @@ function deriveTechnicalLabels(filesWithContext) {
       if (/branches:|branches-ignore:|tags:|tags-ignore:|paths:|paths-ignore:/.test(workflowPatchText)) addTechnicalLabel(technicalLabels, "branch filter");
       if (/upload-artifact|download-artifact/.test(workflowPatchText)) addTechnicalLabel(technicalLabels, "artifact upload");
       if (/actions\/cache|cache-hit|restore-keys|cache:/.test(workflowPatchText)) addTechnicalLabel(technicalLabels, "cache restore");
-      if (/uses:\s*actions\//.test(workflowPatchText)) addTechnicalLabel(technicalLabels, "action pin");
+      if (hasActionPinEvidence(workflowPatchText)) addTechnicalLabel(technicalLabels, "action pin");
     }
 
     if (autobotClassificationInfrastructure) {
@@ -1335,16 +1372,16 @@ function deriveTechnicalLabels(filesWithContext) {
     }
 
     if (testSurface) {
-      if (/integration|scenario|lane|replay|regression|harness/.test(text)) {
+      if (/\b(integration|scenarios?|lanes?|replay|regression|harness)\b/.test(text)) {
         addTechnicalLabel(technicalLabels, "integration test");
       } else {
         addTechnicalLabel(technicalLabels, "unit test");
       }
-      if (/fixture/.test(text)) addTechnicalLabel(technicalLabels, "test fixture");
+      if (/\bfixtures?\b/.test(text)) addTechnicalLabel(technicalLabels, "test fixture");
       if (/\bmock\b/.test(text)) addTechnicalLabel(technicalLabels, "mock setup");
-      if (/scenario|lane/.test(text)) addTechnicalLabel(technicalLabels, "scenario lane");
-      if (/replay|seed/.test(text)) addTechnicalLabel(technicalLabels, "replay seed");
-      if (/smoke/.test(text)) addTechnicalLabel(technicalLabels, "smoke test");
+      if (/\bscenario[\s_-]?lanes?\b/.test(text)) addTechnicalLabel(technicalLabels, "scenario lane");
+      if (/\breplay[\s_-]?seeds?\b/.test(text)) addTechnicalLabel(technicalLabels, "replay seed");
+      if (/\bsmoke\b/.test(text)) addTechnicalLabel(technicalLabels, "smoke test");
     }
 
     if (documentationSurface) {
@@ -2645,6 +2682,8 @@ function analyzePullRequestSnapshotData(snapshot) {
   const maintenanceOnlyEligible = filesWithContext.length > 0
     && [...categoryCounts.keys()].every((category) => MAINTENANCE_ONLY_CATEGORIES.has(category))
     && !AutobotLabelRegistry.RELEASE_CRITICAL_LABELS.some((label) => signalSet.has(label));
+  const testSurfaceSupported = Boolean(categoryCounts.get("test")) || hasWorkflowTestExecutionEvidence(filesWithContext);
+  const actionPinOnlyChange = isActionPinOnlyChange(filesWithContext);
   const hasTokenSecurityEvidence = filesWithContext.some((file) => {
     const normalizedPath = String(file.filename || "").toLowerCase();
     if (!hasSecurityPathEvidence(normalizedPath) || isAutobotClassificationInfrastructure(normalizedPath)) {
@@ -2704,7 +2743,7 @@ function analyzePullRequestSnapshotData(snapshot) {
   }
   if (categoryCounts.get("documentation")) deterministicLabelSet.add("documentation");
   if (categoryCounts.get("test")) deterministicLabelSet.add("test");
-  if (categoryCounts.get("test") || categoryCounts.get("workflow") || signalSet.has("workflow")) deterministicLabelSet.add("test job");
+  if (testSurfaceSupported) deterministicLabelSet.add("test job");
   if (categoryCounts.get("ui") || signalSet.has("ui")) deterministicLabelSet.add("ui");
   if (categoryCounts.get("workflow") || signalSet.has("workflow")) deterministicLabelSet.add("workflow");
   if (categoryCounts.get("github") || signalSet.has("github")) deterministicLabelSet.add("github");
@@ -2741,7 +2780,7 @@ function analyzePullRequestSnapshotData(snapshot) {
     }
     if (categoryCounts.get("documentation") || titleSignals.documentation) candidateLabelSet.add("documentation");
     if (categoryCounts.get("test")) candidateLabelSet.add("test");
-    if (categoryCounts.get("test") || categoryCounts.get("workflow") || signalSet.has("workflow")) candidateLabelSet.add("test job");
+    if (testSurfaceSupported) candidateLabelSet.add("test job");
     if (categoryCounts.get("ui") || signalSet.has("ui")) candidateLabelSet.add("ui");
     if (categoryCounts.get("workflow") || signalSet.has("workflow")) candidateLabelSet.add("workflow");
     if (categoryCounts.get("github") || signalSet.has("github")) candidateLabelSet.add("github");
@@ -2777,7 +2816,7 @@ function analyzePullRequestSnapshotData(snapshot) {
       return Boolean(categoryCounts.get("documentation"));
     }
     if (AutobotLabelRegistry.matchesExpectedLabel(normalizedLabel, "test")) {
-      return Boolean(categoryCounts.get("test")) || Boolean(categoryCounts.get("workflow")) || signalSet.has("workflow");
+      return testSurfaceSupported;
     }
     if (
       AutobotLabelRegistry.matchesExpectedLabel(normalizedLabel, "workflow")
@@ -2856,7 +2895,7 @@ function analyzePullRequestSnapshotData(snapshot) {
     }
     if (
       AutobotLabelRegistry.matchesExpectedLabel(normalizedLabel, "test")
-      && (Boolean(categoryCounts.get("test")) || Boolean(categoryCounts.get("workflow")) || signalSet.has("workflow"))
+      && testSurfaceSupported
     ) {
       labelSupportCache.set(normalizedLabel, true);
       return true;
@@ -2944,7 +2983,7 @@ function analyzePullRequestSnapshotData(snapshot) {
     const normalizedLabel = AutobotLabelRegistry.normalizeLabelName(label);
     if (
       AutobotLabelRegistry.matchesExpectedLabel(normalizedLabel, "test")
-      && (Boolean(categoryCounts.get("test")) || Boolean(categoryCounts.get("workflow")) || signalSet.has("workflow"))
+      && testSurfaceSupported
     ) {
       return true;
     }
@@ -3282,6 +3321,9 @@ function analyzePullRequestSnapshotData(snapshot) {
     const maintenanceNoiseLabels = new Set(["unit test", "smoke test", "task runner"]);
     deterministicLabels = deterministicLabels.filter((label) => {
       const normalizedLabel = AutobotLabelRegistry.normalizeLabelName(label);
+      if (actionPinOnlyChange && normalizedLabel === "action pin") {
+        return true;
+      }
       if (PR_PIPELINE_CLUTTER_LABELS.has(normalizedLabel) || maintenanceNoiseLabels.has(normalizedLabel)) {
         return false;
       }

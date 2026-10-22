@@ -6,7 +6,7 @@ const { escapeRegExp, formatBulletLines, humanizeIdentifier } = require("../util
 function isAutobotClassificationInfrastructure(normalizedPath) {
   return /^\.github\/scripts\/(?:(?:autobot|smart_link)[^/]*|(?:autobot|smart_link)\/.+)\.(cjs|mjs|js|ts)$/.test(normalizedPath)
     || /^\.github\/workflows\/(autobot|smart-link)\.ya?ml$/.test(normalizedPath)
-    || /^(test|tests)\/(?:(test_)?autobot[^/]*|smart_link[^/]*|test_smart_link[^/]*|deterministic_scenario_engine|javascript_test_harness)(\.test)?\.(cjs|mjs|js|ts|py)$/.test(normalizedPath);
+    || /^(test|tests)\/(?:(test_)?autobot[^/]*|smart_link[^/]*|test_smart_link[^/]*|deterministic_scenario_[a-z_]+|javascript_test_harness)(\.test)?\.(cjs|mjs|js|ts|py)$/.test(normalizedPath);
 }
 
 function isTestPath(normalizedPath) {

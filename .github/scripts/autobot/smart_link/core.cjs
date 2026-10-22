@@ -113,7 +113,9 @@ const STOP_WORDS = new Set([
 ]);
 const DIRECTIVE_REGEX = /\b(?<directive>close[sd]?|fix(?:e[sd])?|resolve[sd]?|implement(?:s|ed|ing)?|connect(?:s|ed|ing)?|relate(?:s|d|ing)?|reference[sd]?|see|depend(?:s|ed|ing)?(?:\s+on)?|blocked(?:\s+by)?|duplicate(?:\s+of)?)\s+(?:to\s+|on\s+|by\s+)?(?:(?<repo>[a-z0-9_.-]+\/[a-z0-9_.-]+))?#(?<id>\d+)\b/gi;
 const GENERIC_REF_REGEX = /(?:(?<repo>[a-z0-9_.-]+\/[a-z0-9_.-]+))?#(?<id>\d+)\b/gi;
-const URL_REF_REGEX = /https:\/\/github\.com\/(?<repo>[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/(?:issues|pull)\/(?<id>\d+)\b/gi;
+const URL_REF_REGEX = /https:\/\/(?:redirect\.)?github\.com\/(?<repo>[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/(?:issues|pull)\/(?<id>\d+)\b/gi;
+const FOREIGN_HTML_LINK_REGEX = /<a\b[^>]*?\bhref\s*=\s*["']?https?:\/\/(?:www\.|redirect\.)?github\.com\/(?<repo>[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/(?:issues|pull|discussions)\/\d+[^>]*>[\s\S]*?<\/a\s*>/gi;
+const FOREIGN_MARKDOWN_LINK_REGEX = /\[[^\]\n]*\]\(\s*<?https?:\/\/(?:www\.|redirect\.)?github\.com\/(?<repo>[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)\/(?:issues|pull|discussions)\/\d+[^)\s]*(?:\s+"[^"]*")?\s*\)/gi;
 const PATH_SIGNAL_REGEX = /\b(?:\.github|docs|docker|scripts|src|tests)(?:\/[A-Za-z0-9_.-]+){1,5}\b/gi;
 const GHSA_REGEX = /\bGHSA-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}-[A-Za-z0-9]{4}\b/gi;
 const CVE_REGEX = /\bCVE-\d{4}-\d{4,}\b/gi;
@@ -331,13 +333,28 @@ function normalizeDirectiveBucket(directive) {
   return "relatedIds";
 }
 
+// Drop HTML and Markdown links that point at another repository's issues, pulls or
+// discussions (e.g. dependabot release notes), so their "#N" text is not read as local.
+function omitForeignReferenceLinks(text, repoFullName) {
+  const normalizedRepo = normalizeRepoFullName(repoFullName);
+  const source = asString(text);
+  if (!normalizedRepo) return source;
+  const dropForeign = (match, ...args) => {
+    const groups = args[args.length - 1];
+    return normalizeRepoFullName(groups && groups.repo) === normalizedRepo ? match : " ";
+  };
+  return source
+    .replace(FOREIGN_HTML_LINK_REGEX, dropForeign)
+    .replace(FOREIGN_MARKDOWN_LINK_REGEX, dropForeign);
+}
+
 function extractExplicitReferenceSignals({ body, branch, repoFullName, title }) {
   const closeIds = [];
   const connectIds = [];
   const dependencyIds = [];
   const implementIds = [];
   const relatedIds = [];
-  const directiveText = `${asString(title)}\n${asString(body)}`;
+  const directiveText = omitForeignReferenceLinks(`${asString(title)}\n${asString(body)}`, repoFullName);
   const normalizedRepo = normalizeRepoFullName(repoFullName);
   for (const match of directiveText.matchAll(DIRECTIVE_REGEX)) {
     const matchRepo = normalizeRepoFullName(match.groups && match.groups.repo);
@@ -874,6 +891,7 @@ module.exports = {
   getEntityKey,
   normalizeRenderTarget,
   normalizeSmartLinkEntity,
+  omitForeignReferenceLinks,
   selectSmartLinkResults,
   tokenizeText
 };

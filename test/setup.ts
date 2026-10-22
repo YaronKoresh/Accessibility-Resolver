@@ -10,7 +10,18 @@ import {
   test,
 } from "vitest";
 
-const testGlobals = globalThis as typeof globalThis & {
+const testGlobals: typeof globalThis & {
+  __vitestCjsBridge__?: {
+    afterAll: typeof afterAll;
+    afterEach: typeof afterEach;
+    beforeAll: typeof beforeAll;
+    beforeEach: typeof beforeEach;
+    describe: typeof describe;
+    it: typeof it;
+    test: typeof test;
+  };
+  crypto?: typeof crypto;
+} = globalThis as typeof globalThis & {
   __vitestCjsBridge__?: {
     afterAll: typeof afterAll;
     afterEach: typeof afterEach;

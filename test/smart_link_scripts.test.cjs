@@ -300,3 +300,21 @@ test("smart-link scenario engine keeps actual output aligned with optimal expect
   assert.equal(suite.summary.deviationScenarioCount, 0, suite.reportText);
   assert.ok(suite.summary.metrics.relationConfusion.closes.closes >= 1, suite.reportText);
 });
+test("explicit references ignore links to issues and pulls in other repositories", () => {
+  const signals = extractExplicitReferenceSignals({
+    branch: "dependabot/github_actions/github/codeql-action-3.29.0",
+    repoFullName: "octo/repo",
+    title: "Bump github/codeql-action from 3.28.0 to 3.29.0",
+    body: [
+      "<li>Fix upload path <a href=\"https://redirect.github.com/github/codeql-action/pull/4160\">#4160</a></li>",
+      "<li>See [#4170](https://github.com/github/codeql-action/issues/4170)</li>",
+      "Fixes #12 and relates to [#7](https://github.com/octo/repo/issues/7).",
+      "Follow-up: https://github.com/octo/repo/pull/9"
+    ].join("\n")
+  });
+
+  assert.deepEqual(signals.closeIds, [12]);
+  assert.deepEqual(signals.genericIds, [7, 12]);
+  assert.deepEqual(signals.urlIds, [7, 9]);
+  assert.deepEqual(signals.relatedIds, []);
+});
